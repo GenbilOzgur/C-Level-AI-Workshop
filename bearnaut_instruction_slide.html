@@ -1,0 +1,116 @@
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
+*{box-sizing:border-box;margin:0;padding:0}
+.term{background:#0a0a0a;border:1px solid #1a1a1a;border-radius:4px;padding:28px 32px 32px;font-family:'Share Tech Mono',monospace}
+.scanline{background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,255,0,0.015) 2px,rgba(0,255,0,0.015) 4px);pointer-events:none;position:absolute;inset:0;border-radius:4px}
+.wrap{position:relative}
+.titlebar{display:flex;align-items:center;gap:10px;margin-bottom:22px;padding-bottom:14px;border-bottom:1px solid #1c2c1c}
+.dot{width:10px;height:10px;border-radius:50%;background:#1a3a1a}
+.dot.g{background:#00ff41}
+.title-txt{font-family:'Share Tech Mono',monospace;font-size:11px;color:#00ff41;letter-spacing:3px;flex:1;text-align:center}
+.prompt{color:#00ff41;font-size:10px;margin-bottom:18px;letter-spacing:1px}
+.prompt span{color:#4aff4a}
+.section-head{color:#00ff41;font-size:11px;letter-spacing:2px;margin:20px 0 10px;border-left:3px solid #00ff41;padding-left:10px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:6px}
+.block{background:#050f05;border:1px solid #0a2a0a;border-radius:3px;padding:12px 14px}
+.block-title{font-size:10px;color:#4aff4a;letter-spacing:2px;margin-bottom:8px}
+.line{display:flex;align-items:flex-start;gap:8px;margin-bottom:6px}
+.bullet{color:#00ff41;font-size:11px;flex-shrink:0;margin-top:1px}
+.txt{font-size:10px;color:#b0e0b0;letter-spacing:0.5px;line-height:1.6}
+.txt.hi{color:#00ff41}
+.txt.warn{color:#ffcc00}
+.txt.danger{color:#ff4444}
+.txt.cyan{color:#00ffff}
+.divider{border:none;border-top:1px solid #0a2a0a;margin:16px 0}
+.footer{display:flex;justify-content:space-between;align-items:center;margin-top:20px;padding-top:14px;border-top:1px solid #0a2a0a}
+.cursor{display:inline-block;width:8px;height:13px;background:#00ff41;animation:blink 1s step-end infinite;vertical-align:middle;margin-left:3px}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+.badge{display:inline-block;background:#001a00;border:1px solid #00ff41;border-radius:2px;padding:2px 7px;font-size:9px;color:#00ff41;letter-spacing:1px}
+.badge.red{border-color:#ff4444;color:#ff4444;background:#1a0000}
+.badge.yellow{border-color:#ffcc00;color:#ffcc00;background:#1a1400}
+.badge.cyan{border-color:#00ffff;color:#00ffff;background:#001a1a}
+.row{display:flex;align-items:center;gap:8px;margin-bottom:7px}
+.key{background:#002200;border:1px solid #004400;border-radius:2px;padding:2px 8px;font-size:10px;color:#00ff41;letter-spacing:1px}
+.arrow{color:#004400;font-size:10px}
+</style>
+
+<div class="wrap">
+<div class="term">
+  <div class="scanline"></div>
+
+  <div class="titlebar">
+    <div class="dot"></div><div class="dot"></div><div class="dot g"></div>
+    <div class="title-txt">BEARNAUT.HTML — MISSION BRIEFING v1.0</div>
+    <div class="dot g"></div><div class="dot"></div><div class="dot"></div>
+  </div>
+
+  <div class="prompt">C:\WORKSHOP\AI_GAME&gt; <span>./bearnaut --start-mission</span></div>
+  <div class="prompt" style="margin-top:-12px;margin-bottom:20px">LOADING ASTRONAUT BEAR... <span style="color:#00ff41">[ OK ]</span></div>
+
+  <div class="section-head">// GÖREV TANIMI</div>
+  <div class="grid">
+    <div class="block">
+      <div class="block-title">-- SENARYO --</div>
+      <div class="line"><span class="bullet">&gt;</span><span class="txt">Astronot ayı <span class="hi">Bearnaut</span> yabancı bir gezegende</span></div>
+      <div class="line"><span class="bullet">&gt;</span><span class="txt">Dünya'dan <span class="warn">10 CAN</span> ile gönderildi</span></div>
+      <div class="line"><span class="bullet">&gt;</span><span class="txt">Uzaylılar sağdan sola saldırıyor</span></div>
+      <div class="line"><span class="bullet">&gt;</span><span class="txt">Kurtulan her Bearnaut'u yeni gezegene taşır</span></div>
+    </div>
+    <div class="block">
+      <div class="block-title">-- KONTROLLER --</div>
+      <div class="row"><span class="key">↑</span><span class="txt hi">veya</span><span class="key">SPACE</span><span class="arrow">——&gt;</span><span class="txt hi">ZIPLA</span></div>
+      <div class="row"><span class="key">↓</span><span class="arrow">————————&gt;</span><span class="txt hi">EGİL</span></div>
+      <div style="margin-top:8px"><div class="line"><span class="bullet">&gt;</span><span class="txt cyan">Mobil: yukarı kaydır = zıpla</span></div>
+      <div class="line"><span class="bullet">&gt;</span><span class="txt cyan">Mobil: aşağı tap = eğil</span></div></div>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <div class="section-head">// TEHDİT SINIFLANDIRMASI</div>
+  <div class="grid">
+    <div class="block">
+      <div class="block-title">-- GELEN SALDIRILAR --</div>
+      <div class="line"><span class="bullet">&gt;</span><span class="badge red">ATES TOPU</span><span class="txt danger" style="margin-left:8px">— 2 CAN KAYBEDER</span></div>
+      <div class="line" style="margin-top:6px"><span class="bullet">&gt;</span><span class="badge yellow">BUYUK KURSUN</span><span class="txt warn" style="margin-left:8px">— 1 CAN</span></div>
+      <div class="line" style="margin-top:6px"><span class="bullet">&gt;</span><span class="badge">KURSUN</span><span class="txt" style="margin-left:8px">— 1 CAN</span></div>
+      <div style="margin-top:10px"><div class="line"><span class="bullet">!</span><span class="txt warn">Yüksekten gelen = ZIPLAMAyla geç</span></div>
+      <div class="line"><span class="bullet">!</span><span class="txt warn">Alçaktan gelen = EĞİLEREK geç</span></div></div>
+    </div>
+    <div class="block">
+      <div class="block-title">-- ZORLUK ARTISI --</div>
+      <div class="line"><span class="bullet">&gt;</span><span class="txt">Saldırılar zamanla <span class="danger">hızlanır</span></span></div>
+      <div class="line"><span class="bullet">&gt;</span><span class="txt">Sıklık giderek <span class="danger">artar</span></span></div>
+      <div class="line"><span class="bullet">&gt;</span><span class="txt">Gezegen 3'ten itibaren <span class="danger">ateş topu</span> sıklaşır</span></div>
+      <div style="margin-top:10px">
+      <div class="line"><span class="bullet">&gt;</span><span class="txt cyan">Hayatta kalma = <span class="hi">+1 puan</span></span></div>
+      <div class="line"><span class="bullet">&gt;</span><span class="txt cyan">Her 10 hayatta kalışta <span class="hi">+1 CAN</span></span></div>
+      </div>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <div class="section-head">// GEZEGEN SİSTEMİ</div>
+  <div class="block" style="margin-bottom:6px">
+    <div class="grid" style="margin-bottom:0">
+      <div>
+        <div class="line"><span class="bullet">&gt;</span><span class="txt">10'un katı kurtuluşta <span class="hi">YENİ GEZEGEN</span></span></div>
+        <div class="line"><span class="bullet">&gt;</span><span class="txt">Her gezegen farklı renk ve atmosfer</span></div>
+        <div class="line"><span class="bullet">&gt;</span><span class="txt">Gezegenler: <span class="cyan">ZEPHYRA › KROXUS › IGNARA › VELDOR › OMNYX</span></span></div>
+      </div>
+      <div>
+        <div class="line"><span class="bullet">&gt;</span><span class="txt warn">Gezegen 10 › 20 › 30... kurtuluşta geçiş</span></div>
+        <div class="line"><span class="bullet">&gt;</span><span class="txt">Kaç gezegene ulaşabilirsin?</span></div>
+        <div class="line"><span class="bullet">&gt;</span><span class="txt danger">0 can = GAME OVER</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer" style="justify-content:center">
+    <div class="txt" style="font-size:9px;color:#004400">BEARNAUT MISSION CONTROL — AI_TRAINING_MODULE<span class="cursor"></span></div>
+  </div>
+
+</div>
+</div>

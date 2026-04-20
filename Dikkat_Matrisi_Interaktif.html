@@ -1,0 +1,967 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vektörler, Örüntüler ve Anlama — AI Eğitimi</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+  background:#F5F7FA; color:#1A202C;
+  font-family:'Segoe UI', Calibri, Arial, sans-serif;
+  height:100vh; display:flex; flex-direction:column; overflow:hidden;
+}
+
+/* ── HEADER ──────────────────────────────────────────────── */
+header {
+  padding:10px 24px; background:#FFFFFF;
+  border-bottom:2px solid #E2E8F0;
+  display:flex; align-items:center; gap:14px; flex-shrink:0;
+  box-shadow:0 2px 6px rgba(0,0,0,0.07);
+}
+.badge {
+  background:#7C3AED; color:#fff;
+  font-size:10px; font-weight:800; letter-spacing:2px;
+  padding:5px 12px; border-radius:4px; white-space:nowrap;
+}
+header h1 {
+  font-size:15px; font-family:Georgia,serif;
+  color:#1A202C; font-weight:normal; flex:1;
+}
+.stabs { display:flex; gap:6px; flex-shrink:0; }
+.stab {
+  padding:6px 16px; border:2px solid #E2E8F0;
+  background:#F5F7FA; color:#4A5568;
+  font-size:13px; font-weight:700; border-radius:20px;
+  cursor:pointer; transition:all 0.15s;
+  font-family:'Segoe UI',Calibri,Arial,sans-serif;
+}
+.stab:hover { border-color:#7C3AED; color:#7C3AED; }
+.stab.active {
+  background:#7C3AED; border-color:#7C3AED;
+  color:#fff; box-shadow:0 2px 8px rgba(124,58,237,0.3);
+}
+
+/* ── MAIN ─────────────────────────────────────────────────── */
+.main { flex:1; display:flex; overflow:hidden; min-height:0; }
+.canvas-wrap { flex:0 0 58%; position:relative; background:#fff; border-right:2px solid #E2E8F0; }
+canvas { position:absolute; top:0; left:0; width:100%; height:100%; }
+
+/* ── PANEL ────────────────────────────────────────────────── */
+.panel {
+  flex:1; background:#F5F7FA;
+  padding:22px 22px; overflow-y:auto;
+  display:flex; flex-direction:column; gap:14px;
+}
+.kicker { font-size:11px; font-weight:800; letter-spacing:2.5px; text-transform:uppercase; }
+.ptitle { font-size:23px; font-family:Georgia,serif; color:#1A202C; line-height:1.25; font-weight:bold; }
+.divider { height:2px; background:#E2E8F0; border-radius:1px; }
+
+.body-text { font-size:16px; line-height:1.7; color:#2D3748; }
+.body-text strong { color:#1A202C; }
+.body-text em { font-style:italic; color:#4A5568; }
+
+.fact-row { display:flex; gap:10px; align-items:flex-start; }
+.fact-dot { width:11px; height:11px; border-radius:50%; flex-shrink:0; margin-top:7px; }
+.fact-row p { font-size:15px; color:#2D3748; line-height:1.65; }
+.fact-row p strong { color:#1A202C; }
+
+.analogy {
+  background:#FFFBEB; border-left:4px solid #D97706;
+  padding:12px 16px; font-size:15px; color:#92400E;
+  line-height:1.65; border-radius:0 8px 8px 0; font-style:italic;
+}
+
+.zone-box {
+  border-radius:8px; padding:13px 16px;
+  font-size:15px; line-height:1.65;
+}
+.zone-gram  { background:#EFF6FF; border:2px solid #BFDBFE; color:#1E40AF; }
+.zone-sem   { background:#FAF5FF; border:2px solid #DDD6FE; color:#5B21B6; }
+
+.hint { font-size:14px; color:#94A3B8; text-align:center; font-style:italic; }
+
+.highlight-box { border-radius:8px; padding:13px 16px; font-size:15px; line-height:1.55; }
+
+.how-to-box {
+  background:#F0FDF4; border:2px solid #86EFAC;
+  border-radius:8px; padding:14px 16px; font-size:15px;
+  line-height:1.65; color:#166534;
+}
+.how-to-box strong { color:#14532D; display:block; margin-bottom:6px; font-size:16px; }
+.how-to-box ol { margin:8px 0 0 20px; }
+.how-to-box li { margin-bottom:6px; }
+
+.warn-box {
+  background:#FFF7ED; border:2px solid #FED7AA;
+  border-radius:8px; padding:13px 16px; font-size:15px;
+  color:#9A3412; line-height:1.55;
+}
+
+/* ── CUSTOM INPUT ─────────────────────────────────────────── */
+.custom-section {
+  background:#FFFFFF; border:2px solid #E2E8F0;
+  border-radius:10px; padding:16px; flex-shrink:0;
+}
+.custom-section label {
+  display:block; font-size:16px; font-weight:700;
+  color:#1A202C; margin-bottom:10px;
+}
+.custom-section input {
+  width:100%; padding:11px 15px;
+  border:2px solid #CBD5E0; border-radius:8px;
+  font-size:16px; font-family:'Segoe UI',Calibri,Arial,sans-serif;
+  color:#1A202C; background:#FAFAFA; outline:none;
+  transition:border-color 0.15s;
+}
+.custom-section input:focus { border-color:#7C3AED; background:#fff; }
+.custom-row { display:flex; gap:8px; margin-top:10px; }
+.custom-section button {
+  padding:11px 18px; border:none; border-radius:8px;
+  font-size:15px; font-weight:700; cursor:pointer;
+  font-family:'Segoe UI',Calibri,Arial,sans-serif;
+  transition:all 0.15s;
+}
+.btn-p { background:#7C3AED; color:#fff; flex:1; }
+.btn-p:hover { background:#6D28D9; transform:translateY(-1px); }
+.btn-r { background:#F1F5F9; color:#475569; border:2px solid #CBD5E0; }
+.btn-r:hover { background:#E2E8F0; }
+
+/* ── NAV ──────────────────────────────────────────────────── */
+.nav {
+  display:flex; flex-shrink:0;
+  border-top:2px solid #E2E8F0; background:#fff;
+  box-shadow:0 -2px 8px rgba(0,0,0,0.06);
+}
+.nav button {
+  flex:1; padding:14px 8px;
+  background:transparent; border:none;
+  border-top:4px solid transparent;
+  color:#64748B; font-size:14px; font-weight:600;
+  cursor:pointer; transition:all 0.2s;
+  font-family:'Segoe UI',Calibri,Arial,sans-serif;
+  letter-spacing:0.2px;
+}
+.nav button:hover { color:#7C3AED; background:rgba(124,58,237,0.04); }
+.nav button.active {
+  color:#7C3AED; border-top-color:#7C3AED;
+  background:rgba(124,58,237,0.06);
+}
+</style>
+</head>
+<body>
+
+<header>
+  <span class="badge">MODÜL 1 · YAPAY ZEKA DEVRİMİ</span>
+  <h1 id="hTitle">Vektörler, Örüntüler &amp; Anlama — AI Nasıl Cümleleri Anlar?</h1>
+  <div class="stabs">
+    <button class="stab active" id="stab0" onclick="setSentence(0)">Örnek 1</button>
+    <button class="stab"        id="stab1" onclick="setSentence(1)">Örnek 2</button>
+  </div>
+</header>
+
+<div class="main">
+  <div class="canvas-wrap"><canvas id="cvs"></canvas></div>
+  <div class="panel" id="panel"></div>
+</div>
+
+<div class="nav">
+  <button id="btn0" onclick="setStep(0)">① Vektör Uzayı</button>
+  <button id="btn1" onclick="setStep(1)">② Dikkat Matrisi</button>
+  <button id="btn2" onclick="setStep(2)">③ Sıra Bağımsızlığı</button>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════
+//  CÜMLE VERİSETLERİ
+// ═══════════════════════════════════════════════════════════════
+const SENTENCE_DATA = [
+  {
+    short: '"CEO yapay zeka projesini onayladı"',
+    words: [
+      { label:'CEO',       color:'#1565C0', nx:0.74, ny:0.14, r:36 },
+      { label:'yapay',     color:'#6A0DAD', nx:0.11, ny:0.26, r:29 },
+      { label:'zeka',      color:'#9333EA', nx:0.82, ny:0.72, r:33 },
+      { label:'projesini', color:'#B45309', nx:0.64, ny:0.82, r:33 },
+      { label:'hızla',     color:'#374151', nx:0.22, ny:0.55, r:25 },
+      { label:'onayladı',  color:'#B84300', nx:0.48, ny:0.50, r:31 },
+    ],
+    sims: [
+      [1.00, 0.22, 0.28, 0.55, 0.16, 0.78],
+      [0.22, 1.00, 0.92, 0.68, 0.11, 0.14],
+      [0.28, 0.92, 1.00, 0.72, 0.10, 0.17],
+      [0.55, 0.68, 0.72, 1.00, 0.13, 0.44],
+      [0.16, 0.11, 0.10, 0.13, 1.00, 0.62],
+      [0.78, 0.14, 0.17, 0.44, 0.62, 1.00],
+    ],
+    attn: [
+      [0.93, 0.18, 0.24, 0.56, 0.11, 0.82],
+      [0.17, 0.95, 0.89, 0.71, 0.08, 0.12],
+      [0.21, 0.89, 0.95, 0.76, 0.07, 0.16],
+      [0.53, 0.70, 0.77, 0.92, 0.09, 0.44],
+      [0.15, 0.09, 0.08, 0.10, 0.96, 0.67],
+      [0.81, 0.12, 0.15, 0.42, 0.65, 0.93],
+    ],
+    clusters: [
+      { indices:[0,5], label:'Karar Veren + Eylem',  color:'#1565C0' },
+      { indices:[1,2], label:'Teknoloji Kavramı',      color:'#9333EA' },
+      { indices:[3,4], label:'Nesne + Niteleyici',     color:'#B45309' },
+    ],
+    scrambles: [
+      [5,2,0,1,3,4],
+      [3,0,4,2,5,1],
+      [1,3,0,5,4,2],
+    ],
+    insight:'"Bir yönetici teknolojiyi onayladı" — kelime sırası ne olursa olsun aynı anlam algılanır',
+  },
+  {
+    short: '"Dijital strateji küresel rekabeti değiştirdi"',
+    words: [
+      { label:'Dijital',    color:'#1565C0', nx:0.12, ny:0.25, r:30 },
+      { label:'strateji',   color:'#0F766E', nx:0.73, ny:0.14, r:33 },
+      { label:'küresel',    color:'#1A6B3C', nx:0.20, ny:0.62, r:29 },
+      { label:'rekabeti',   color:'#B84300', nx:0.82, ny:0.72, r:33 },
+      { label:'tamamen',    color:'#374151', nx:0.40, ny:0.82, r:25 },
+      { label:'değiştirdi', color:'#B45309', nx:0.58, ny:0.46, r:31 },
+    ],
+    sims: [
+      [1.00, 0.78, 0.55, 0.58, 0.14, 0.44],
+      [0.78, 1.00, 0.62, 0.65, 0.12, 0.68],
+      [0.55, 0.62, 1.00, 0.72, 0.17, 0.37],
+      [0.58, 0.65, 0.72, 1.00, 0.18, 0.55],
+      [0.14, 0.12, 0.17, 0.18, 1.00, 0.61],
+      [0.44, 0.68, 0.37, 0.55, 0.61, 1.00],
+    ],
+    attn: [
+      [0.91, 0.83, 0.56, 0.61, 0.09, 0.45],
+      [0.83, 0.94, 0.65, 0.68, 0.08, 0.72],
+      [0.54, 0.63, 0.92, 0.76, 0.14, 0.35],
+      [0.59, 0.68, 0.77, 0.92, 0.16, 0.57],
+      [0.11, 0.09, 0.15, 0.17, 0.96, 0.64],
+      [0.44, 0.73, 0.35, 0.57, 0.63, 0.91],
+    ],
+    clusters: [
+      { indices:[0,1], label:'Dijital Strateji',        color:'#1565C0' },
+      { indices:[2,3], label:'Küresel Rekabet',          color:'#B84300' },
+      { indices:[4,5], label:'Eylem + Pekiştirici',      color:'#374151' },
+    ],
+    scrambles: [
+      [3,0,5,1,4,2],
+      [1,4,2,5,0,3],
+      [5,2,1,4,3,0],
+    ],
+    insight:'"Dijital yaklaşım küresel rekabeti kökten değiştirdi" — kelime sırası ne olursa olsun',
+  },
+];
+
+// ═══════════════════════════════════════════════════════════════
+//  DURUM DEĞİŞKENLERİ
+// ═══════════════════════════════════════════════════════════════
+let cvs, ctx, W, H, frame = 0, step = -1;
+let hovered = -1, selected = -1;
+let attnSweep = 0;
+let posPhase = 0, phaseTimer = 0, scrambleIdx = 0;
+let sentenceIdx = 0;
+let customMode = false;
+
+// Aktif veriler (başlangıçta Örnek 1)
+let WORDS, SIMS, ATTN, CLUSTERS, SCRAMBLES;
+setSentenceData(0);
+
+function setSentenceData(idx) {
+  const d = SENTENCE_DATA[idx];
+  WORDS    = d.words;
+  SIMS     = d.sims;
+  ATTN     = d.attn;
+  CLUSTERS = d.clusters;
+  SCRAMBLES = d.scrambles;
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  BAŞLATMA
+// ═══════════════════════════════════════════════════════════════
+window.addEventListener('load', () => {
+  cvs = document.getElementById('cvs');
+  resize(); window.addEventListener('resize', resize);
+  cvs.addEventListener('mousemove', onMouseMove);
+  cvs.addEventListener('click', onClick);
+  setStep(0);
+  requestAnimationFrame(loop);
+});
+
+function resize() {
+  const wp = cvs.parentElement;
+  cvs.width = wp.clientWidth; cvs.height = wp.clientHeight;
+  W = cvs.width; H = cvs.height;
+  ctx = cvs.getContext('2d');
+  computeWordPos();
+}
+
+function computeWordPos() {
+  const pad = 64;
+  WORDS.forEach(w => {
+    w.px = pad + w.nx * (W - pad * 2);
+    w.py = pad + w.ny * (H - pad * 2);
+  });
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  YARDIMCI FONKSİYONLAR
+// ═══════════════════════════════════════════════════════════════
+function lerp(a, b, t) { return a + (b - a) * t; }
+function ease(t) { return t < 0.5 ? 2*t*t : -1+(4-2*t)*t; }
+function hexToRgb(hex) {
+  const r=parseInt(hex.slice(1,3),16), g=parseInt(hex.slice(3,5),16), b=parseInt(hex.slice(5,7),16);
+  return [r,g,b];
+}
+function rgba(hex, a) { const [r,g,b]=hexToRgb(hex); return `rgba(${r},${g},${b},${a})`; }
+function lighten(hex) {
+  const [r,g,b]=hexToRgb(hex);
+  return `rgb(${Math.min(r+70,255)},${Math.min(g+70,255)},${Math.min(b+70,255)})`;
+}
+
+// Dikkat değerine göre AÇIK TEMA hücre rengi
+function attnCellColor(v, isDiag) {
+  if (isDiag) return '#D97706';       // turuncu diagonal (öz-dikkat)
+  if (v > 0.80) return '#1E3A8A';     // çok koyu mavi
+  if (v > 0.65) return '#1D4ED8';     // koyu mavi
+  if (v > 0.45) return '#3B82F6';     // orta mavi
+  if (v > 0.25) return '#93C5FD';     // açık mavi
+  if (v > 0.10) return '#DBEAFE';     // çok açık mavi
+  return '#F8FAFF';                   // neredeyse beyaz
+}
+
+// Hücre değerine göre metin rengi
+function cellTextColor(v, isDiag) {
+  if (isDiag) return '#fff';
+  if (v > 0.45) return '#fff';
+  if (v > 0.10) return '#1E3A8A';
+  return '#94A3B8';
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  ÖZEL CÜMLE İŞLEME
+// ═══════════════════════════════════════════════════════════════
+const AUTO_COLORS = ['#1565C0','#6A0DAD','#0F766E','#B84300','#B45309','#374151','#1A6B3C','#9333EA'];
+const AUTO_POS = [
+  {nx:0.50,ny:0.12},{nx:0.83,ny:0.32},{nx:0.83,ny:0.68},
+  {nx:0.50,ny:0.88},{nx:0.17,ny:0.68},{nx:0.17,ny:0.32},
+  {nx:0.50,ny:0.50},{nx:0.66,ny:0.50}
+];
+
+function wordToVec(word, dim=16) {
+  const w = word.toLowerCase();
+  const v = new Array(dim).fill(0);
+  for (let i=0;i<w.length;i++) {
+    const c = w.charCodeAt(i);
+    for (let d=0;d<dim;d++) {
+      v[d] += Math.sin(c*2.399 + d*0.7854 + i*0.5236);
+    }
+  }
+  let mag=0; for (let d=0;d<dim;d++) mag+=v[d]*v[d]; mag=Math.sqrt(mag)||1;
+  return v.map(x=>x/mag);
+}
+
+function cosSim(a,b) {
+  let dot=0; for (let d=0;d<a.length;d++) dot+=a[d]*b[d];
+  return Math.max(0.05, Math.min(0.98, dot));
+}
+
+function buildCustomData(tokens) {
+  const n = tokens.length;
+  const vecs = tokens.map(t=>wordToVec(t));
+
+  // Benzerlik matrisi
+  const sims = Array.from({length:n},(_,i)=>
+    Array.from({length:n},(_,j)=> i===j ? 1.0 : cosSim(vecs[i],vecs[j]))
+  );
+
+  // Dikkat matrisi (öz-dikkat yüksek tutuldu, komşu kelimeler bonus alır)
+  const attn = Array.from({length:n},(_,i)=> {
+    return Array.from({length:n},(_,j)=>{
+      if (i===j) return 0.88 + (wordToVec(tokens[i],4)[0]+1)*0.045;
+      const sem = cosSim(vecs[i],vecs[j]);
+      const prox = Math.exp(-Math.abs(i-j)*0.6) * 0.25;
+      return Math.min(0.88, sem * 0.75 + prox);
+    });
+  });
+
+  // Kelimeler
+  const words = tokens.map((t,i)=>({
+    label: t,
+    color: AUTO_COLORS[i % AUTO_COLORS.length],
+    nx: AUTO_POS[i % AUTO_POS.length].nx,
+    ny: AUTO_POS[i % AUTO_POS.length].ny,
+    r: 32,
+  }));
+
+  // Kümeler (basit: en yüksek dikkat çiftleri)
+  const clusters = [
+    { indices:[0, Math.min(1,n-1)], label:'1. Anlam Kümesi', color:AUTO_COLORS[0] },
+    { indices:[Math.min(2,n-1), Math.min(3,n-1)], label:'2. Anlam Kümesi', color:AUTO_COLORS[2] },
+  ];
+  const scrambles = [[...Array(n).keys()].reverse()];
+
+  return { words, sims, attn, clusters, scrambles, insight:'"'+tokens.join(' ')+'" — her sırada aynı anlam' };
+}
+
+function applyCustomSentence(text) {
+  const tokens = text.trim().split(/\s+/).filter(Boolean).slice(0,8);
+  if (tokens.length < 2) { alert('Lütfen en az 2 kelime girin.'); return; }
+  customMode = true;
+  const data = buildCustomData(tokens);
+  WORDS = data.words; SIMS = data.sims; ATTN = data.attn;
+  CLUSTERS = data.clusters; SCRAMBLES = data.scrambles;
+  computeWordPos();
+  hovered=-1; selected=-1; attnSweep=0;
+}
+
+function resetToExample() {
+  customMode = false;
+  setSentenceData(sentenceIdx);
+  computeWordPos();
+  hovered=-1; selected=-1; attnSweep=0;
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  ETKİLEŞİM
+// ═══════════════════════════════════════════════════════════════
+function onMouseMove(e) {
+  const rc = cvs.getBoundingClientRect();
+  const mx = (e.clientX-rc.left)*(W/rc.width);
+  const my = (e.clientY-rc.top)*(H/rc.height);
+  if (step===0) {
+    hovered = WORDS.findIndex(w=>Math.hypot(w.px-mx,w.py-my)<w.r+16);
+    cvs.style.cursor = hovered>=0 ? 'pointer' : 'default';
+  } else if (step===1) {
+    const {x0,y0,cell} = matrixInfo();
+    const row = Math.floor((my-y0)/cell), col=Math.floor((mx-x0)/cell);
+    const n=WORDS.length;
+    cvs.style.cursor=(row>=0&&row<n&&col>=0&&col<n)||(mx<x0&&my>y0&&my<y0+n*cell)?'pointer':'default';
+  }
+}
+
+function onClick(e) {
+  const rc = cvs.getBoundingClientRect();
+  const mx = (e.clientX-rc.left)*(W/rc.width);
+  const my = (e.clientY-rc.top)*(H/rc.height);
+  if (step===0) {
+    const idx = WORDS.findIndex(w=>Math.hypot(w.px-mx,w.py-my)<w.r+16);
+    if (idx>=0) selected = (selected===idx)?-1:idx;
+  } else if (step===1) {
+    const {x0,y0,cell} = matrixInfo();
+    const n=WORDS.length;
+    const row = Math.floor((my-y0)/cell);
+    if (row>=0&&row<n) { if(selected!==row){selected=row;attnSweep=0;}else selected=-1; }
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  ADIM 0: VEKTÖR UZAYI
+// ═══════════════════════════════════════════════════════════════
+function drawVectorSpace() {
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle='#FFFFFF'; ctx.fillRect(0,0,W,H);
+
+  const active = hovered>=0 ? hovered : selected;
+  const breath = 1+0.035*Math.sin(frame*0.025);
+
+  // Arka plan bölgeleri
+  const zones = [
+    { cx:W*0.18, cy:H*0.38, rx:W*0.17, ry:H*0.21, color:'#1D4ED8', label:'DİLBİLGİSEL BÖLGE' },
+    { cx:W*0.70, cy:H*0.42, rx:W*0.26, ry:H*0.38, color:'#7C3AED', label:'ANLAMSAL BÖLGE'     },
+  ];
+  zones.forEach(z=>{
+    ctx.beginPath(); ctx.ellipse(z.cx,z.cy,z.rx,z.ry,0,0,Math.PI*2);
+    ctx.fillStyle=rgba(z.color,0.07); ctx.fill();
+    ctx.strokeStyle=rgba(z.color,0.22); ctx.lineWidth=2; ctx.stroke();
+    ctx.font='bold 11px Calibri'; ctx.fillStyle=rgba(z.color,0.75);
+    ctx.textAlign='center'; ctx.fillText(z.label,z.cx,z.cy-z.ry-8);
+  });
+
+  // Eksen etiketleri
+  ctx.font='11px Calibri'; ctx.fillStyle='rgba(100,116,139,0.7)'; ctx.textAlign='center';
+  ctx.fillText('← Dilbilgisel / İşlevsel Kelimeler                                    İçeriksel / Anlamsal Kelimeler →',W/2,H-14);
+  ctx.save(); ctx.translate(14,H/2); ctx.rotate(-Math.PI/2);
+  ctx.fillText('← Nesne Rolü          Özne Rolü →',0,0); ctx.restore();
+
+  // Benzerlik çizgileri (aktif kelime seçildiğinde)
+  if (active>=0) {
+    const from=WORDS[active];
+    WORDS.forEach((to,j)=>{
+      if (j===active) return;
+      const sim=SIMS[active][j]; if (sim<0.1) return;
+      const cpx=(from.px+to.px)/2-((to.py-from.py)*0.3);
+      const cpy=(from.py+to.py)/2+((to.px-from.px)*0.3);
+
+      // Glow
+      ctx.beginPath(); ctx.moveTo(from.px,from.py); ctx.quadraticCurveTo(cpx,cpy,to.px,to.py);
+      ctx.strokeStyle=rgba(WORDS[active].color,sim*0.18); ctx.lineWidth=sim*10+2; ctx.stroke();
+      // Ana çizgi
+      ctx.beginPath(); ctx.moveTo(from.px,from.py); ctx.quadraticCurveTo(cpx,cpy,to.px,to.py);
+      ctx.strokeStyle=rgba(WORDS[active].color,sim*0.80); ctx.lineWidth=sim*5+0.5; ctx.stroke();
+
+      if (sim>0.35) {
+        const t2=0.55;
+        const lx=(1-t2)*(1-t2)*from.px+2*(1-t2)*t2*cpx+t2*t2*to.px;
+        const ly=(1-t2)*(1-t2)*from.py+2*(1-t2)*t2*cpy+t2*t2*to.py;
+        ctx.font='bold 14px Calibri';
+        ctx.fillStyle=rgba(WORDS[active].color,0.95);
+        ctx.textAlign='center'; ctx.textBaseline='middle';
+        ctx.fillText(Math.round(sim*100)+'%',lx,ly);
+        ctx.textBaseline='alphabetic';
+      }
+    });
+  }
+
+  // Kelime balonları
+  WORDS.forEach((w,i)=>{
+    const isActive=i===active;
+    const scale=isActive?breath*1.12:(active>=0?0.90:breath);
+    const r=w.r*scale;
+
+    if (isActive) {
+      ctx.beginPath(); ctx.arc(w.px,w.py,r+16,0,Math.PI*2);
+      ctx.fillStyle=rgba(w.color,0.10); ctx.fill();
+      ctx.beginPath(); ctx.arc(w.px,w.py,r+8,0,Math.PI*2);
+      ctx.fillStyle=rgba(w.color,0.16); ctx.fill();
+    }
+
+    const grd=ctx.createRadialGradient(w.px-r*0.25,w.py-r*0.25,r*0.05,w.px,w.py,r);
+    if (isActive) {
+      grd.addColorStop(0,lighten(w.color)); grd.addColorStop(1,w.color);
+    } else {
+      grd.addColorStop(0,rgba(w.color,active>=0?0.35:0.65));
+      grd.addColorStop(1,rgba(w.color,active>=0?0.18:0.45));
+    }
+    ctx.beginPath(); ctx.arc(w.px,w.py,r,0,Math.PI*2);
+    ctx.fillStyle=grd;
+    if (isActive){ctx.shadowColor=w.color; ctx.shadowBlur=20;}
+    ctx.fill(); ctx.shadowBlur=0;
+    ctx.strokeStyle=rgba(w.color,isActive?1.0:(active>=0?0.35:0.75));
+    ctx.lineWidth=isActive?2.5:1.5; ctx.stroke();
+
+    const alpha=active>=0&&!isActive?0.40:1.0;
+    const fs=Math.max(11,Math.min(r*0.55,16));
+    ctx.font=`${isActive?'bold ':''}${fs}px Calibri`;
+    ctx.fillStyle=`rgba(255,255,255,${alpha})`;
+    ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillText(w.label,w.px,w.py); ctx.textBaseline='alphabetic';
+  });
+
+  // Alt ipucu
+  ctx.font='13px Calibri'; ctx.fillStyle='rgba(100,116,139,0.8)'; ctx.textAlign='center';
+  ctx.fillText(
+    active>=0 ? `"${WORDS[active].label}" — diğer tüm kelimelerle anlamsal yakınlık` :
+                '↑  Bir kelimeye tıklayın veya üzerine gelin — anlamsal bağlantıları görün',
+    W/2, H-32
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  ADIM 1: DİKKAT MATRİSİ
+// ═══════════════════════════════════════════════════════════════
+function matrixInfo() {
+  const n=WORDS.length;
+  const cell=Math.min(W*0.09,H*0.118,62);
+  const lw=cell*1.1;
+  const gridW=n*cell, gridH=n*cell;
+  const x0=(W-gridW-lw)/2+lw;
+  const y0=(H-gridH-cell)/2+cell;
+  const lx=x0-lw;
+  return {x0,y0,lx,cell,lw,n};
+}
+
+function drawAttentionMatrix() {
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle='#FFFFFF'; ctx.fillRect(0,0,W,H);
+  const {x0,y0,lx,cell,lw,n}=matrixInfo();
+
+  // Sütun başlıkları
+  WORDS.forEach((w,j)=>{
+    ctx.font=`bold ${Math.min(cell*0.24,14)}px Calibri`;
+    ctx.fillStyle=w.color; ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillText(w.label, x0+j*cell+cell/2, y0-cell*0.55);
+    ctx.textBaseline='alphabetic';
+  });
+
+  if (selected>=0) attnSweep=Math.min(attnSweep+0.022,1);
+
+  // Satırlar ve hücreler
+  WORDS.forEach((w,i)=>{
+    const ry=y0+i*cell;
+    const isSel=i===selected;
+
+    // Satır etiketi
+    ctx.font=`bold ${Math.min(cell*0.24,14)}px Calibri`;
+    ctx.fillStyle=isSel?w.color:rgba(w.color,0.75);
+    ctx.textAlign='right'; ctx.textBaseline='middle';
+    ctx.fillText(w.label, x0-10, ry+cell/2);
+    ctx.textBaseline='alphabetic';
+
+    // Seçili satır arka plan vurgusu
+    if (isSel) {
+      ctx.fillStyle=rgba(w.color,0.06);
+      ctx.fillRect(x0,ry,n*cell,cell);
+    }
+
+    WORDS.forEach((wc,j)=>{
+      const cx=x0+j*cell;
+      const v=ATTN[i][j];
+      const isDiag=i===j;
+      const cellColor=attnCellColor(v,isDiag);
+
+      let brightness=1;
+      if (isSel) {
+        const prog=ease(attnSweep);
+        brightness = j/(n-1) < prog ? 1 : 0.12;
+      } else if (selected>=0) {
+        brightness=0.22;
+      }
+
+      ctx.fillStyle=cellColor;
+      ctx.globalAlpha=brightness;
+      ctx.fillRect(cx+1,ry+1,cell-2,cell-2);
+      ctx.globalAlpha=1;
+
+      // Hücre kenarlığı
+      ctx.strokeStyle=isDiag?rgba('#D97706',0.8):'rgba(203,213,225,0.8)';
+      ctx.lineWidth=isDiag?2:0.8;
+      ctx.strokeRect(cx+1,ry+1,cell-2,cell-2);
+
+      // Yüzde etiketi
+      const showLabel = selected<0 ? (v>=0.48||isDiag) : isSel;
+      const revealOk  = selected<0 ? true : ease(attnSweep)>=(j/n);
+      if (showLabel && revealOk) {
+        const fs=isSel ? Math.min(cell*0.27,15) : Math.min(cell*0.24,13);
+        ctx.font=`${isDiag?'bold ':''}${fs}px Calibri`;
+        ctx.fillStyle=cellTextColor(v,isDiag);
+        if (!isSel) ctx.globalAlpha=brightness;
+        ctx.textAlign='center'; ctx.textBaseline='middle';
+        ctx.fillText(Math.round(v*100)+'%', cx+cell/2, ry+cell/2);
+        ctx.globalAlpha=1; ctx.textBaseline='alphabetic';
+      }
+
+      // Yüksek dikkat hücreleri için titreşim efekti
+      if (isSel && v>=0.72 && attnSweep>0.8) {
+        const pulse=0.35+0.2*Math.sin(frame*0.12+j);
+        ctx.strokeStyle=isDiag?rgba('#D97706',pulse):rgba('#1D4ED8',pulse);
+        ctx.lineWidth=2.5; ctx.strokeRect(cx+1,ry+1,cell-2,cell-2);
+      }
+    });
+  });
+
+  // Renk lejandı
+  const legX=x0, legY=y0+n*cell+16;
+  ctx.font='12px Calibri'; ctx.fillStyle='#475569'; ctx.textAlign='left';
+  ctx.fillText('Dikkat gücü: Zayıf', legX, legY+13);
+  ['#F8FAFF','#DBEAFE','#93C5FD','#3B82F6','#1D4ED8','#1E3A8A'].forEach((c,k)=>{
+    ctx.fillStyle=c;
+    ctx.strokeStyle='#CBD5E0'; ctx.lineWidth=0.5;
+    ctx.fillRect(legX+155+k*22,legY,20,14);
+    ctx.strokeRect(legX+155+k*22,legY,20,14);
+  });
+  ctx.fillStyle='#1E40AF'; ctx.textAlign='left';
+  ctx.fillText('Güçlü', legX+155+6*22+4, legY+13);
+  ctx.fillStyle='#D97706'; ctx.fillRect(legX+155+6*22+52,legY,20,14);
+  ctx.fillText('= Öz-dikkat', legX+155+6*22+76, legY+13);
+
+  if (selected<0) {
+    ctx.font='13px Calibri'; ctx.fillStyle='rgba(100,116,139,0.9)'; ctx.textAlign='center';
+    ctx.fillText('↑  Soldaki bir kelimeye tıklayın — o kelimenin dikkat örüntüsünü görün', W/2, H-16);
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  ADIM 2: KONUM BAĞIMSIZLIĞI
+// ═══════════════════════════════════════════════════════════════
+const ORIG_ORDER = [0,1,2,3,4,5];
+
+function drawPositionIndependence() {
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle='#FFFFFF'; ctx.fillRect(0,0,W,H);
+
+  const n=WORDS.length;
+  const cellW=Math.min(W*0.12,80);
+  const th=38;
+  const gapX=(W-2*28-n*cellW)/(n-1);
+  const marginX=28;
+  const rowY1=H*0.16, rowY2=H*0.40;
+  const clusterY=H*0.72;
+
+  phaseTimer++;
+  const phaseDur=[130,55,130,55];
+  if (phaseTimer>phaseDur[posPhase]) {
+    phaseTimer=0; posPhase=(posPhase+1)%4;
+    if (posPhase===0) scrambleIdx=(scrambleIdx+1)%SCRAMBLES.length;
+  }
+
+  const scramble=SCRAMBLES[scrambleIdx];
+  const t=ease(Math.min(phaseTimer/phaseDur[posPhase],1));
+
+  function tokenLayout(order,y) {
+    return order.map((wi,pos)=>({wi, x:marginX+pos*(cellW+gapX)+cellW/2, y}));
+  }
+
+  const origLayout=tokenLayout(ORIG_ORDER.slice(0,n),rowY1);
+  const scramLayout=tokenLayout(scramble.slice(0,n),rowY1);
+  let row1=origLayout;
+  if (posPhase===1) row1=origLayout.map((o,i)=>({wi:o.wi,x:lerp(o.x,scramLayout[i].x,t),y:rowY1}));
+  else if (posPhase>=2) row1=scramLayout;
+  if (posPhase===3) row1=scramLayout.map((s,i)=>({wi:s.wi,x:lerp(s.x,origLayout[i].x,t),y:rowY1}));
+
+  const scr2=SCRAMBLES[(scrambleIdx+1)%SCRAMBLES.length];
+  const row2=tokenLayout(scr2.slice(0,n),rowY2);
+
+  // Satır etiketleri
+  ctx.font='bold 12px Calibri'; ctx.textAlign='right'; ctx.textBaseline='middle'; ctx.fillStyle='#64748B';
+  ctx.fillText('SIRA 1',marginX-8,rowY1); ctx.fillText('SIRA 2',marginX-8,rowY2);
+  ctx.textBaseline='alphabetic';
+
+  function drawToken(tk) {
+    const w=WORDS[tk.wi]; if(!w) return;
+    const x=tk.x-cellW/2, y=tk.y-th/2;
+    ctx.fillStyle=rgba(w.color,0.12); ctx.fillRect(x,y,cellW,th);
+    ctx.strokeStyle=w.color; ctx.lineWidth=2; ctx.strokeRect(x,y,cellW,th);
+    ctx.font=`bold ${Math.min(cellW*0.21,14)}px Calibri`;
+    ctx.fillStyle=w.color; ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillText(w.label,tk.x,tk.y); ctx.textBaseline='alphabetic';
+  }
+
+  row1.forEach(drawToken); row2.forEach(drawToken);
+
+  // Oklar → Transformer
+  const tfX=W/2, tfY=H*0.54, tfW=W*0.38, tfH=42;
+  [[rowY1,'#1D4ED8'],[rowY2,'#7C3AED']].forEach(([ry,col])=>{
+    ctx.beginPath(); ctx.moveTo(W/2,ry+th/2+4); ctx.lineTo(W/2,tfY-tfH/2-4);
+    ctx.strokeStyle=rgba(col,0.5); ctx.lineWidth=2; ctx.setLineDash([5,4]); ctx.stroke(); ctx.setLineDash([]);
+    ctx.beginPath();
+    ctx.moveTo(W/2-6,tfY-tfH/2+6); ctx.lineTo(W/2,tfY-tfH/2-2); ctx.lineTo(W/2+6,tfY-tfH/2+6);
+    ctx.fillStyle=rgba(col,0.6); ctx.fill();
+  });
+
+  // Transformer bloğu
+  const pulse=0.5+0.22*Math.sin(frame*0.07);
+  ctx.fillStyle='rgba(237,233,254,0.90)'; ctx.fillRect(tfX-tfW/2,tfY-tfH/2,tfW,tfH);
+  ctx.strokeStyle=rgba('#7C3AED',0.7+pulse*0.2); ctx.lineWidth=2.5; ctx.strokeRect(tfX-tfW/2,tfY-tfH/2,tfW,tfH);
+  ctx.font='bold 15px Calibri'; ctx.fillStyle='#5B21B6';
+  ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.fillText('⚡  TRANSFORMER  ⚡',tfX,tfY); ctx.textBaseline='alphabetic';
+
+  // Çıkış oku
+  ctx.beginPath(); ctx.moveTo(W/2,tfY+tfH/2+4); ctx.lineTo(W/2,clusterY-32);
+  ctx.strokeStyle='rgba(22,163,74,0.7)'; ctx.lineWidth=2.5; ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(W/2-7,clusterY-38); ctx.lineTo(W/2,clusterY-28); ctx.lineTo(W/2+7,clusterY-38);
+  ctx.fillStyle='rgba(22,163,74,0.8)'; ctx.fill();
+  ctx.font='bold 12px Calibri'; ctx.fillStyle='rgba(22,163,74,0.9)';
+  ctx.textAlign='center'; ctx.fillText('HEMEN TANINIYOR',W/2,clusterY-42);
+
+  // Anlamsal kümeler
+  const clW=W*0.22, clH=50, clGap=W*0.04;
+  const totW=CLUSTERS.length*clW+(CLUSTERS.length-1)*clGap;
+  const clStartX=(W-totW)/2;
+
+  CLUSTERS.forEach((cl,k)=>{
+    const cx=clStartX+k*(clW+clGap), cy=clusterY-clH/2;
+    const p2=0.4+0.2*Math.sin(frame*0.06+k*1.2);
+    ctx.fillStyle=rgba(cl.color,0.07); ctx.fillRect(cx-6,cy-6,clW+12,clH+12);
+    ctx.fillStyle=rgba(cl.color,0.14); ctx.fillRect(cx,cy,clW,clH);
+    ctx.strokeStyle=rgba(cl.color,0.8+p2*0.1); ctx.lineWidth=2; ctx.strokeRect(cx,cy,clW,clH);
+
+    const chW=clW/2-6;
+    cl.indices.forEach((wi,ki)=>{
+      const w=WORDS[wi]; if(!w) return;
+      const chX=cx+ki*(chW+6)+4, chY=cy+5;
+      ctx.fillStyle=rgba(w.color,0.25); ctx.fillRect(chX,chY,chW,20);
+      ctx.strokeStyle=w.color; ctx.lineWidth=1; ctx.strokeRect(chX,chY,chW,20);
+      ctx.font='bold 11px Calibri'; ctx.fillStyle=w.color;
+      ctx.textAlign='center'; ctx.textBaseline='middle';
+      ctx.fillText(w.label,chX+chW/2,chY+10); ctx.textBaseline='alphabetic';
+    });
+    ctx.font='10px Calibri'; ctx.fillStyle=rgba(cl.color,0.85); ctx.textAlign='center';
+    ctx.fillText(cl.label,cx+clW/2,cy+clH+16);
+  });
+
+  // Altta mesaj
+  const d=SENTENCE_DATA[sentenceIdx]||SENTENCE_DATA[0];
+  const msg=customMode?'"Kendi cümlende de aynı yöntem çalışır" — anlam her zaman bulunur':d.insight;
+  ctx.font='bold 12px Calibri'; ctx.fillStyle='rgba(22,163,74,0.9)'; ctx.textAlign='center';
+  ctx.fillText(msg,W/2,H-16);
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  ANA DÖNGÜ
+// ═══════════════════════════════════════════════════════════════
+function loop() {
+  if (step===0) drawVectorSpace();
+  else if (step===1) drawAttentionMatrix();
+  else if (step===2) drawPositionIndependence();
+  frame++;
+  requestAnimationFrame(loop);
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  PANEL İÇERİKLERİ
+// ═══════════════════════════════════════════════════════════════
+function buildPanels(sIdx) {
+  const d = SENTENCE_DATA[sIdx];
+  return [
+    // ─── PANEL 0: VEKTÖR UZAYI ────────────────────────────────
+    {
+      kicker:'ADIM 1/3  ·  VEKTÖR UZAYI',
+      kColor:'#7C3AED',
+      title:'Kelimelerin Yapay Zeka\'daki Anlamsal Koordinatları',
+      html:`
+        <p class="body-text">Yapay zeka her kelimeyi bir <strong>vektöre</strong> dönüştürür — anlamını, rolünü ve bağlamını kodlayan yüzlerce ya da binlerce sayıdan oluşan bir koordinat. Tıpkı GPS'te konumların koordinatlarla ifade edilmesi gibi: <em>benzer anlamlı kelimeler birbirine yakın, ilgisiz kelimeler birbirinden uzak durur.</em></p>
+
+        <div class="zone-box zone-gram">
+          <strong>🔵 Dilbilgisel Bölge</strong><br>
+          "hızla", "tamamen" gibi zarf ve ilgeç gruplarının yer aldığı bölgedir. Bu kelimeler cümlenin <em>anlamını değil yapısını</em> taşır — içerik açısından hafif, gramer açısından kritiktir.
+        </div>
+
+        <div class="zone-box zone-sem">
+          <strong>🟣 Anlamsal Bölge</strong><br>
+          "CEO", "strateji", "yapay zeka" gibi içerik kelimelerinin yoğunlaştığı bölgedir. Bu kelimeler <em>asıl iletilmek istenen anlam yükünü</em> taşır ve birbirine yüksek benzerlik gösterir.
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:10px;margin-top:2px">
+          ${d.words.map((w,i)=>`
+          <div class="fact-row">
+            <div class="fact-dot" style="background:${w.color}"></div>
+            <p><strong style="color:${w.color}">"${w.label}"</strong> — ${w.label==='CEO'||w.label==='Dijital'?'özne konumundaki kelime; fiile ve nesneye güçlü dikkat uygular':w.label==='yapay'||w.label==='strateji'?'anlamsal bölgenin ilk öğesi — yanındakiyle bileşik anlam oluşturur':w.label==='zeka'||w.label==='küresel'?`"${d.words[i-1]?.label||'önceki'}" ile birlikte en yakın çift — %${Math.round((d.sims[i][i-1]||0.9)*100)} benzerlik`:w.label==='projesini'||w.label==='rekabeti'?'nesne konumu; hem özne hem fiile yüksek dikkat gösterir':w.label==='hızla'||w.label==='tamamen'?'dilbilgisel bölge; anlam yükü düşük ama fiili nitelendirir':'fiile en yüksek dikkat uygulayan kelime — eylemi gerçekleştiren'}</p>
+          </div>`).join('')}
+        </div>
+
+        <div class="analogy">💡 Gerçek bir AI modelinde (GPT-4 gibi) her kelime 4.096 boyutlu bir uzayda temsil edilir. Burada bunu 2 boyutta görselleştiriyoruz — ilkeler aynıdır: yakın koordinat = yakın anlam.</div>
+        <p class="hint">↑ Bir kelimeye tıklayın — diğer kelimelerle anlamsal yakınlığını görün</p>
+      `,
+    },
+
+    // ─── PANEL 1: DİKKAT MATRİSİ ─────────────────────────────
+    {
+      kicker:'ADIM 2/3  ·  DİKKAT MATRİSİ',
+      kColor:'#1D4ED8',
+      title:'Dikkat Matrisi — Kim Kime Ne Kadar Dikkat Ediyor?',
+      html:`
+        <p class="body-text">Her kelime için Transformer, o kelimenin <em>diğer tüm kelimelere</em> ne kadar dikkat göstermesi gerektiğini hesaplar. Bu matris şunu gösterir: <strong>Satırlar = "soran kelime"</strong>, <strong>Sütunlar = "bakılan kelime"</strong>.</p>
+
+        <div style="display:flex;flex-direction:column;gap:10px;margin-top:2px">
+          <div class="fact-row">
+            <div class="fact-dot" style="background:#D97706;margin-top:7px"></div>
+            <p><strong style="color:#D97706">Turuncu köşegen = Öz-dikkat</strong> — Her kelime her zaman önce kendine %88–96 dikkat gösterir. Bu, "bu kelime kim?" sorusunun cevabıdır.</p>
+          </div>
+          <div class="fact-row">
+            <div class="fact-dot" style="background:${d.words[0].color};margin-top:7px"></div>
+            <p><strong style="color:${d.words[0].color}">"${d.words[0].label}" satırı</strong> — tıklayın! Koyu mavi hücreler bu kelimenin en çok dikkat gösterdiği kelimeleri anında ortaya çıkarır.</p>
+          </div>
+          <div class="fact-row">
+            <div class="fact-dot" style="background:${d.words[1].color};margin-top:7px"></div>
+            <p><strong style="color:${d.words[1].color}">"${d.words[1].label}"</strong> ve <strong style="color:${d.words[2].color}">"${d.words[2].label}"</strong> — bu iki kelime birbirine %${Math.round((d.attn[1][2]||0.89)*100)} dikkat gösterir. Anlamsal çifti oluştururlar.</p>
+          </div>
+        </div>
+
+        <div class="how-to-box">
+          <strong>🔍 Bu Matriksten Cümleyi Okuyabilir misiniz?</strong>
+          <strong style="font-size:14px;color:#166534;margin-top:2px;display:block">Evet — kısmen! İşte yöntemi:</strong>
+          <ol>
+            <li><strong>Yüksek karşılıklı dikkat çiftlerini bulun</strong> → bunlar anlamsal kümelerdir (örn. yapay↔zeka, CEO↔onayladı)</li>
+            <li><strong>Fiile dikkat eden kelime özne</strong>dir — CEO satırında "onayladı" sütununa bakın</li>
+            <li><strong>Hem özneden hem fiilden yüksek dikkat alan kelime nesne</strong>dir</li>
+            <li><strong>Her satırdan düşük dikkat alan kelimeler</strong> dilbilgisel öğelerdir (zarf, edat vb.)</li>
+          </ol>
+        </div>
+
+        <div class="warn-box">
+          <strong>⚠️ Ancak hiçbir zaman anlayamazsınız:</strong> Kelimelerin orijinal <em>sırası</em> — çünkü dikkat matrisi tamamen konum bağımsızdır. Bu 3. adımın konusudur!
+        </div>
+
+        <div class="custom-section" id="customSection">
+          <label>🎮 Kendi Cümlenizi Deneyin:</label>
+          <input type="text" id="customInput" placeholder="örn: lider dijital dönüşümü başlattı" maxlength="120"
+            onkeydown="if(event.key==='Enter')applyCustom()">
+          <div class="custom-row">
+            <button class="btn-p" onclick="applyCustom()">Dikkat Matrisini Hesapla →</button>
+            <button class="btn-r" onclick="resetCustom()">Sıfırla</button>
+          </div>
+        </div>
+
+        <div class="analogy">💡 GPT-4'te bu hesaplama <strong>96 katman × 96 dikkat başlığı = 9.216 paralel dikkat örüntüsü</strong> şeklinde aynı anda çalışır.</div>
+        <p class="hint">↑ Sol taraftaki kelimeye tıklayın — dikkat sütunlarının açılımını izleyin</p>
+      `,
+    },
+
+    // ─── PANEL 2: KONUM BAĞIMSIZLIĞI ─────────────────────────
+    {
+      kicker:'ADIM 3/3  ·  KONUM BAĞIMSIZLIĞI',
+      kColor:'#16A34A',
+      title:'Her Sıra — Aynı Anlama Ulaşılır',
+      html:`
+        <p class="body-text">Transformer soldan sağa okumaz. Tüm kelimeleri <em>eş zamanlı olarak</em> işler ve dikkat matrisini kelime sırasından bağımsız biçimde oluşturur.</p>
+        <p class="body-text">Soldaki animasyonda iki farklı kelime sıralaması görüyorsunuz. Her iki sıralama da Transformer'dan geçtikten sonra <strong>hep aynı üç anlamsal kümeyi</strong> üretir.</p>
+
+        <div style="display:flex;flex-direction:column;gap:10px;margin-top:4px">
+          ${d.clusters.map(cl=>`
+          <div class="highlight-box" style="border-left:4px solid ${cl.color};background:${cl.color}18">
+            <strong style="color:${cl.color};font-size:16px">${cl.label}</strong><br>
+            <span style="font-size:14px;color:#4A5568">${cl.indices.map(i=>'"'+d.words[i].label+'"').join(' + ')} — her sıralamada birlikte tanınır</span>
+          </div>`).join('')}
+        </div>
+
+        <div class="analogy">💡 Bu yüzden AI; sözleşmelerdeki madde sırasına bakılmaksızın riskleri bulabilir, farklı dil yapılarındaki metinleri anlayabilir, yapılandırılmamış veriden anlam çıkarabilir — <strong>anlam örüntüsü her yüzey düzensizliğine karşı korunaklıdır.</strong></div>
+
+        <div style="background:#F0F9FF;border:2px solid #BAE6FD;border-radius:8px;padding:14px 16px;font-size:15px;color:#0C4A6E;line-height:1.65">
+          <strong style="font-size:16px">Organizasyon için ne anlam ifade eder?</strong><br>
+          AI, e-postalar, raporlar, toplantı notları ve sözleşmeler gibi birbirinden farklı formatlardaki verileri tutarlı biçimde analiz edebilir. Veri düzeni değil, <em>anlamsal yapı</em> belirleyicidir.
+        </div>
+      `,
+    },
+  ];
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  NAVİGASYON
+// ═══════════════════════════════════════════════════════════════
+function setSentence(idx) {
+  sentenceIdx=idx; customMode=false;
+  setSentenceData(idx);
+  computeWordPos();
+  hovered=-1; selected=-1; attnSweep=0;
+  posPhase=0; phaseTimer=0; scrambleIdx=0;
+  [0,1].forEach(j=>document.getElementById('stab'+j).classList.toggle('active',j===idx));
+  // Paneli yenile
+  setStep(step<0?0:step);
+}
+
+function setStep(i) {
+  step=i; frame=0; hovered=-1; selected=-1; attnSweep=0;
+  posPhase=0; phaseTimer=0; scrambleIdx=0;
+  [0,1,2].forEach(j=>document.getElementById('btn'+j).classList.toggle('active',j===i));
+  const panels=buildPanels(sentenceIdx);
+  const c=panels[i];
+  document.getElementById('panel').innerHTML=`
+    <div class="kicker" style="color:${c.kColor}">${c.kicker}</div>
+    <div class="ptitle">${c.title}</div>
+    <div class="divider"></div>
+    ${c.html}
+  `;
+}
+
+function applyCustom() {
+  const inp=document.getElementById('customInput');
+  if (!inp||!inp.value.trim()) return;
+  applyCustomSentence(inp.value);
+}
+
+function resetCustom() {
+  customMode=false;
+  setSentenceData(sentenceIdx);
+  computeWordPos();
+  hovered=-1; selected=-1; attnSweep=0;
+  const inp=document.getElementById('customInput');
+  if (inp) inp.value='';
+}
+</script>
+</body>
+</html>

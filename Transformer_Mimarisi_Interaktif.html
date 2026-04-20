@@ -1,0 +1,916 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Transformer Mimarisi — Liderler İçin Açıklandı</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+  background:#F5F7FA; color:#1A202C;
+  font-family:'Segoe UI',Calibri,Arial,sans-serif;
+  height:100vh; display:flex; flex-direction:column; overflow:hidden;
+}
+
+/* ── HEADER ─────────────────────────────────────── */
+header {
+  padding:10px 24px; background:#FFFFFF;
+  border-bottom:2px solid #E2E8F0;
+  display:flex; align-items:center; gap:14px; flex-shrink:0;
+  box-shadow:0 2px 6px rgba(0,0,0,0.07);
+}
+.badge {
+  background:#7C3AED; color:#fff;
+  font-size:10px; font-weight:800; letter-spacing:2px;
+  padding:5px 12px; border-radius:4px; white-space:nowrap;
+}
+header h1 {
+  font-size:15px; font-family:Georgia,serif;
+  color:#1A202C; font-weight:normal;
+}
+
+/* ── LAYOUT ──────────────────────────────────────── */
+.main { flex:1; display:flex; overflow:hidden; min-height:0; }
+.canvas-wrap { flex:0 0 60%; position:relative; background:#fff; border-right:2px solid #E2E8F0; }
+canvas { position:absolute; top:0; left:0; width:100%; height:100%; }
+
+/* ── PANEL ───────────────────────────────────────── */
+.panel {
+  flex:1; background:#F5F7FA;
+  padding:20px 22px; overflow-y:auto;
+  display:flex; flex-direction:column; gap:13px;
+}
+.kicker { font-size:11px; font-weight:800; letter-spacing:2.5px; text-transform:uppercase; }
+.ptitle { font-size:22px; font-family:Georgia,serif; color:#1A202C; line-height:1.25; font-weight:bold; }
+.divider { height:2px; background:#E2E8F0; border-radius:1px; }
+.body-text { font-size:16px; line-height:1.7; color:#2D3748; }
+.body-text strong { color:#1A202C; }
+.body-text em { font-style:italic; color:#4A5568; }
+
+/* Compare boxes (step 0) */
+.compare-row { display:flex; gap:10px; }
+.compare-box {
+  flex:1; border-radius:8px; padding:13px 15px;
+  font-size:15px; line-height:1.6;
+}
+.compare-box strong { display:block; margin-bottom:5px; font-size:16px; }
+
+/* Step list */
+.steps-list { display:flex; flex-direction:column; gap:10px; }
+.step-row { display:flex; align-items:flex-start; gap:12px; }
+.step-num {
+  width:28px; height:28px; border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+  font-size:13px; font-weight:800; flex-shrink:0; margin-top:1px;
+}
+.step-row p { font-size:15px; color:#2D3748; line-height:1.6; padding-top:4px; }
+.step-row p strong { color:#1A202C; }
+
+/* QKV concept pills */
+.qkv-row { display:flex; gap:8px; }
+.qkv-pill {
+  flex:1; border-radius:8px; padding:11px 13px;
+  font-size:15px; line-height:1.5; text-align:center;
+}
+.qkv-pill strong { display:block; font-size:18px; margin-bottom:3px; }
+
+/* QKV live panel */
+#qkv-live { display:none; }
+.bar-row { display:flex; align-items:center; gap:8px; margin-bottom:6px; }
+.bar-label { font-size:13px; color:#4A5568; width:85px; text-align:right; flex-shrink:0; }
+.bar-track { flex:1; background:#E2E8F0; border-radius:4px; height:18px; overflow:hidden; }
+.bar-fill { height:100%; border-radius:4px; transition:width 0.4s ease; }
+.bar-val { font-size:13px; color:#1A202C; font-weight:700; width:32px; }
+.bar-pct { font-size:13px; font-weight:800; width:40px; text-align:right; }
+
+/* Layer panel */
+.layer-card {
+  border-radius:10px; padding:16px; font-size:15px; line-height:1.65;
+  border:2px solid;
+}
+.layer-card strong { display:block; font-size:17px; margin-bottom:8px; }
+
+/* Analogy */
+.analogy {
+  background:#FFFBEB; border-left:4px solid #D97706;
+  padding:12px 16px; font-size:15px; color:#92400E;
+  line-height:1.65; border-radius:0 8px 8px 0; font-style:italic;
+}
+
+.hint { font-size:14px; color:#94A3B8; text-align:center; font-style:italic; }
+
+/* ── NAV ─────────────────────────────────────────── */
+.nav {
+  display:flex; flex-shrink:0;
+  border-top:2px solid #E2E8F0; background:#fff;
+  box-shadow:0 -2px 8px rgba(0,0,0,0.06);
+}
+.nav button {
+  flex:1; padding:13px 8px;
+  background:transparent; border:none;
+  border-top:4px solid transparent;
+  color:#64748B; font-size:14px; font-weight:600;
+  cursor:pointer; transition:all 0.2s;
+  font-family:'Segoe UI',Calibri,Arial,sans-serif;
+}
+.nav button:hover { color:#7C3AED; background:rgba(124,58,237,0.04); }
+.nav button.active {
+  color:#7C3AED; border-top-color:#7C3AED;
+  background:rgba(124,58,237,0.06);
+}
+</style>
+</head>
+<body>
+
+<header>
+  <span class="badge">MODÜL 1 · YAPAY ZEKA DEVRİMİ</span>
+  <h1>Transformer Mimarisi — 2017 Her Şeyi Neden Değiştirdi?</h1>
+</header>
+
+<div class="main">
+  <div class="canvas-wrap"><canvas id="cvs"></canvas></div>
+  <div class="panel" id="panel"></div>
+</div>
+
+<div class="nav">
+  <button id="btn0" onclick="setStep(0)">① Eski Sorun: RNN</button>
+  <button id="btn1" onclick="setStep(1)">② Atılım: Öz-Dikkat &amp; QKV</button>
+  <button id="btn2" onclick="setStep(2)">③ Transformer Katmanları</button>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════
+//  VERİ
+// ═══════════════════════════════════════════════════════════
+
+const SENTENCE = ['CEO','yapay','zeka','bütçesini','hızla','onayladı'];
+const TOKEN_COLORS = ['#1565C0','#6A0DAD','#9333EA','#B45309','#374151','#B84300'];
+const TOKEN_LIGHT  = ['#DBEAFE','#EDE9FE','#F3E8FF','#FEF3C7','#F1F5F9','#FFF7ED'];
+
+// Dikkat ağırlıkları (satır=sorgu, sütun=anahtar)
+const ATTN = [
+  [0.93, 0.18, 0.24, 0.56, 0.11, 0.82],  // CEO
+  [0.17, 0.95, 0.89, 0.71, 0.08, 0.12],  // yapay
+  [0.21, 0.89, 0.95, 0.76, 0.07, 0.16],  // zeka
+  [0.53, 0.70, 0.77, 0.92, 0.09, 0.44],  // bütçesini
+  [0.15, 0.09, 0.08, 0.10, 0.96, 0.67],  // hızla
+  [0.81, 0.12, 0.15, 0.42, 0.65, 0.93],  // onayladı
+];
+
+// QKV vektörleri — 4 boyut: [Karar Verici, Teknoloji, Mali İçerik, Eylem Gücü]
+const DIM_LABELS = ['Karar Verici','Teknoloji','Mali İçerik','Eylem Gücü'];
+
+const Q_VECS = [
+  [0.90, 0.40, 0.65, 0.85],  // CEO: Eylem ve karar arıyor
+  [0.15, 0.92, 0.30, 0.10],  // yapay: Bileşik tamamlama arıyor
+  [0.20, 0.88, 0.45, 0.15],  // zeka: YZ bilgisi arıyor
+  [0.60, 0.75, 0.95, 0.40],  // bütçesini: Kim kararlaştırdı arıyor
+  [0.10, 0.08, 0.05, 0.85],  // hızla: Hangi eylem arıyor
+  [0.88, 0.25, 0.55, 0.90],  // onayladı: Kim + ne onaylandı arıyor
+];
+const K_VECS = [
+  [0.95, 0.30, 0.50, 0.80],  // CEO: Karar verici kimliği sunuyor
+  [0.10, 0.90, 0.25, 0.08],  // yapay: Teknoloji niteleyici sunuyor
+  [0.15, 0.88, 0.38, 0.12],  // zeka: YZ kavramı sunuyor
+  [0.45, 0.65, 0.92, 0.35],  // bütçesini: Mali kaynak bilgisi sunuyor
+  [0.08, 0.06, 0.04, 0.80],  // hızla: Hız/biçim bilgisi sunuyor
+  [0.75, 0.20, 0.48, 0.88],  // onayladı: Eylem/olay bilgisi sunuyor
+];
+const V_VECS = [
+  [0.95, 0.28, 0.48, 0.82],
+  [0.08, 0.92, 0.22, 0.06],
+  [0.12, 0.90, 0.36, 0.10],
+  [0.42, 0.62, 0.94, 0.32],
+  [0.06, 0.05, 0.03, 0.82],
+  [0.78, 0.18, 0.46, 0.90],
+];
+
+// Katman aşamaları
+const LAYER_STAGES = [
+  {
+    range:'1–2', name:'Girdi & Temel Tanıma', color:'#1565C0',
+    knowledge:[0.20,0.15,0.18,0.22,0.10,0.20],
+    focus:[[0,5],[1,2]],
+    insight:'Kelimeler sayısal koordinatlara dönüştürüldü.\n"CEO" = karar verici kimliği\n"bütçesini" = finansal nesne\n"onayladı" = gerçekleşmiş eylem',
+    business:'Henüz ilişkiler kurulmadı. Sadece kelimeler tanındı ve vektörlere dönüştürüldü.',
+    analogy:'Yeni bir toplantıya giren analist — raporları masaya koyuyor, okumaya başlıyor.'
+  },
+  {
+    range:'3–4', name:'Gramer & Sözdizim İlişkileri', color:'#7C3AED',
+    knowledge:[0.45,0.35,0.40,0.48,0.20,0.42],
+    focus:[[0,5],[3,5],[4,5]],
+    insight:'CEO → onayladı: ÖZNE + FİİL ilişkisi bulundu\nbütçesini → onayladı: NESNE + FİİL bağlantısı\nhızla → onayladı: ZARF + FİİL nitelendirmesi',
+    business:'Kimin ne yaptığı netleşti. Cümlenin temel yapısı oluştu.',
+    analogy:'Analist giriş bölümünü okudu — konuyu ve kararı tespit etti.'
+  },
+  {
+    range:'5–6', name:'Anlamsal Çiftler & Kavramlar', color:'#0F766E',
+    knowledge:[0.60,0.72,0.78,0.65,0.25,0.58],
+    focus:[[1,2],[2,3]],
+    insight:'"yapay" + "zeka" → bileşik kavram: YAPAY ZEKA\n"YZ + bütçe" → teknoloji yatırım birimi\nBütçe artık salt para değil, teknoloji kaynağı',
+    business:'Kelime grupları anlam üretmeye başladı. Konu "teknoloji yatırımı" olarak tanımlandı.',
+    analogy:'Analist tüm bölümleri tarayarak konunun YZ projesi finansmanı olduğunu anladı.'
+  },
+  {
+    range:'7–8', name:'Kurumsal Bağlam & Bütünleşim', color:'#B84300',
+    knowledge:[0.75,0.80,0.82,0.78,0.30,0.72],
+    focus:[[0,3],[0,5]],
+    insight:'CEO + onayladı + bütçe = kurumsal karar süreci\n"Hızla" → strateji aciliyeti sinyali\nBağlam: üst yönetim + mali taahhüt + teknoloji',
+    business:'"Hızla onayladı" ifadesi rekabetçi baskı veya stratejik gereklilik işareti.',
+    analogy:'Analist şirketin YZ yol haritasını, rekabetçi baskıyı ve karar arka planını değerlendirdi.'
+  },
+  {
+    range:'9–10', name:'Çıkarım & Nüans Katmanı', color:'#B45309',
+    knowledge:[0.85,0.88,0.90,0.86,0.35,0.83],
+    focus:[[0,2],[1,3]],
+    insight:'Sonuç: YZ yatırım kararı alındı ve taahhüt edildi\nOlası çıkarımlar: proje lansmanı, kaynak tahsisi\nTon analizi: kararlı, olumlu, belirsizlik düşük',
+    business:'Model artık "Bu karar neden alındı?" ve "Bundan sonra ne olabilir?" sorularını yanıtlayabilir.',
+    analogy:'Analist kapsamlı brifing hazırladı: gerekçe, beklentiler, riskler, seçenekler.'
+  },
+  {
+    range:'11–12', name:'Yanıt Üretmeye Hazır!', color:'#16A34A',
+    knowledge:[0.95,0.92,0.94,0.91,0.40,0.92],
+    focus:[[0,1],[0,2],[0,3],[0,5]],
+    insight:'Tüm anlam katmanları entegre edildi\nÇıktı hazır: özetleme, çeviri, sınıflandırma\n"YZ bütçesini onaylayan CEO, dijital dönüşümü hızlandırdı."',
+    business:'Bu süreç 6 kelimelik cümlede de 600 sayfalık sözleşmede de aynı şekilde çalışır.',
+    analogy:'Analist tam raporunu teslim etti — her soruyu yanıtlamaya hazır.'
+  },
+];
+
+// ═══════════════════════════════════════════════════════════
+//  DURUM
+// ═══════════════════════════════════════════════════════════
+let cvs, ctx, W, H, frame = 0, currentStep = 0;
+let selectedToken = 0;
+let attnAnim = 0;
+let currentLayer = 0;
+let displayKnowledge = new Array(6).fill(0.10);
+let targetKnowledge  = [...LAYER_STAGES[0].knowledge];
+let navRects = {}; // for clickable canvas buttons
+let hoverNav = '';
+
+// ═══════════════════════════════════════════════════════════
+//  BAŞLATMA
+// ═══════════════════════════════════════════════════════════
+window.addEventListener('load', () => {
+  cvs = document.getElementById('cvs');
+  resize(); window.addEventListener('resize', resize);
+  cvs.addEventListener('click', handleClick);
+  cvs.addEventListener('mousemove', handleHover);
+  setStep(0);
+  requestAnimationFrame(loop);
+});
+
+function resize() {
+  const wp = cvs.parentElement;
+  cvs.width = wp.clientWidth; cvs.height = wp.clientHeight;
+  W = cvs.width; H = cvs.height;
+  ctx = cvs.getContext('2d');
+}
+
+// ═══════════════════════════════════════════════════════════
+//  YARDIMCILAR
+// ═══════════════════════════════════════════════════════════
+function lerp(a,b,t){ return a+(b-a)*t; }
+function ease(t){ return t<0.5?2*t*t:-1+(4-2*t)*t; }
+function hexAlpha(hex,a){
+  const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);
+  return `rgba(${r},${g},${b},${a})`;
+}
+function roundRect(cx,cy,w,h,r,fill,stroke,lw){
+  const x=cx-w/2,y=cy-h/2;
+  ctx.beginPath();
+  ctx.moveTo(x+r,y); ctx.lineTo(x+w-r,y); ctx.quadraticCurveTo(x+w,y,x+w,y+r);
+  ctx.lineTo(x+w,y+h-r); ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);
+  ctx.lineTo(x+r,y+h); ctx.quadraticCurveTo(x,y+h,x,y+h-r);
+  ctx.lineTo(x,y+r); ctx.quadraticCurveTo(x,y,x+r,y);
+  ctx.closePath();
+  if(fill){ctx.fillStyle=fill;ctx.fill();}
+  if(stroke){ctx.strokeStyle=stroke;ctx.lineWidth=lw||1;ctx.stroke();}
+}
+
+function getTokenLayout(){
+  const n=SENTENCE.length;
+  const tw=Math.min(W*0.115,82),th=40;
+  const gap=(W-2*28-n*tw)/(n-1);
+  const mx=28;
+  return SENTENCE.map((_,i)=>({
+    x:mx+i*(tw+gap),y:H*0.5-th/2,
+    w:tw,h:th,cx:mx+i*(tw+gap)+tw/2,cy:H*0.5
+  }));
+}
+
+// ═══════════════════════════════════════════════════════════
+//  ETKİLEŞİM
+// ═══════════════════════════════════════════════════════════
+function handleHover(e){
+  const rc=cvs.getBoundingClientRect();
+  const mx=(e.clientX-rc.left)*(W/rc.width);
+  const my=(e.clientY-rc.top)*(H/rc.height);
+  if(currentStep===1){
+    const rects=getTokenLayout();
+    cvs.style.cursor=rects.some(t=>mx>=t.x&&mx<=t.x+t.w&&my>=t.y&&my<=t.y+t.h)?'pointer':'default';
+  } else if(currentStep===2){
+    let h='';
+    if(navRects.prev&&inRect(mx,my,navRects.prev)) h='prev';
+    if(navRects.next&&inRect(mx,my,navRects.next)) h='next';
+    hoverNav=h;
+    cvs.style.cursor=h?'pointer':'default';
+  } else {
+    cvs.style.cursor='default';
+  }
+}
+
+function handleClick(e){
+  const rc=cvs.getBoundingClientRect();
+  const mx=(e.clientX-rc.left)*(W/rc.width);
+  const my=(e.clientY-rc.top)*(H/rc.height);
+
+  if(currentStep===1){
+    const rects=getTokenLayout();
+    rects.forEach((t,i)=>{
+      if(mx>=t.x&&mx<=t.x+t.w&&my>=t.y&&my<=t.y+t.h){
+        selectedToken=i; attnAnim=0;
+        updateQKVPanel(i);
+      }
+    });
+  } else if(currentStep===2){
+    if(navRects.prev&&inRect(mx,my,navRects.prev)&&currentLayer>0){
+      currentLayer--;
+      targetKnowledge=[...LAYER_STAGES[currentLayer].knowledge];
+      updateLayerPanel();
+    }
+    if(navRects.next&&inRect(mx,my,navRects.next)&&currentLayer<LAYER_STAGES.length-1){
+      currentLayer++;
+      targetKnowledge=[...LAYER_STAGES[currentLayer].knowledge];
+      updateLayerPanel();
+    }
+  }
+}
+
+function inRect(mx,my,r){ return mx>=r.x&&mx<=r.x+r.w&&my>=r.y&&my<=r.y+r.h; }
+
+// ═══════════════════════════════════════════════════════════
+//  ADIM 0: RNN vs TRANSFORMER
+// ═══════════════════════════════════════════════════════════
+function drawStep0(){
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle='#FFFFFF'; ctx.fillRect(0,0,W,H);
+
+  const n=SENTENCE.length;
+  const bw=Math.min(W*0.115,75),bh=36;
+  const gapX=(W-2*28-n*bw)/(n-1);
+  const mx=28;
+
+  // ── RNN bölümü ──
+  const rnnY=H*0.28;
+  ctx.fillStyle='rgba(220,53,53,0.05)';
+  ctx.fillRect(W*0.02,rnnY-64,W*0.96,130);
+
+  ctx.font='bold 11px Calibri'; ctx.fillStyle='#C53030'; ctx.textAlign='left';
+  ctx.fillText('ESKİ YÖL  ·  RNN (Yinelemeli Sinir Ağı)  ·  Sıralı İşleme — Kelime Kelime', W*0.04,rnnY-46);
+
+  SENTENCE.forEach((word,i)=>{
+    const bx=mx+i*(bw+gapX);
+    // fade: 1.0 (CEO) → 0.18 (onayladı) — bellek zayıflıyor
+    const fade=Math.max(1-i*0.15,0.18);
+
+    // Bellek kayıp çubuğu (token altında küçülen kırmızı bar)
+    const barMaxW=bw*0.7;
+    ctx.fillStyle=hexAlpha('#C53030',0.25*fade);
+    ctx.fillRect(bx+(bw-barMaxW*fade)/2,rnnY+bh/2+10,barMaxW*fade,5);
+
+    // Token kutusu: BEYAZ arka plan, kırmızı kenarlık (okunabilirlik için)
+    roundRect(bx+bw/2,rnnY,bw,bh,5,
+      '#FFFFFF',                                       // her zaman beyaz arka plan
+      hexAlpha('#C53030',Math.max(0.75*fade,0.22)),   // kırmızı kenarlık solar
+      2);
+    // Metin: koyu (#1A202C) ama opacity ile solar — kırmızı değil!
+    ctx.font=`${i===0?'bold ':''}${Math.min(bw*0.19,13)}px Calibri`;
+    ctx.fillStyle=hexAlpha('#1A202C',Math.max(fade,0.25));
+    ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillText(word,bx+bw/2,rnnY); ctx.textBaseline='alphabetic';
+
+    // Ok → (bellek aktarım zinciri, o da solar)
+    if(i<n-1){
+      const ax=bx+bw+2,ay=rnnY,aw=gapX-2;
+      ctx.beginPath(); ctx.moveTo(ax,ay); ctx.lineTo(ax+aw-7,ay);
+      ctx.strokeStyle=hexAlpha('#C53030',Math.max(fade*0.65,0.10));
+      ctx.lineWidth=1.5; ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(ax+aw-7,ay-5); ctx.lineTo(ax+aw,ay); ctx.lineTo(ax+aw-7,ay+5);
+      ctx.fillStyle=hexAlpha('#C53030',Math.max(fade*0.55,0.10)); ctx.fill();
+    }
+  });
+
+  ctx.font='12px Calibri'; ctx.fillStyle='rgba(197,48,48,0.85)'; ctx.textAlign='center';
+  ctx.fillText('▼ "CEO" ile başlayan bağlam, "onayladı"ya gelindiğinde büyük ölçüde unutulmuştur ▼',W/2,rnnY+bh/2+32);
+  ctx.font='11px Calibri'; ctx.fillStyle='rgba(197,48,48,0.7)'; ctx.textAlign='left';
+  ctx.fillText('⏱  Her seferinde 1 kelime işlenir — paralel işleme mümkün değil → YAVAŞ',W*0.04,rnnY+bh/2+52);
+
+  // Ayırıcı
+  ctx.beginPath(); ctx.moveTo(W*0.05,H*0.5); ctx.lineTo(W*0.95,H*0.5);
+  ctx.strokeStyle='rgba(100,116,139,0.2)'; ctx.lineWidth=1.5;
+  ctx.setLineDash([6,6]); ctx.stroke(); ctx.setLineDash([]);
+
+  // ── Transformer bölümü ──
+  const txY=H*0.73;
+  ctx.fillStyle='rgba(29,78,216,0.04)';
+  ctx.fillRect(W*0.02,txY-64,W*0.96,130);
+
+  ctx.font='bold 11px Calibri'; ctx.fillStyle='#1D4ED8'; ctx.textAlign='left';
+  ctx.fillText('YENİ YOL  ·  TRANSFORMER  ·  Paralel İşleme — Tüm Kelimeler Eş Zamanlı',W*0.04,txY-46);
+
+  const tokenCX=SENTENCE.map((_,i)=>mx+i*(bw+gapX)+bw/2);
+  const pulse=0.45+0.3*Math.sin(frame*0.04);
+  tokenCX.forEach((x1,i)=>{
+    tokenCX.forEach((x2,j)=>{
+      if(i>=j) return;
+      const str=ATTN[i][j]*0.5;
+      ctx.beginPath(); ctx.moveTo(x1,txY); ctx.lineTo(x2,txY);
+      ctx.strokeStyle=hexAlpha('#1D4ED8',str*pulse);
+      ctx.lineWidth=ATTN[i][j]*2.5; ctx.stroke();
+    });
+  });
+
+  SENTENCE.forEach((word,i)=>{
+    const bx=mx+i*(bw+gapX);
+    roundRect(bx+bw/2,txY,bw,bh,5,
+      hexAlpha(TOKEN_LIGHT[i],1),TOKEN_COLORS[i],2);
+    ctx.font=`bold ${Math.min(bw*0.19,13)}px Calibri`;
+    ctx.fillStyle=TOKEN_COLORS[i];
+    ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillText(word,bx+bw/2,txY); ctx.textBaseline='alphabetic';
+  });
+
+  ctx.font='12px Calibri'; ctx.fillStyle='rgba(29,78,216,0.9)'; ctx.textAlign='left';
+  ctx.fillText('⚡  Tüm kelimeler aynı anda işleniyor — devasa paralelleştirme → 100× daha hızlı eğitim',W*0.04,txY+bh/2+30);
+  ctx.fillText('✓  Tam bağlam korunuyor — "onayladı" her zaman "CEO" ile doğrudan bağlantı kuruyor',W*0.04,txY+bh/2+48);
+}
+
+// ═══════════════════════════════════════════════════════════
+//  ADIM 1: ÖZ-DİKKAT
+// ═══════════════════════════════════════════════════════════
+function drawStep1(){
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle='#FFFFFF'; ctx.fillRect(0,0,W,H);
+
+  const rects=getTokenLayout();
+  const sel=selectedToken;
+  attnAnim=Math.min(attnAnim+0.028,1);
+
+  // Dikkat yayları
+  rects.forEach((t,j)=>{
+    if(j===sel) return;
+    const w=ATTN[sel][j];
+    const animW=ease(attnAnim)*w;
+    if(animW<0.04) return;
+
+    const x1=rects[sel].cx,y1=rects[sel].cy;
+    const x2=t.cx,y2=t.cy;
+    const dist=Math.abs(x2-x1);
+    const curveDip=-dist*0.42;
+    const midX=(x1+x2)/2,midY=y1+curveDip;
+
+    // Glow
+    ctx.beginPath(); ctx.moveTo(x1,y1); ctx.quadraticCurveTo(midX,midY,x2,y2);
+    ctx.strokeStyle=hexAlpha(TOKEN_COLORS[sel],animW*0.15);
+    ctx.lineWidth=(w*6+1)*2.5; ctx.stroke();
+
+    // Ana yay
+    ctx.beginPath(); ctx.moveTo(x1,y1); ctx.quadraticCurveTo(midX,midY,x2,y2);
+    ctx.strokeStyle=hexAlpha(TOKEN_COLORS[sel],animW*0.85);
+    ctx.lineWidth=w*5+0.8; ctx.stroke();
+
+    // Ağırlık etiketi
+    if(w>=0.2){
+      const t2=0.55;
+      const lx=(1-t2)*(1-t2)*x1+2*(1-t2)*t2*midX+t2*t2*x2;
+      const ly=(1-t2)*(1-t2)*y1+2*(1-t2)*t2*midY+t2*t2*y2+14;
+      ctx.font='bold 13px Calibri';
+      ctx.fillStyle=hexAlpha(TOKEN_COLORS[sel],animW*0.95);
+      ctx.textAlign='center'; ctx.textBaseline='middle';
+      ctx.fillText(Math.round(w*100)+'%',lx,ly);
+      ctx.textBaseline='alphabetic';
+    }
+  });
+
+  // Token kutuları
+  rects.forEach((t,i)=>{
+    const isSel=i===sel;
+    const weight=ATTN[sel][i];
+    const glowCol=isSel?TOKEN_COLORS[i]:(ease(attnAnim)*weight>0.28?TOKEN_COLORS[sel]:null);
+
+    if(glowCol){
+      ctx.beginPath(); ctx.arc(t.cx,t.cy,t.h*0.75,0,Math.PI*2);
+      ctx.fillStyle=hexAlpha(glowCol,0.10); ctx.fill();
+    }
+
+    roundRect(t.cx,t.cy,t.w,t.h,6,
+      isSel?TOKEN_LIGHT[i]:hexAlpha(TOKEN_LIGHT[i],0.85),
+      isSel?TOKEN_COLORS[i]:hexAlpha(TOKEN_COLORS[i],0.6),
+      isSel?2.5:1.5);
+
+    ctx.font=`${isSel?'bold ':''}${Math.min(t.w*0.20,14)}px Calibri`;
+    ctx.fillStyle=TOKEN_COLORS[i];
+    ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillText(SENTENCE[i],t.cx,t.cy); ctx.textBaseline='alphabetic';
+
+    if(isSel){
+      ctx.font='bold 11px Calibri'; ctx.fillStyle=TOKEN_COLORS[i];
+      ctx.textAlign='center';
+      ctx.fillText('SORGU (Q)',t.cx,t.cy+t.h/2+16);
+    } else if(ease(attnAnim)*weight>0.25){
+      ctx.font='10px Calibri'; ctx.fillStyle=hexAlpha(TOKEN_COLORS[sel],0.7);
+      ctx.textAlign='center';
+      ctx.fillText('ANAHTAR (K)',t.cx,t.cy+t.h/2+16);
+    }
+  });
+
+  // Alt mesaj
+  ctx.font='bold 13px Calibri'; ctx.fillStyle=TOKEN_COLORS[sel];
+  ctx.textAlign='center';
+  ctx.fillText(`"${SENTENCE[sel]}" diğer kelimelere soruyor: "Beni anlamak için kim bana en çok yardımcı olur?"`,W/2,H*0.88);
+  ctx.font='13px Calibri'; ctx.fillStyle='rgba(100,116,139,0.8)'; ctx.textAlign='center';
+  ctx.fillText('↑  Herhangi bir kelimeye tıklayın — QKV hesaplamasını görün',W/2,H*0.94);
+}
+
+// ═══════════════════════════════════════════════════════════
+//  ADIM 2: TRANSFORMER KATAMANLAR
+// ═══════════════════════════════════════════════════════════
+function drawStep2(){
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle='#FFFFFF'; ctx.fillRect(0,0,W,H);
+
+  const n=SENTENCE.length;
+  const stage=LAYER_STAGES[currentLayer];
+
+  // Bilgi barlarını yumuşak animasyon
+  displayKnowledge=displayKnowledge.map((v,i)=>lerp(v,targetKnowledge[i],0.07));
+
+  const tw=Math.min(W*0.115,80),th=38;
+  const gap=(W-2*28-n*tw)/(n-1);
+  const margX=28;
+  const tokenY=H*0.14;
+  const barMaxH=H*0.20;
+  const barY=tokenY+th/2+10;
+
+  // Bilgi barları (token altında büyüyen)
+  SENTENCE.forEach((word,i)=>{
+    const tx=margX+i*(tw+gap);
+    const kn=displayKnowledge[i];
+    const barH=barMaxH*kn;
+
+    // Arka plan
+    ctx.fillStyle='rgba(203,213,225,0.25)';
+    ctx.fillRect(tx+tw*0.15,barY,tw*0.70,barMaxH);
+    // Dolgu
+    const barGrd=ctx.createLinearGradient(0,barY+barMaxH-barH,0,barY+barMaxH);
+    barGrd.addColorStop(0,hexAlpha(TOKEN_COLORS[i],0.9));
+    barGrd.addColorStop(1,hexAlpha(TOKEN_COLORS[i],0.5));
+    ctx.fillStyle=barGrd;
+    ctx.fillRect(tx+tw*0.15,barY+barMaxH-barH,tw*0.70,barH);
+    // Yüzde
+    ctx.font='bold 12px Calibri'; ctx.fillStyle=TOKEN_COLORS[i];
+    ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillText(Math.round(kn*100)+'%',tx+tw/2,barY+barMaxH+14);
+    ctx.textBaseline='alphabetic';
+  });
+
+  // Token kutuları
+  SENTENCE.forEach((word,i)=>{
+    const tx=margX+i*(tw+gap);
+    roundRect(tx+tw/2,tokenY,tw,th,5,
+      TOKEN_LIGHT[i],TOKEN_COLORS[i],2);
+    ctx.font=`bold ${Math.min(tw*0.19,13)}px Calibri`;
+    ctx.fillStyle=TOKEN_COLORS[i];
+    ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillText(word,tx+tw/2,tokenY); ctx.textBaseline='alphabetic';
+  });
+
+  // Odak yayları (bu katmanda hangi çiftler işleniyor)
+  const tokenCX=SENTENCE.map((_,i)=>margX+i*(tw+gap)+tw/2);
+  const arcY=barY+barMaxH*0.5;
+  stage.focus.forEach(([a,b])=>{
+    const x1=tokenCX[a],x2=tokenCX[b];
+    const dip=Math.abs(x2-x1)*0.35;
+    // Glow
+    ctx.beginPath(); ctx.moveTo(x1,arcY); ctx.quadraticCurveTo((x1+x2)/2,arcY-dip,x2,arcY);
+    ctx.strokeStyle=hexAlpha(stage.color,0.15); ctx.lineWidth=8; ctx.stroke();
+    // Ana çizgi
+    ctx.beginPath(); ctx.moveTo(x1,arcY); ctx.quadraticCurveTo((x1+x2)/2,arcY-dip,x2,arcY);
+    ctx.strokeStyle=hexAlpha(stage.color,0.70); ctx.lineWidth=2.5; ctx.stroke();
+    // Okbaşı
+    const ex=x2,ey=arcY;
+    const t2=0.95;
+    const prevX=(1-t2)*(1-t2)*x1+2*(1-t2)*t2*(x1+x2)/2+t2*t2*x2;
+    const prevY=(1-t2)*(1-t2)*arcY+2*(1-t2)*t2*(arcY-dip)+t2*t2*arcY;
+    const ang=Math.atan2(ey-prevY,ex-prevX);
+    ctx.beginPath();
+    ctx.moveTo(ex-8*Math.cos(ang-0.4),ey-8*Math.sin(ang-0.4));
+    ctx.lineTo(ex,ey);
+    ctx.lineTo(ex-8*Math.cos(ang+0.4),ey-8*Math.sin(ang+0.4));
+    ctx.strokeStyle=stage.color; ctx.lineWidth=2; ctx.stroke();
+  });
+
+  // Katman başlığı bandı
+  const bandY=H*0.52,bandH=50;
+  ctx.fillStyle=hexAlpha(stage.color,0.06);
+  ctx.fillRect(0,bandY,W,bandH);
+  ctx.strokeStyle=hexAlpha(stage.color,0.2); ctx.lineWidth=1;
+  ctx.beginPath(); ctx.moveTo(0,bandY); ctx.lineTo(W,bandY); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(0,bandY+bandH); ctx.lineTo(W,bandY+bandH); ctx.stroke();
+
+  ctx.font='bold 11px Calibri'; ctx.fillStyle=hexAlpha(stage.color,0.7);
+  ctx.textAlign='left'; ctx.fillText('KATMAN',28,bandY+18);
+  ctx.font='bold 28px Georgia'; ctx.fillStyle=stage.color;
+  ctx.fillText(stage.range,28,bandY+46);
+  ctx.font='bold 16px Georgia'; ctx.fillStyle='#1A202C';
+  ctx.textAlign='center'; ctx.fillText(stage.name,W/2,bandY+32);
+
+  // İlerleme noktaları
+  const dotY=H*0.64, dotR=7, dotGap=22;
+  const totalDots=LAYER_STAGES.length;
+  const dotsX=W/2-((totalDots-1)*dotGap)/2;
+  LAYER_STAGES.forEach((_,k)=>{
+    const dx=dotsX+k*dotGap;
+    ctx.beginPath(); ctx.arc(dx,dotY,dotR,0,Math.PI*2);
+    if(k===currentLayer){
+      ctx.fillStyle=stage.color; ctx.shadowColor=stage.color; ctx.shadowBlur=10;
+      ctx.fill(); ctx.shadowBlur=0;
+    } else if(k<currentLayer){
+      ctx.fillStyle=hexAlpha(stage.color,0.45); ctx.fill();
+    } else {
+      ctx.fillStyle='#E2E8F0'; ctx.fill();
+      ctx.strokeStyle='#CBD5E0'; ctx.lineWidth=1.5; ctx.stroke();
+    }
+  });
+  ctx.font='11px Calibri'; ctx.fillStyle='#94A3B8'; ctx.textAlign='center';
+  ctx.fillText(`${currentLayer+1} / ${totalDots}  aşama`,W/2,dotY+20);
+
+  // Gezinme butonları
+  const btnW=150,btnH=40,btnY=H*0.75;
+  navRects={};
+
+  if(currentLayer>0){
+    const bx=W/2-btnW-16,by=btnY-btnH/2;
+    const hov=hoverNav==='prev';
+    roundRect(W/2-btnW/2-16,btnY,btnW,btnH,8,
+      hov?'#F1F5F9':'#FFFFFF','#CBD5E0',1.5);
+    ctx.font='bold 14px Calibri'; ctx.fillStyle='#475569';
+    ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillText('← Önceki Aşama',W/2-btnW/2-16,btnY);
+    ctx.textBaseline='alphabetic';
+    navRects.prev={x:bx,y:by,w:btnW,h:btnH};
+  }
+
+  if(currentLayer<LAYER_STAGES.length-1){
+    const bx=W/2+16,by=btnY-btnH/2;
+    const hov=hoverNav==='next';
+    roundRect(W/2+btnW/2+16,btnY,btnW,btnH,8,
+      hov?stage.color:hexAlpha(stage.color,0.85),null,0);
+    ctx.font='bold 14px Calibri'; ctx.fillStyle='#FFFFFF';
+    ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillText('Sonraki Aşama →',W/2+btnW/2+16,btnY);
+    ctx.textBaseline='alphabetic';
+    navRects.next={x:bx,y:by,w:btnW,h:btnH};
+  }
+
+  // Tamamlandı mesajı
+  if(currentLayer===LAYER_STAGES.length-1){
+    ctx.font='bold 14px Calibri'; ctx.fillStyle=hexAlpha('#16A34A',0.85);
+    ctx.textAlign='center';
+    ctx.fillText('✓ Tüm katmanlar tamamlandı — model yanıt üretmeye hazır!',W/2,H*0.88);
+  }
+
+  // "Anlama" çubuğu (global)
+  const avgKn=displayKnowledge.reduce((a,b)=>a+b,0)/displayKnowledge.length;
+  const meterW=W*0.6,meterH=8,meterX=W*0.2,meterY=H*0.93;
+  ctx.fillStyle='#E2E8F0'; ctx.fillRect(meterX,meterY,meterW,meterH);
+  const mGrd=ctx.createLinearGradient(meterX,0,meterX+meterW*avgKn,0);
+  mGrd.addColorStop(0,'#1565C0'); mGrd.addColorStop(1,'#16A34A');
+  ctx.fillStyle=mGrd; ctx.fillRect(meterX,meterY,meterW*avgKn,meterH);
+  ctx.font='bold 12px Calibri'; ctx.fillStyle='#1A202C'; ctx.textAlign='center';
+  ctx.fillText(`Ortalama Anlama Derinliği: %${Math.round(avgKn*100)}`,W/2,meterY-8);
+}
+
+// ═══════════════════════════════════════════════════════════
+//  ANA DÖNGÜ
+// ═══════════════════════════════════════════════════════════
+function loop(){
+  if(currentStep===0) drawStep0();
+  else if(currentStep===1) drawStep1();
+  else drawStep2();
+  frame++;
+  requestAnimationFrame(loop);
+}
+
+// ═══════════════════════════════════════════════════════════
+//  QKV PANEL GÜNCELLEMESİ
+// ═══════════════════════════════════════════════════════════
+function computeQKScore(qi,ki){
+  const q=Q_VECS[qi],k=K_VECS[ki];
+  let s=0; for(let d=0;d<q.length;d++) s+=q[d]*k[d];
+  return s;
+}
+
+function updateQKVPanel(tokenIdx){
+  const q=Q_VECS[tokenIdx];
+  const word=SENTENCE[tokenIdx];
+  const color=TOKEN_COLORS[tokenIdx];
+  const lightColor=TOKEN_LIGHT[tokenIdx];
+
+  // Q vektörü
+  const qBars=DIM_LABELS.map((d,di)=>`
+    <div class="bar-row">
+      <span class="bar-label">${d}</span>
+      <div class="bar-track"><div class="bar-fill" style="width:${Math.round(q[di]*100)}%;background:${color}"></div></div>
+      <span class="bar-val">${q[di].toFixed(2)}</span>
+    </div>
+  `).join('');
+
+  // Q·K skorları
+  const scores=SENTENCE.map((_,j)=>computeQKScore(tokenIdx,j));
+  const maxScore=Math.max(...scores);
+
+  const qkBars=SENTENCE.map((w,j)=>`
+    <div class="bar-row">
+      <span class="bar-label" style="color:${TOKEN_COLORS[j]};font-weight:700">${w}</span>
+      <div class="bar-track"><div class="bar-fill" style="width:${Math.round(scores[j]/maxScore*100)}%;background:${TOKEN_COLORS[j]}"></div></div>
+      <span class="bar-val" style="color:#4A5568">${scores[j].toFixed(2)}</span>
+      <span class="bar-pct" style="color:${TOKEN_COLORS[j]}">%${Math.round(ATTN[tokenIdx][j]*100)}</span>
+    </div>
+  `).join('');
+
+  // Ağırlıklı V bileşeni (en yüksek 2 dikkat)
+  const topTwo=SENTENCE.map((_,j)=>({j,attn:ATTN[tokenIdx][j]}))
+    .sort((a,b)=>b.attn-a.attn).slice(0,2);
+  const vSummary=topTwo.map(t=>`<span style="color:${TOKEN_COLORS[t.j]};font-weight:700">"${SENTENCE[t.j]}"</span> (%${Math.round(t.attn*100)})`).join(' + ');
+
+  document.getElementById('qkv-live').style.display='flex';
+  document.getElementById('qkv-live').innerHTML=`
+    <div style="background:${lightColor};border:2px solid ${color}30;border-radius:10px;padding:14px">
+      <div style="font-size:14px;font-weight:800;color:${color};margin-bottom:10px">
+        Q("${word}") — Ben ne arıyorum?
+      </div>
+      ${qBars}
+    </div>
+    <div style="background:#F0FDF4;border:2px solid #BBF7D0;border-radius:10px;padding:14px">
+      <div style="font-size:14px;font-weight:800;color:#16A34A;margin-bottom:10px">
+        Q·K Skorları → Dikkat Ağırlıkları
+      </div>
+      ${qkBars}
+      <p style="font-size:13px;color:#6B7280;margin-top:8px;font-style:italic">Sütunlar: [ham Q·K skoru] → [nihai dikkat yüzdesi]</p>
+    </div>
+    <div style="background:#FFFBEB;border:2px solid #FED7AA;border-radius:10px;padding:14px">
+      <div style="font-size:14px;font-weight:800;color:#D97706;margin-bottom:6px">V — Ne Öğrenildi?</div>
+      <p style="font-size:15px;color:#2D3748">"${word}" kelimesi en çok ${vSummary} kelimelerinden bilgi topladı.</p>
+      <p style="font-size:13px;color:#92400E;margin-top:6px;font-style:italic">Bu bilgi bir sonraki katmana aktarılır.</p>
+    </div>
+  `;
+  document.getElementById('click-hint').style.display='none';
+}
+
+// ═══════════════════════════════════════════════════════════
+//  KATMAN PANEL GÜNCELLEMESİ
+// ═══════════════════════════════════════════════════════════
+function updateLayerPanel(){
+  const s=LAYER_STAGES[currentLayer];
+  const insightLines=s.insight.split('\n').map(l=>`<li style="margin-bottom:5px">${l}</li>`).join('');
+
+  document.getElementById('layer-dynamic').innerHTML=`
+    <div class="layer-card" style="border-color:${s.color};background:${s.color}0D">
+      <strong style="color:${s.color}">Katman ${s.range}: ${s.name}</strong>
+      <ul style="margin-left:18px;font-size:15px;color:#1A202C;line-height:1.7">${insightLines}</ul>
+    </div>
+    <div style="background:#EFF6FF;border:2px solid #BFDBFE;border-radius:8px;padding:13px 16px;font-size:15px;color:#1E40AF;line-height:1.65">
+      <strong style="display:block;margin-bottom:4px;font-size:16px">İş Dünyası İçin Anlamı:</strong>
+      ${s.business}
+    </div>
+    <div class="analogy">💡 ${s.analogy}</div>
+  `;
+}
+
+// ═══════════════════════════════════════════════════════════
+//  PANEL İÇERİKLERİ
+// ═══════════════════════════════════════════════════════════
+const PANEL_STATIC = [
+
+  // ── ADIM 0 ───────────────────────────────────────────────
+  {
+    kicker:'ADIM 1/3  ·  TRANSFORMERDAN ÖNCEKİ SORUN',
+    kColor:'#C53030',
+    title:'Transformerdan Önce: Unutma Problemi',
+    html:`
+      <p class="body-text">2017 öncesinde en iyi dil yapay zekaları <strong>Yinelemeli Sinir Ağları (RNN)</strong> kullanıyordu. Bir insan gibi metni yavaşça okurlar — soldan sağa, kelime kelime, "kayan bellek" ile.</p>
+      <div class="compare-row">
+        <div class="compare-box" style="background:#FFFFFF;border:2px solid #FCA5A5">
+          <strong style="color:#B91C1C">❌ Ölümcül Kusur</strong>
+          <span style="color:#1A202C;font-size:15px">RNN, uzun bir cümlede "onayladı"ya geldiğinde "CEO"dan gelen sinyal neredeyse tamamen kaybolmuştu. Uzun belgeler neredeyse imkânsızdı.</span>
+        </div>
+        <div class="compare-box" style="background:#EFF6FF;border:2px solid #BFDBFE">
+          <strong style="color:#1D4ED8">✓ Transformer Çözümü</strong>
+          <span style="color:#2D3748;font-size:15px">Transformer tüm kelimeleri aynı anda okur. "Onayladı" her zaman "CEO"ya doğrudan bağlıdır — mesafe artık sorun değil.</span>
+        </div>
+      </div>
+      <div class="steps-list">
+        <div class="step-row">
+          <div class="step-num" style="background:#C53030;color:#fff">1</div>
+          <p><strong>Hız:</strong> RNN kelimeyi tek tek işledi — paralel hesaplama mümkün değildi. Transformer her şeyi aynı anda işler → eğitimde 100× hız artışı.</p>
+        </div>
+        <div class="step-row">
+          <div class="step-num" style="background:#C53030;color:#fff">2</div>
+          <p><strong>Bellek:</strong> RNN mesafeyle birlikte bağlamı unuttu. Transformer binlerce kelimede tam bağlamı korur.</p>
+        </div>
+        <div class="step-row">
+          <div class="step-num" style="background:#1D4ED8;color:#fff">3</div>
+          <p><strong>Ölçek:</strong> Transformer daha fazla hesaplama ile güzel ölçeklenir — daha fazla katman, daha fazla parametre, daha yüksek zekâ. RNN bunu yapamadı.</p>
+        </div>
+      </div>
+      <div class="analogy">💡 RNN: 200 sayfalık raporu cümle cümle okuyup öncekini unutmak. Transformer: raporun tamamını masaya yayıp hepsini aynı anda görmek — tüm bağlantılar anında görünür.</div>
+    `,
+  },
+
+  // ── ADIM 1 ───────────────────────────────────────────────
+  {
+    kicker:'ADIM 2/3  ·  TEMEL ATILIM',
+    kColor:'#7C3AED',
+    title:'Öz-Dikkat: QKV Mekanizması',
+    html:`
+      <p class="body-text">Atılım <strong>Öz-Dikkat</strong>'tir. Her kelime için model sorar: <em>"Bu metindeki hangi diğer kelimeler beni anlamak için en önemli?"</em></p>
+      <div class="qkv-row">
+        <div class="qkv-pill" style="background:#EDE9FE;border:2px solid #DDD6FE">
+          <strong style="color:#7C3AED;font-size:22px">Q</strong>
+          <span style="font-size:14px;color:#5B21B6;font-weight:700">Sorgu</span><br>
+          <span style="font-size:13px;color:#4A5568">"Ben kimi aramalıyım?"</span>
+        </div>
+        <div class="qkv-pill" style="background:#DBEAFE;border:2px solid #BFDBFE">
+          <strong style="color:#1565C0;font-size:22px">K</strong>
+          <span style="font-size:14px;color:#1E40AF;font-weight:700">Anahtar</span><br>
+          <span style="font-size:13px;color:#4A5568">"Ben buyum, ilgini çeker miyim?"</span>
+        </div>
+        <div class="qkv-pill" style="background:#F0FDF4;border:2px solid #BBF7D0">
+          <strong style="color:#16A34A;font-size:22px">V</strong>
+          <span style="font-size:14px;color:#15803D;font-weight:700">Değer</span><br>
+          <span style="font-size:13px;color:#4A5568">"İşte gerçek bilgim"</span>
+        </div>
+      </div>
+      <p class="body-text">Sola tıklayın — seçilen kelime için <strong>Q vektörü</strong> (ne arıyor), her kelimeyle <strong>Q·K skoru</strong> (ne kadar ilgili) ve toplanan <strong>V bilgisi</strong> canlı hesaplanır.</p>
+      <div id="qkv-live" style="display:flex;flex-direction:column;gap:10px"></div>
+      <p id="click-hint" class="hint">↑ Bir kelimeye tıklayın — QKV hesaplaması burada belirecek</p>
+      <div class="analogy">💡 Yönetim kurulunda her üye eş zamanlı olarak diğer tüm üyelerin raporunu okur ve "kimin söyledikleri benim için en kritik?" sorusunu yanıtlar. İşte bu Öz-Dikkat — milyonlarca kelimede milisaniyeler içinde çalışır.</div>
+    `,
+  },
+
+  // ── ADIM 2 ───────────────────────────────────────────────
+  {
+    kicker:'ADIM 3/3  ·  TRANSFORMER MİMARİSİ',
+    kColor:'#16A34A',
+    title:'Katman Katman Anlama — Adım Adım İzleyin',
+    html:`
+      <p class="body-text">Transformer bu işlemi <strong>katman katman</strong> tekrarlar. GPT-2'de 12, GPT-4'te 96+ katman vardır. Her katman bir öncekinin üzerine inşa edilen daha derin bir anlayış ekler.</p>
+      <p class="body-text">Soldaki animasyonda → ve ← butonlarıyla katmanlar arasında geçiş yapın. Her aşamada:</p>
+      <div class="steps-list" style="margin-top:0">
+        <div class="step-row">
+          <div class="step-num" style="background:#7C3AED;color:#fff">1</div>
+          <p><strong>Barlar yükseliyor</strong> — her kelimenin "anlama derinliği" arttıkça büyür</p>
+        </div>
+        <div class="step-row">
+          <div class="step-num" style="background:#1565C0;color:#fff">2</div>
+          <p><strong>Yaylar değişiyor</strong> — o katmanda hangi kelime çiftleri işleniyor, görülebilir</p>
+        </div>
+        <div class="step-row">
+          <div class="step-num" style="background:#16A34A;color:#fff">3</div>
+          <p><strong>Panel güncelleniyor</strong> — bu katmandan çıkarılan bilgi ve iş dünyası için anlamı</p>
+        </div>
+      </div>
+      <div id="layer-dynamic">
+        <!-- Dinamik olarak güncelleniyor -->
+      </div>
+    `,
+  },
+];
+
+// ═══════════════════════════════════════════════════════════
+//  STEP GEÇME
+// ═══════════════════════════════════════════════════════════
+function setStep(i){
+  currentStep=i; frame=0;
+  navRects={}; hoverNav='';
+  if(i===1){ attnAnim=0; selectedToken=0; }
+  if(i===2){ currentLayer=0; targetKnowledge=[...LAYER_STAGES[0].knowledge]; displayKnowledge=new Array(6).fill(0.10); }
+  [0,1,2].forEach(j=>document.getElementById('btn'+j).classList.toggle('active',j===i));
+  const c=PANEL_STATIC[i];
+  document.getElementById('panel').innerHTML=`
+    <div class="kicker" style="color:${c.kColor}">${c.kicker}</div>
+    <div class="ptitle">${c.title}</div>
+    <div class="divider"></div>
+    ${c.html}
+  `;
+  if(i===2) updateLayerPanel();
+  if(i===1){ updateQKVPanel(0); attnAnim=0; }
+}
+</script>
+</body>
+</html>

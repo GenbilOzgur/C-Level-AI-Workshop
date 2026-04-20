@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <title>🐻 Ayıcık vs Kurşunlar</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: #0d0d1a;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      font-family: 'Segoe UI', Arial, sans-serif;
+      color: #fff;
+      user-select: none;
+    }
+    h1 { font-size: 22px; margin-bottom: 10px; letter-spacing: 2px; color: #ffe066; }
+    #hud {
+      display: flex;
+      gap: 40px;
+      margin-bottom: 12px;
+      font-size: 17px;
+      background: rgba(255,255,255,0.06);
+      padding: 8px 30px;
+      border-radius: 30px;
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+    #hud span b { color: #ffe066; }
+    canvas {
+      display: block;
+      border: 2px solid #3a3a6a;
+      border-radius: 12px;
+      box-shadow: 0 0 40px rgba(100, 60, 255, 0.3);
+    }
+    #controls {
+      margin-top: 12px;
+      font-size: 13px;
+      color: #888;
+      letter-spacing: 1px;
+    }
+    #bonus-msg {
+      height: 28px;
+      margin-top: 8px;
+      font-size: 18px;
+      font-weight: bold;
+      color: #ffe066;
+      text-shadow: 0 0 10px gold;
+      transition: opacity 0.5s;
+    }
+  </style>
+</head>
+<body>
+
+<h1>🐻 AYICIK vs KURŞUNLAR</h1>
+<div id="hud">
+  <span>❤️ Can: <b id="livesEl">3</b></span>
+  <span>✅ Kaçınma: <b id="dodgesEl">0</b></span>
+  <span>⭐ Skor: <b id="scoreEl">0</b></span>
+</div>
+<canvas id="c" width="820" height="290"></canvas>
+<div id="bonus-msg"></div>
+<div id="controls">⬆ Zıpla &nbsp;|&nbsp; ⬇ Eğil &nbsp;|&nbsp; SPACE Başlat / Duraklat</div>
+
+<script>
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+
+// ---------- STATE ----------
+const GROUND_Y = 230;
+const PLAT_H = 22;
+const BEAR_W = 52, BEAR_H = 62, BEAR_DUCK_H = 34;
+
+let state = 'title'; // title | playing | paused | flash | over
+let lives, dodges, score, frameCount, speed;
+let flashTimer = 0;
+let bonusTimer = 0;
+let bullets = [];
+let bulletTimer = 0;
+let bulletInterval = 110;
+let stars = [];
+
+// --- Hitbox heights (kesin hesap) ---
+// Ayıcık ayaktayken: bear.y = GROUND_Y - BEAR_H = 230-62 = 168
+//   hitbox top=172, bottom=226
+// Ayıcık eğilince: bear.y = GROUND_Y - BEAR_DUCK_H = 230-34 = 196
+//   hitbox top=200, bottom=226
+//
+// YÜKSEK kurşun (eğilerek kaçınılır):  y=185, r=12 → 173–197
+//   ayaktayken: 173<226 VE 197>172  → ÇARPAR ✓
+//   eğilince:   197 < 200           → KAÇAR  ✓
+//
+// ALÇAK kurşun (zıplayarak kaçınılır): y=218, r=12 → 206–230
+//   ayaktayken: 206<226 VE 230>172  → ÇARPAR ✓
+//   eğilince:   206<226 VE 230>200  → ÇARPAR ✓ (eğilmek işe yaramaz)
+//   zıplayınca: yeterince yükseğe çıkınca → KAÇAR ✓
+const BULLET_HIGH_Y = 185;
+const BULLET_LOW_Y  = 218;
+const BULLET_R      = 12;
+
+const keys = {};
+
+// Bear object
+const bear = {
+  x: 110, y: 0,
+  vy: 0, jumping: false, ducking: false,
+  groundY() { return GROUND_Y - (this.ducking ? BEAR_DUCK_H : BEAR_H); },
+  h() { return this.ducking ? BEAR_DUCK_H : BEAR_H; }
+};
+
+function resetGame() {
+  lives = 3; dodges = 0; score = 0; frameCount = 0; speed = 4.5;
+  bullets = []; bulletTimer = 0;
+  bear.y = bear.groundY(); bear.vy = 0; bear.jumping = false; bear.ducking = false;
+  updateHUD();
+}
+
+// ---------- STARS ----------
+for (let i = 0; i < 80; i++) {
+  stars.push({ x: Math.random() * 820, y: Math.random() * (GROUND_Y - 20), r: Math.random() * 1.5 + 0.3, sp: Math.random() * 0.4 + 0.1 });
+}
+
+// ---------- CONTROLS ----------
+document.addEventListener('keydown', e => {
+  keys[e.code] = true;
+  if (e.code === 'Space') {
+    e.preventDefault();
+    if (state === 'title' || state === 'over') { resetGame(); state = 'playing'; }
+    else if (state === 'playing') state = 'paused';
+    else if (state === 'paused') state = 'playing';
+  }
+  if (e.code === 'ArrowUp' || e.code === 'KeyW') e.preventDefault();
+  if (e.code === 'ArrowDown' || e.code === 'KeyS') e.preventDefault();
+});
+document.addEventListener('keyup', e => { keys[e.code] = false; });
+
+// ---------- HUD ----------
+function updateHUD() {
+  document.getElementById('livesEl').textContent = lives;
+  document.getElementById('dodgesEl').textContent = dodges;
+  document.getElementById('scoreEl').textContent = score;
+}
+
+function showBonus(msg) {
+  const el = document.getElementById('bonus-msg');
+  el.textContent = msg;
+  el.style.opacity = '1';
+  clearTimeout(bonusTimer);
+  bonusTimer = setTimeout(() => { el.style.opacity = '0'; }, 1600);
+}
+
+// ---------- BULLET SPAWN ----------
+function spawnBullet() {
+  const type = Math.random() < 0.5 ? 'high' : 'low';
+  bullets.push({
+    x: 830,
+    y: type === 'high' ? BULLET_HIGH_Y : BULLET_LOW_Y,
+    r: BULLET_R,
+    type,
+    color: type === 'high' ? '#ff2060' : '#ff8c00',
+    glow:  type === 'high' ? '#ff80c0' : '#ffcc66',
+    label: type === 'high' ? '⬇ EĞİL' : '⬆ ZIPLA',
+    passed: false, hit: false,
+    trail: []  // son pozisyonlar
+  });
+}
+
+// ---------- COLLISION ----------
+// Ayıcık hitbox'ı (biraz küçültülmüş, affedici)
+function bearRect() {
+  const margin = 7;
+  return {
+    left:  bear.x + margin,
+    right: bear.x + BEAR_W - margin,
+    top:   bear.y + margin,
+    bot:   bear.y + bear.h() - margin
+  };
+}
+
+function bulletHitsBear(b) {
+  const br = bearRect();
+  // Kurşun merkezi ile dikdörtgen arasındaki en yakın nokta
+  const cx = Math.max(br.left, Math.min(b.x, br.right));
+  const cy = Math.max(br.top,  Math.min(b.y, br.bot));
+  const dx = b.x - cx, dy = b.y - cy;
+  return (dx*dx + dy*dy) < (b.r * b.r);
+}
+
+// ---------- UPDATE ----------
+function update() {
+  if (state !== 'playing' && state !== 'flash') return;
+  if (state === 'flash') { flashTimer--; if (flashTimer <= 0) state = 'playing'; return; }
+
+  frameCount++;
+  score = Math.floor(frameCount / 8);
+  speed = 4.5 + frameCount / 1200;
+  bulletInterval = Math.max(55, 110 - Math.floor(frameCount / 400) * 4);
+
+  // Bear input
+  const upKey = keys['ArrowUp'] || keys['KeyW'];
+  const downKey = keys['ArrowDown'] || keys['KeyS'];
+
+  if (upKey && !bear.jumping && !bear.ducking) {
+    bear.vy = -16; bear.jumping = true;
+  }
+  if (downKey && !bear.jumping) {
+    bear.ducking = true;
+  } else if (!downKey) {
+    bear.ducking = false;
+  }
+
+  // Gravity
+  bear.vy += 0.75;
+  bear.y += bear.vy;
+  const gy = bear.groundY();
+  if (bear.y >= gy) { bear.y = gy; bear.vy = 0; bear.jumping = false; }
+
+  // Stars parallax
+  for (const s of stars) { s.x -= s.sp; if (s.x < 0) s.x = 820; }
+
+  // Bullet spawn
+  bulletTimer++;
+  if (bulletTimer >= bulletInterval) { spawnBullet(); bulletTimer = 0; }
+
+  // Bullet update
+  for (let i = bullets.length - 1; i >= 0; i--) {
+    const b = bullets[i];
+
+    // Trail: sadece son 8 pozisyonu sakla
+    b.trail.push(b.x);
+    if (b.trail.length > 8) b.trail.shift();
+
+    b.x -= speed;
+
+    // Geçti mi?
+    if (!b.passed && b.x + b.r < bear.x) {
+      b.passed = true;
+      dodges++;
+      score += 10;
+      if (dodges % 5 === 0) { lives++; showBonus(`❤️ +1 Can! (${dodges} kaçınma)`); }
+      updateHUD();
+    }
+
+    // Çarpışma — sadece henüz geçmemişse ve vurulmamışsa
+    if (!b.hit && !b.passed && bulletHitsBear(b)) {
+      b.hit = true;
+      lives--;
+      updateHUD();
+      if (lives <= 0) { state = 'over'; return; }
+      else { state = 'flash'; flashTimer = 55; bullets = []; return; }
+    }
+
+    if (b.x < -40) bullets.splice(i, 1);
+  }
+
+  updateHUD();
+}
+
+// ---------- DRAW ----------
+function drawBear(x, y, ducking, jumping) {
+  ctx.save();
+  const bc = '#8B4513', bd = '#5C2C00', bl = '#D2691E';
+
+  if (ducking) {
+    // Crouching form
+    ctx.fillStyle = bc;
+    ctx.beginPath(); ctx.ellipse(x+26, y+22, 28, 16, 0, 0, Math.PI*2); ctx.fill();
+    // head
+    ctx.beginPath(); ctx.ellipse(x+44, y+12, 16, 14, 0.25, 0, Math.PI*2); ctx.fill();
+    // ears
+    ctx.fillStyle = bd;
+    ctx.beginPath(); ctx.arc(x+35, y, 6, 0, Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.arc(x+51, y-1, 6, 0, Math.PI*2); ctx.fill();
+    // inner ear
+    ctx.fillStyle = '#ffb6c1';
+    ctx.beginPath(); ctx.arc(x+35, y, 3, 0, Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.arc(x+51, y-1, 3, 0, Math.PI*2); ctx.fill();
+    // eyes
+    ctx.fillStyle = '#fff';
+    ctx.beginPath(); ctx.arc(x+47, y+10, 4, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle = '#111';
+    ctx.beginPath(); ctx.arc(x+48, y+10, 2, 0, Math.PI*2); ctx.fill();
+    // shine
+    ctx.fillStyle = '#fff';
+    ctx.beginPath(); ctx.arc(x+49, y+9, 1, 0, Math.PI*2); ctx.fill();
+    // nose
+    ctx.fillStyle = bd;
+    ctx.beginPath(); ctx.ellipse(x+56, y+14, 4, 2.5, 0, 0, Math.PI*2); ctx.fill();
+    // smile
+    ctx.strokeStyle = bd; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.arc(x+56, y+15, 4, 0.2, Math.PI-0.2); ctx.stroke();
+  } else {
+    // Standing form
+    // Body
+    ctx.fillStyle = bc;
+    ctx.beginPath(); ctx.ellipse(x+26, y+44, 20, 22, 0, 0, Math.PI*2); ctx.fill();
+    // Belly
+    ctx.fillStyle = bl;
+    ctx.beginPath(); ctx.ellipse(x+26, y+47, 13, 14, 0, 0, Math.PI*2); ctx.fill();
+    // Head
+    ctx.fillStyle = bc;
+    ctx.beginPath(); ctx.arc(x+26, y+18, 18, 0, Math.PI*2); ctx.fill();
+    // Ears
+    ctx.fillStyle = bd;
+    ctx.beginPath(); ctx.arc(x+13, y+4, 8, 0, Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.arc(x+39, y+4, 8, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle = '#ffb6c1';
+    ctx.beginPath(); ctx.arc(x+13, y+4, 4, 0, Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.arc(x+39, y+4, 4, 0, Math.PI*2); ctx.fill();
+    // Eyes
+    ctx.fillStyle = '#fff';
+    ctx.beginPath(); ctx.arc(x+19, y+16, 5, 0, Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.arc(x+33, y+16, 5, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle = '#111';
+    ctx.beginPath(); ctx.arc(x+20, y+16, 3, 0, Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.arc(x+34, y+16, 3, 0, Math.PI*2); ctx.fill();
+    // shine
+    ctx.fillStyle = '#fff';
+    ctx.beginPath(); ctx.arc(x+21, y+15, 1.2, 0, Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.arc(x+35, y+15, 1.2, 0, Math.PI*2); ctx.fill();
+    // Nose
+    ctx.fillStyle = bd;
+    ctx.beginPath(); ctx.ellipse(x+26, y+24, 5, 3, 0, 0, Math.PI*2); ctx.fill();
+    // Smile
+    ctx.strokeStyle = bd; ctx.lineWidth = 1.8;
+    ctx.beginPath(); ctx.arc(x+26, y+26, 5, 0.25, Math.PI-0.25); ctx.stroke();
+    // Arms
+    ctx.fillStyle = bc;
+    if (jumping) {
+      ctx.beginPath(); ctx.ellipse(x+7, y+30, 7, 13, -0.6, 0, Math.PI*2); ctx.fill();
+      ctx.beginPath(); ctx.ellipse(x+45, y+30, 7, 13, 0.6, 0, Math.PI*2); ctx.fill();
+    } else {
+      ctx.beginPath(); ctx.ellipse(x+7, y+42, 7, 12, 0.3, 0, Math.PI*2); ctx.fill();
+      ctx.beginPath(); ctx.ellipse(x+45, y+42, 7, 12, -0.3, 0, Math.PI*2); ctx.fill();
+    }
+    // Legs
+    ctx.fillStyle = bd;
+    ctx.beginPath(); ctx.ellipse(x+18, y+63, 9, 6, 0, 0, Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(x+34, y+63, 9, 6, 0, 0, Math.PI*2); ctx.fill();
+  }
+  ctx.restore();
+}
+
+function drawBullet(b) {
+  ctx.save();
+
+  // Trail (iz)
+  for (let i = 0; i < b.trail.length; i++) {
+    const tx = b.trail[i];
+    const alpha = (i / b.trail.length) * 0.35;
+    const tr = b.r * (i / b.trail.length) * 0.8;
+    ctx.globalAlpha = alpha;
+    ctx.fillStyle = b.glow;
+    ctx.beginPath(); ctx.arc(tx, b.y, tr, 0, Math.PI*2); ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+
+  // Dış parıltı
+  ctx.shadowColor = b.color;
+  ctx.shadowBlur = 22;
+  ctx.fillStyle = b.color;
+  ctx.beginPath(); ctx.arc(b.x, b.y, b.r, 0, Math.PI*2); ctx.fill();
+
+  // İç beyaz özek
+  ctx.shadowBlur = 0;
+  ctx.fillStyle = '#fff';
+  ctx.beginPath(); ctx.arc(b.x, b.y, b.r * 0.45, 0, Math.PI*2); ctx.fill();
+
+  // Hint etiketi (kurşun yaklaşırken görünür)
+  if (b.x < 700) {
+    ctx.globalAlpha = Math.min(1, (700 - b.x) / 120);
+    ctx.fillStyle = '#fff';
+    ctx.font = 'bold 11px Segoe UI';
+    ctx.textAlign = 'center';
+    ctx.fillText(b.label, b.x, b.y - b.r - 6);
+    ctx.globalAlpha = 1;
+  }
+
+  ctx.restore();
+}
+
+function drawScene() {
+  // BG
+  const bg = ctx.createLinearGradient(0, 0, 0, canvas.height);
+  bg.addColorStop(0, '#0d0d1a'); bg.addColorStop(1, '#12122a');
+  ctx.fillStyle = bg; ctx.fillRect(0, 0, 820, 290);
+
+  // Stars
+  for (const s of stars) {
+    const alpha = 0.3 + Math.sin(frameCount * 0.04 + s.x) * 0.2;
+    ctx.fillStyle = `rgba(255,255,255,${alpha})`;
+    ctx.beginPath(); ctx.arc(s.x, s.y, s.r, 0, Math.PI*2); ctx.fill();
+  }
+
+  // Platform
+  const pg = ctx.createLinearGradient(0, GROUND_Y, 0, GROUND_Y + PLAT_H);
+  pg.addColorStop(0, '#5588ff'); pg.addColorStop(1, '#1a3a8a');
+  ctx.fillStyle = pg;
+  ctx.fillRect(0, GROUND_Y, 820, PLAT_H);
+  // shine
+  ctx.fillStyle = 'rgba(255,255,255,0.25)';
+  ctx.fillRect(0, GROUND_Y, 820, 3);
+  // grid lines
+  ctx.strokeStyle = 'rgba(255,255,255,0.07)'; ctx.lineWidth = 1;
+  for (let x = (frameCount * speed) % 50; x < 820; x += 50) {
+    ctx.beginPath(); ctx.moveTo(x, GROUND_Y); ctx.lineTo(x, GROUND_Y + PLAT_H); ctx.stroke();
+  }
+
+  // Bullets
+  for (const b of bullets) drawBullet(b);
+
+  // Bear (flash effect)
+  const showBear = state !== 'flash' || Math.floor(Date.now() / 80) % 2 === 0;
+  if (showBear) {
+    drawBear(bear.x, bear.y, bear.ducking, bear.jumping);
+  }
+}
+
+function drawOverlay() {
+  // --- TITLE ---
+  if (state === 'title') {
+    ctx.fillStyle = 'rgba(0,0,0,0.6)';
+    ctx.fillRect(0, 0, 820, 290);
+    ctx.textAlign = 'center';
+    ctx.shadowColor = '#ffe066'; ctx.shadowBlur = 20;
+    ctx.fillStyle = '#ffe066'; ctx.font = 'bold 38px Segoe UI';
+    ctx.fillText('🐻 AYICIK vs KURŞUNLAR', 410, 100);
+    ctx.shadowBlur = 0;
+    ctx.fillStyle = '#ccc'; ctx.font = '20px Segoe UI';
+    ctx.fillText('SPACE tuşuna bas ve oyna!', 410, 148);
+    ctx.fillStyle = '#888'; ctx.font = '15px Segoe UI';
+    ctx.fillText('Her 5 kaçınmada ❤️ +1 Can kazanırsın', 410, 185);
+  }
+
+  // --- PAUSED ---
+  if (state === 'paused') {
+    ctx.fillStyle = 'rgba(0,0,0,0.5)';
+    ctx.fillRect(0, 0, 820, 290);
+    ctx.textAlign = 'center';
+    ctx.fillStyle = '#fff'; ctx.font = 'bold 42px Segoe UI';
+    ctx.fillText('⏸ DURAKLATILDI', 410, 145);
+    ctx.fillStyle = '#aaa'; ctx.font = '18px Segoe UI';
+    ctx.fillText('Devam etmek için SPACE', 410, 190);
+  }
+
+  // --- GAME OVER ---
+  if (state === 'over') {
+    ctx.fillStyle = 'rgba(0,0,0,0.72)';
+    ctx.fillRect(0, 0, 820, 290);
+    ctx.textAlign = 'center';
+    ctx.shadowColor = '#ff3060'; ctx.shadowBlur = 25;
+    ctx.fillStyle = '#ff3060'; ctx.font = 'bold 50px Segoe UI';
+    ctx.fillText('GAME OVER', 410, 110);
+    ctx.shadowBlur = 0;
+    ctx.fillStyle = '#ffe066'; ctx.font = 'bold 22px Segoe UI';
+    ctx.fillText(`Skor: ${score}   |   ${dodges} Kurşun Kaçındı`, 410, 160);
+    ctx.fillStyle = '#aaa'; ctx.font = '17px Segoe UI';
+    ctx.fillText('Tekrar oynamak için SPACE', 410, 205);
+  }
+}
+
+// ---------- LOOP ----------
+function loop() {
+  update();
+  drawScene();
+  drawOverlay();
+  requestAnimationFrame(loop);
+}
+
+loop();
+</script>
+</body>
+</html>

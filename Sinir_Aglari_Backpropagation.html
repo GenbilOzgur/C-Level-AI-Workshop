@@ -1,0 +1,1373 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sinir Ağları & Backpropagation — C-Level AI Eğitimi</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background: #FFFFFF;
+    color: #1A202C;
+    font-size: 16px;
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+  /* ── NAV ─────────────────────────────────────── */
+  #top-nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 32px;
+    background: #1A365D;
+    border-bottom: 3px solid #2B6CB0;
+  }
+  #top-nav .logo {
+    font-size: 20px;
+    font-weight: 700;
+    color: #FFFFFF;
+    letter-spacing: 0.5px;
+  }
+  #top-nav .logo span { color: #63B3ED; }
+  .page-tabs {
+    display: flex;
+    gap: 6px;
+  }
+  .page-tab {
+    padding: 9px 22px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 15px;
+    font-weight: 600;
+    border: 2px solid transparent;
+    transition: all 0.18s;
+    background: rgba(255,255,255,0.10);
+    color: #CBD5E0;
+  }
+  .page-tab:hover { background: rgba(255,255,255,0.20); color: #FFFFFF; }
+  .page-tab.active {
+    background: #2B6CB0;
+    color: #FFFFFF;
+    border-color: #63B3ED;
+  }
+  /* ── PAGES ───────────────────────────────────── */
+  .page { display: none; padding: 28px 32px 40px; }
+  .page.active { display: block; }
+  .page-title {
+    font-size: 26px;
+    font-weight: 800;
+    color: #1A365D;
+    margin-bottom: 6px;
+    letter-spacing: -0.3px;
+  }
+  .page-subtitle {
+    font-size: 17px;
+    color: #4A5568;
+    margin-bottom: 28px;
+    border-bottom: 2px solid #E2E8F0;
+    padding-bottom: 14px;
+  }
+  /* ── CANVAS WRAPPER ──────────────────────────── */
+  .canvas-wrap {
+    display: flex;
+    gap: 24px;
+    align-items: flex-start;
+  }
+  canvas {
+    border: 2px solid #E2E8F0;
+    border-radius: 12px;
+    background: #FAFAFA;
+    cursor: pointer;
+    display: block;
+  }
+  /* ── INFO PANEL ──────────────────────────────── */
+  .info-panel {
+    flex: 1;
+    min-width: 280px;
+    max-width: 380px;
+    background: #F7FAFC;
+    border: 2px solid #E2E8F0;
+    border-radius: 12px;
+    padding: 20px;
+    font-size: 15px;
+    line-height: 1.65;
+  }
+  .info-panel h3 {
+    font-size: 18px;
+    font-weight: 700;
+    color: #1A365D;
+    margin-bottom: 12px;
+    border-bottom: 2px solid #BEE3F8;
+    padding-bottom: 8px;
+  }
+  .info-panel .key-point {
+    background: #EBF8FF;
+    border-left: 4px solid #3182CE;
+    padding: 10px 14px;
+    border-radius: 0 8px 8px 0;
+    margin: 10px 0;
+    font-size: 14px;
+    color: #2A4365;
+  }
+  .info-panel .warning-box {
+    background: #FFF5F5;
+    border-left: 4px solid #E53E3E;
+    padding: 10px 14px;
+    border-radius: 0 8px 8px 0;
+    margin: 10px 0;
+    font-size: 14px;
+    color: #742A2A;
+  }
+  .info-panel .success-box {
+    background: #F0FFF4;
+    border-left: 4px solid #38A169;
+    padding: 10px 14px;
+    border-radius: 0 8px 8px 0;
+    margin: 10px 0;
+    font-size: 14px;
+    color: #22543D;
+  }
+  .info-panel .formula-box {
+    background: #FEFCE8;
+    border: 2px solid #F6E05E;
+    padding: 10px 14px;
+    border-radius: 8px;
+    margin: 10px 0;
+    font-family: 'Courier New', monospace;
+    font-size: 13px;
+    color: #1A202C;
+    line-height: 1.8;
+  }
+  /* ── BACKPROP PAGE ───────────────────────────── */
+  .bp-layout {
+    display: grid;
+    grid-template-columns: 1fr 340px;
+    gap: 24px;
+    align-items: start;
+  }
+  .bp-controls {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 18px;
+    flex-wrap: wrap;
+  }
+  .btn {
+    padding: 10px 22px;
+    border-radius: 8px;
+    border: 2px solid #2B6CB0;
+    background: #2B6CB0;
+    color: #FFFFFF;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.16s;
+  }
+  .btn:hover { background: #1A365D; border-color: #1A365D; }
+  .btn.secondary {
+    background: #FFFFFF;
+    color: #2B6CB0;
+  }
+  .btn.secondary:hover { background: #EBF8FF; }
+  .btn.danger {
+    background: #E53E3E;
+    border-color: #E53E3E;
+    color: #FFFFFF;
+  }
+  .stat-chips {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+  }
+  .stat-chip {
+    background: #EBF8FF;
+    border: 2px solid #BEE3F8;
+    border-radius: 20px;
+    padding: 6px 16px;
+    font-size: 14px;
+    font-weight: 700;
+    color: #2A4365;
+  }
+  .stat-chip .val { color: #2B6CB0; }
+  /* ── WHO DOES WHAT BOXES ─────────────────────── */
+  .who-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 14px;
+    margin: 16px 0;
+  }
+  .who-card {
+    border-radius: 10px;
+    padding: 14px;
+    text-align: center;
+    border: 2px solid transparent;
+  }
+  .who-card .who-icon { font-size: 28px; margin-bottom: 6px; }
+  .who-card .who-title { font-size: 13px; font-weight: 700; margin-bottom: 4px; }
+  .who-card .who-actor { font-size: 15px; font-weight: 800; margin-bottom: 6px; }
+  .who-card .who-desc { font-size: 12px; color: #4A5568; line-height: 1.4; }
+  .who-card.math { background: #EBF8FF; border-color: #3182CE; }
+  .who-card.math .who-actor { color: #2B6CB0; }
+  .who-card.no-human { background: #FFF5F5; border-color: #E53E3E; }
+  .who-card.no-human .who-actor { color: #E53E3E; }
+  /* ── GAME PAGE ───────────────────────────────── */
+  .game-layout {
+    display: grid;
+    grid-template-columns: 260px 1fr 300px;
+    gap: 20px;
+    align-items: start;
+  }
+  .candidate-list {
+    background: #F7FAFC;
+    border: 2px solid #E2E8F0;
+    border-radius: 12px;
+    padding: 16px;
+  }
+  .candidate-list h3 {
+    font-size: 17px;
+    font-weight: 700;
+    color: #1A365D;
+    margin-bottom: 14px;
+    border-bottom: 2px solid #BEE3F8;
+    padding-bottom: 8px;
+  }
+  .candidate-card {
+    background: #FFFFFF;
+    border: 2px solid #E2E8F0;
+    border-radius: 8px;
+    padding: 10px 12px;
+    margin-bottom: 8px;
+    cursor: pointer;
+    transition: all 0.16s;
+    position: relative;
+  }
+  .candidate-card:hover { border-color: #3182CE; background: #EBF8FF; }
+  .candidate-card.selected { border-color: #3182CE; background: #EBF8FF; }
+  .candidate-card .c-name { font-size: 14px; font-weight: 700; color: #1A365D; }
+  .candidate-card .c-profile { font-size: 12px; color: #4A5568; margin-top: 2px; }
+  .candidate-card .c-bars { margin-top: 6px; }
+  .c-bar-row { display: flex; align-items: center; gap: 6px; margin-top: 3px; }
+  .c-bar-label { font-size: 11px; color: #718096; width: 70px; flex-shrink: 0; }
+  .c-bar-track { flex: 1; height: 6px; background: #E2E8F0; border-radius: 3px; }
+  .c-bar-fill { height: 100%; border-radius: 3px; transition: width 0.3s; }
+  .label-btns {
+    display: flex;
+    gap: 6px;
+    margin-top: 8px;
+  }
+  .label-btn {
+    flex: 1;
+    padding: 6px 4px;
+    border-radius: 6px;
+    border: 2px solid;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 700;
+    text-align: center;
+    transition: all 0.14s;
+  }
+  .label-btn.hire { border-color: #38A169; color: #38A169; background: #F0FFF4; }
+  .label-btn.hire:hover, .label-btn.hire.chosen { background: #38A169; color: #FFFFFF; }
+  .label-btn.nohire { border-color: #E53E3E; color: #E53E3E; background: #FFF5F5; }
+  .label-btn.nohire:hover, .label-btn.nohire.chosen { background: #E53E3E; color: #FFFFFF; }
+  .game-panel {
+    background: #F7FAFC;
+    border: 2px solid #E2E8F0;
+    border-radius: 12px;
+    padding: 16px;
+  }
+  .game-panel h3 {
+    font-size: 17px;
+    font-weight: 700;
+    color: #1A365D;
+    margin-bottom: 12px;
+    border-bottom: 2px solid #BEE3F8;
+    padding-bottom: 8px;
+  }
+  .game-stat { margin-bottom: 8px; font-size: 14px; }
+  .game-stat b { color: #2B6CB0; }
+  .loss-chart-wrap {
+    background: #FFFFFF;
+    border: 2px solid #E2E8F0;
+    border-radius: 8px;
+    padding: 8px;
+    margin-top: 10px;
+  }
+  .accuracy-bar-wrap { margin-top: 12px; }
+  .accuracy-bar-track {
+    height: 22px;
+    background: #E2E8F0;
+    border-radius: 11px;
+    overflow: hidden;
+    margin-top: 4px;
+  }
+  .accuracy-bar-fill {
+    height: 100%;
+    border-radius: 11px;
+    background: linear-gradient(90deg, #38A169, #48BB78);
+    transition: width 0.5s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 700;
+    color: #FFFFFF;
+    min-width: 40px;
+  }
+  .train-status {
+    font-size: 13px;
+    color: #718096;
+    margin-top: 8px;
+    min-height: 18px;
+  }
+  .weight-viz { margin-top: 12px; }
+  .weight-row { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+  .weight-label { font-size: 12px; color: #4A5568; width: 110px; flex-shrink: 0; }
+  .weight-bar-track { flex: 1; height: 10px; background: #E2E8F0; border-radius: 5px; position: relative; }
+  .weight-bar-fill { height: 100%; border-radius: 5px; position: absolute; top: 0; transition: all 0.4s; }
+  /* ── STEP INDICATOR ──────────────────────────── */
+  .step-indicator {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 18px;
+    flex-wrap: wrap;
+  }
+  .step-dot {
+    padding: 7px 18px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 700;
+    background: #E2E8F0;
+    color: #718096;
+    cursor: pointer;
+    transition: all 0.15s;
+    border: 2px solid transparent;
+  }
+  .step-dot.active {
+    background: #2B6CB0;
+    color: #FFFFFF;
+    border-color: #1A365D;
+  }
+  .step-dot.done {
+    background: #C6F6D5;
+    color: #22543D;
+    border-color: #38A169;
+  }
+  /* ── PHASE BADGE ─────────────────────────────── */
+  .phase-badge {
+    display: inline-block;
+    padding: 4px 14px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 700;
+    margin-left: 10px;
+    vertical-align: middle;
+  }
+  .phase-badge.forward { background: #BEE3F8; color: #2A4365; }
+  .phase-badge.error   { background: #FED7D7; color: #742A2A; }
+  .phase-badge.back    { background: #C6F6D5; color: #22543D; }
+  .phase-badge.update  { background: #FEFCBF; color: #744210; }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav id="top-nav">
+  <div class="logo">🧠 Sinir Ağları &amp; <span>Backpropagation</span></div>
+  <div class="page-tabs">
+    <div class="page-tab active" onclick="showPage(0)">① Ağın Yapısı</div>
+    <div class="page-tab" onclick="showPage(1)">② İleri Geçiş</div>
+    <div class="page-tab" onclick="showPage(2)">③ Backpropagation</div>
+    <div class="page-tab" onclick="showPage(3)">🎮 Ağı Kendin Eğit</div>
+  </div>
+</nav>
+
+<!-- PAGE 0: YAPI -->
+<div class="page active" id="page-0">
+  <div class="page-title">Sinir Ağının Anatomisi</div>
+  <div class="page-subtitle">Bir yapay sinir ağı nasıl çalışır? Katmanlar ne anlam ifade eder?</div>
+  <div class="canvas-wrap">
+    <canvas id="c0" width="660" height="440"></canvas>
+    <div class="info-panel" id="p0-panel">
+      <h3>🏗️ Ağın Yapısı</h3>
+      <p>Bir sinir ağı, birbirine bağlı <strong>nöronlardan</strong> oluşur. Her nöron önceki katmandan giriş alır, bunları ağırlıklarla çarpar ve bir aktivasyon fonksiyonundan geçirir.</p>
+      <div class="key-point">💡 <strong>Ağırlık (Weight):</strong> İki nöron arasındaki bağlantının gücü. Eğitim sürecinde bu değerler güncellenir.</div>
+      <div class="key-point">💡 <strong>Katman:</strong> Aynı seviyedeki nöronlar kümesi. Girdi → Gizli → Çıktı.</div>
+      <div style="margin-top:14px; font-size:14px; color:#4A5568;">
+        <p><strong>Bu örnekte:</strong></p>
+        <p style="margin-top:6px;">• <strong>Girdi (3):</strong> Deneyim, Liderlik, Teknik Beceri</p>
+        <p style="margin-top:4px;">• <strong>Gizli (4):</strong> Örüntüleri tespit eden nöronlar</p>
+        <p style="margin-top:4px;">• <strong>Çıktı (1):</strong> "İşe Al?" olasılığı (0–1)</p>
+      </div>
+      <div class="success-box">✅ <strong>Benzetme:</strong> Nöronlar = departman çalışanları. Her biri kendi uzmanlığına göre bilgiyi işler ve bir sonraki departmana iletir.</div>
+      <p style="margin-top:12px; font-size:13px; color:#718096;">↑ Bir nöronun üzerine tıklayın — o nöronun detaylarını görün.</p>
+    </div>
+  </div>
+</div>
+
+<!-- PAGE 1: İLERİ GECİS -->
+<div class="page" id="page-1">
+  <div class="page-title">İleri Geçiş (Forward Pass)</div>
+  <div class="page-subtitle">Bir CV sisteme girdiğinde ağ içinde ne olur? Adım adım hesaplamayı izleyin.</div>
+
+  <div class="step-indicator" id="fwd-steps">
+    <div class="step-dot active" onclick="setFwdStep(0)">① Girdi</div>
+    <div class="step-dot" onclick="setFwdStep(1)">② Ağırlık × Değer</div>
+    <div class="step-dot" onclick="setFwdStep(2)">③ Aktivasyon</div>
+    <div class="step-dot" onclick="setFwdStep(3)">④ Sonuç</div>
+  </div>
+
+  <div class="canvas-wrap">
+    <canvas id="c1" width="660" height="440"></canvas>
+    <div class="info-panel" id="p1-panel">
+      <h3>📡 İleri Geçiş</h3>
+      <p id="fwd-desc">Sistem bir aday CV'sini alır ve her değeri 0–1 arasında normalize eder.</p>
+      <div class="formula-box" id="fwd-formula" style="display:none;"></div>
+      <div class="key-point" id="fwd-insight" style="display:none;"></div>
+    </div>
+  </div>
+</div>
+
+<!-- PAGE 2: BACKPROP -->
+<div class="page" id="page-2">
+  <div class="page-title">Backpropagation — Kim, Nasıl, Ne Zaman?</div>
+  <div class="page-subtitle">Hatayı ölçen, suçu dağıtan, ağırlıkları ayarlayan kim veya ne?</div>
+
+  <div class="who-grid">
+    <div class="who-card math">
+      <div class="who-icon">📐</div>
+      <div class="who-title">HATAY ÖLÇEN</div>
+      <div class="who-actor">Kayıp Fonksiyonu</div>
+      <div class="who-desc">MSE = ½(tahmin − gerçek)²<br>Matematiksel formül. İnsan yok.</div>
+    </div>
+    <div class="who-card math">
+      <div class="who-icon">🔗</div>
+      <div class="who-title">SUÇU DAĞITAN</div>
+      <div class="who-actor">Zincir Kuralı</div>
+      <div class="who-desc">Her bağlantının hataya katkısı calculus ile hesaplanır. İnsan yok.</div>
+    </div>
+    <div class="who-card math">
+      <div class="who-icon">⚙️</div>
+      <div class="who-title">AĞIRLIĞI AYARLAYAN</div>
+      <div class="who-actor">Gradient Descent</div>
+      <div class="who-desc">w = w − α·∂L/∂w<br>Otomatik optimizasyon. İnsan yok.</div>
+    </div>
+  </div>
+
+  <div class="who-card no-human" style="margin: 0 0 18px; max-width:100%; flex-direction:row; display:flex; align-items:center; gap:16px; padding:14px 20px;">
+    <div class="who-icon" style="font-size:36px;">🚫</div>
+    <div style="text-align:left;">
+      <div class="who-title" style="font-size:14px;">EĞİTİM SIRASINDA İNSAN MÜDAHALESİ</div>
+      <div class="who-actor" style="font-size:22px; color:#E53E3E;">SIFIR</div>
+      <div class="who-desc" style="font-size:14px; color:#742A2A;">İnsanın rolü sadece başlangıçta: veri etiketleme, mimari seçimi ve hiperparametrelerin ayarlanması. Eğitim başladıktan sonra tüm süreç matematiksel formüller tarafından yürütülür. Binlerce, hatta milyonlarca iterasyon boyunca insan bekleme yapmaz.</div>
+    </div>
+  </div>
+
+  <div class="bp-layout">
+    <div>
+      <div class="bp-controls">
+        <button class="btn" onclick="bpPlay()">▶ Otomatik Oynat</button>
+        <button class="btn secondary" onclick="bpStep()">⏭ Adım Adım</button>
+        <button class="btn secondary danger" onclick="bpReset()">↺ Sıfırla</button>
+        <span id="bp-phase-badge" class="phase-badge forward">İleri Geçiş</span>
+      </div>
+      <div class="stat-chips">
+        <div class="stat-chip">İterasyon: <span class="val" id="bp-iter">0</span></div>
+        <div class="stat-chip">Kayıp: <span class="val" id="bp-loss">—</span></div>
+        <div class="stat-chip">Tahmin: <span class="val" id="bp-pred">—</span></div>
+        <div class="stat-chip">Doğruluk: <span class="val" id="bp-acc">—</span></div>
+      </div>
+      <canvas id="c2" width="620" height="340"></canvas>
+      <canvas id="c2loss" width="620" height="150" style="margin-top:12px;"></canvas>
+    </div>
+    <div class="info-panel" id="p2-panel">
+      <h3>🔄 Backpropagation Adımları</h3>
+      <div id="bp-step-desc">
+        <p>Eğitimi başlatın. Her iterasyonda şu 4 adım otomatik çalışır:</p>
+        <div class="key-point" style="margin-top:10px;">
+          <strong>1. İleri Geçiş:</strong> Giriş verileri ağdan geçer, bir tahmin üretilir.
+        </div>
+        <div class="key-point">
+          <strong>2. Hata Ölçümü:</strong> Kayıp fonksiyonu tahminin ne kadar yanlış olduğunu sayısal olarak hesaplar.
+        </div>
+        <div class="key-point">
+          <strong>3. Geri Yayılım:</strong> Zincir kuralı her ağırlığın hataya katkısını tespit eder.
+        </div>
+        <div class="key-point">
+          <strong>4. Ağırlık Güncelleme:</strong> Gradient descent her ağırlığı hatayı azaltacak yönde küçük bir adım günceller.
+        </div>
+        <div class="success-box" style="margin-top:12px;">⏱️ Milyonlarca iterasyon saniyeler içinde tamamlanır — insan beklemiyor!</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PAGE 3: GAME -->
+<div class="page" id="page-3">
+  <div class="page-title">🎮 Ağı Kendin Eğit</div>
+  <div class="page-subtitle">Aday CV'lerini siz etiketleyin — sinir ağı gerçek backpropagation matematiğiyle kendi kendine öğrensin!</div>
+
+  <div class="game-layout">
+    <!-- Candidates -->
+    <div class="candidate-list">
+      <h3>👥 Adaylar</h3>
+      <p style="font-size:13px; color:#4A5568; margin-bottom:12px;">Her aday için <strong>İşe Al / Alma</strong> kararı verin.</p>
+      <div id="candidate-list-inner"></div>
+      <div style="margin-top:14px;">
+        <button class="btn" style="width:100%; font-size:14px;" onclick="startTraining()">🚀 Eğitimi Başlat</button>
+        <button class="btn secondary" style="width:100%; font-size:14px; margin-top:8px;" onclick="resetGame()">↺ Yeniden Başla</button>
+      </div>
+    </div>
+
+    <!-- Network canvas -->
+    <div>
+      <div class="stat-chips" id="game-stats">
+        <div class="stat-chip">Etiketlenen: <span class="val" id="g-labeled">0</span>/10</div>
+        <div class="stat-chip">İterasyon: <span class="val" id="g-iter">0</span></div>
+        <div class="stat-chip">Kayıp: <span class="val" id="g-loss">—</span></div>
+      </div>
+      <canvas id="c3" width="530" height="360"></canvas>
+      <canvas id="c3loss" width="530" height="140" style="margin-top:10px;"></canvas>
+      <div class="train-status" id="train-status">Henüz eğitim başlamadı. En az 4 aday etiketleyin.</div>
+    </div>
+
+    <!-- Right panel -->
+    <div class="game-panel">
+      <h3>📊 Ağ Durumu</h3>
+      <div class="accuracy-bar-wrap">
+        <div style="font-size:13px; font-weight:700; color:#2A4365;">Doğruluk Oranı</div>
+        <div class="accuracy-bar-track">
+          <div class="accuracy-bar-fill" id="g-acc-bar" style="width:0%;">0%</div>
+        </div>
+      </div>
+      <div class="weight-viz" id="weight-viz">
+        <div style="font-size:13px; font-weight:700; color:#2A4365; margin-bottom:8px; margin-top:12px;">Giriş Ağırlıkları (W1)</div>
+        <div id="w-rows"></div>
+      </div>
+      <div class="game-panel" style="margin-top:14px; padding:12px;">
+        <div style="font-size:14px; font-weight:700; color:#1A365D; margin-bottom:8px;">🔮 Tahminler</div>
+        <div id="pred-list" style="font-size:13px;"></div>
+      </div>
+      <div class="success-box" style="margin-top:12px; font-size:13px;">
+        <strong>İzleyin:</strong> Siz sadece etiket verdiniz. Tüm öğrenme — hata ölçümü, gradient hesabı, ağırlık güncellemesi — matematik tarafından yapılıyor!
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ════════════════════════════════════════════════════════════
+// UTILS
+// ════════════════════════════════════════════════════════════
+function sigmoid(x){ return 1/(1+Math.exp(-x)); }
+function dsigmoid(y){ return y*(1-y); }
+function lerp(a,b,t){ return a+(b-a)*t; }
+function clamp(v,lo,hi){ return Math.max(lo,Math.min(hi,v)); }
+
+// ════════════════════════════════════════════════════════════
+// NETWORK DEFINITION  (3 → 4 → 1)
+// ════════════════════════════════════════════════════════════
+const N_IN=3, N_HID=4, N_OUT=1;
+const INPUT_LABELS=['Deneyim','Liderlik','Teknik'];
+const INPUT_COLORS=['#3182CE','#38A169','#D69E2E'];
+
+function makeNetwork(){
+  // Xavier init
+  const w1=[], b1=[], w2=[], b2=[];
+  for(let h=0;h<N_HID;h++){
+    b1.push(0);
+    w1.push([]);
+    for(let i=0;i<N_IN;i++) w1[h].push((Math.random()-0.5)*0.8);
+  }
+  for(let o=0;o<N_OUT;o++){
+    b2.push(0);
+    w2.push([]);
+    for(let h=0;h<N_HID;h++) w2[o].push((Math.random()-0.5)*0.8);
+  }
+  return {w1,b1,w2,b2};
+}
+
+function forward(net, x){
+  const h=[];
+  for(let hi=0;hi<N_HID;hi++){
+    let s=net.b1[hi];
+    for(let i=0;i<N_IN;i++) s+=net.w1[hi][i]*x[i];
+    h.push(sigmoid(s));
+  }
+  const out=[];
+  for(let o=0;o<N_OUT;o++){
+    let s=net.b2[o];
+    for(let hi=0;hi<N_HID;hi++) s+=net.w2[o][hi]*h[hi];
+    out.push(sigmoid(s));
+  }
+  return {h,out};
+}
+
+function trainStep(net, x, target, lr=0.6){
+  const {h,out}=forward(net,x);
+  const loss=0.5*Math.pow(out[0]-target,2);
+  // output gradient
+  const dout=(out[0]-target)*dsigmoid(out[0]);
+  const dh=new Array(N_HID).fill(0);
+  for(let hi=0;hi<N_HID;hi++){
+    net.w2[0][hi]-=lr*dout*h[hi];
+    dh[hi]=net.w2[0][hi]*dout*dsigmoid(h[hi]);
+  }
+  net.b2[0]-=lr*dout;
+  for(let hi=0;hi<N_HID;hi++){
+    for(let i=0;i<N_IN;i++) net.w1[hi][i]-=lr*dh[hi]*x[i];
+    net.b1[hi]-=lr*dh[hi];
+  }
+  return {loss,prediction:out[0],h,out};
+}
+
+// ════════════════════════════════════════════════════════════
+// PAGE SWITCHING
+// ════════════════════════════════════════════════════════════
+function showPage(idx){
+  document.querySelectorAll('.page').forEach((p,i)=>p.classList.toggle('active',i===idx));
+  document.querySelectorAll('.page-tab').forEach((t,i)=>t.classList.toggle('active',i===idx));
+  if(idx===0) p0Init();
+  if(idx===1) p1Init();
+  if(idx===2) p2Init();
+  if(idx===3) p3Init();
+}
+
+// ════════════════════════════════════════════════════════════
+// PAGE 0 — STRUCTURE
+// ════════════════════════════════════════════════════════════
+let p0Net=makeNetwork();
+let p0AnimId=null;
+const P0_SAMPLE=[0.8,0.7,0.9];
+
+function getNodePos(c, layer, idx, total){
+  const layerX=[90,270,490,630]; // adjust for canvas width 660
+  const canH=440;
+  const spacing=canH/(total+1);
+  return {x:layerX[layer], y:spacing*(idx+1)};
+}
+
+function p0Init(){
+  const cv=document.getElementById('c0');
+  const ctx=cv.getContext('2d');
+  if(p0AnimId) cancelAnimationFrame(p0AnimId);
+  let pulse=0;
+  function draw(){
+    p0AnimId=requestAnimationFrame(draw);
+    ctx.clearRect(0,0,cv.width,cv.height);
+    pulse+=0.04;
+    const {h,out}=forward(p0Net,P0_SAMPLE);
+    const acts=[[...P0_SAMPLE],[...h],[...out]];
+    const counts=[N_IN,N_HID,N_OUT];
+    // draw connections
+    for(let l=0;l<2;l++){
+      for(let i=0;i<counts[l];i++){
+        for(let j=0;j<counts[l+1];j++){
+          const a=getNodePos(cv,l,i,counts[l]);
+          const b=getNodePos(cv,l+1,j,counts[l+1]);
+          const w=(l===0)?p0Net.w1[j][i]:p0Net.w2[j][i];
+          const alpha=clamp(Math.abs(w)*0.8,0.08,0.6);
+          ctx.strokeStyle=w>0?`rgba(49,130,206,${alpha})`:`rgba(229,62,62,${alpha})`;
+          ctx.lineWidth=Math.abs(w)*2.5+0.5;
+          ctx.beginPath(); ctx.moveTo(a.x,a.y); ctx.lineTo(b.x,b.y); ctx.stroke();
+        }
+      }
+    }
+    // draw nodes
+    const layerColors=[INPUT_COLORS,'#7B4EA6','#2F855A'];
+    const allLabels=[INPUT_LABELS,['H₁','H₂','H₃','H₄'],['Sonuç']];
+    const layerTitles=['Girdi','Gizli Katman','Çıktı'];
+    for(let l=0;l<3;l++){
+      // layer title
+      const tp=getNodePos(cv,l,0,counts[l]);
+      ctx.fillStyle='#4A5568'; ctx.font='bold 14px Segoe UI';
+      ctx.textAlign='center';
+      ctx.fillText(layerTitles[l], tp.x, 22);
+
+      for(let i=0;i<counts[l];i++){
+        const p=getNodePos(cv,l,i,counts[l]);
+        const act=acts[l][i];
+        const r=22;
+        // glow for active
+        if(act>0.5){
+          const glow=ctx.createRadialGradient(p.x,p.y,r*0.3,p.x,p.y,r*1.5);
+          glow.addColorStop(0,'rgba(72,187,120,0.22)');
+          glow.addColorStop(1,'rgba(72,187,120,0)');
+          ctx.fillStyle=glow; ctx.beginPath(); ctx.arc(p.x,p.y,r*1.5,0,Math.PI*2); ctx.fill();
+        }
+        // node
+        ctx.beginPath(); ctx.arc(p.x,p.y,r,0,Math.PI*2);
+        const col=l===0?INPUT_COLORS[i]:(l===1?`hsl(${270+i*15},60%,48%)`:'#2F855A');
+        ctx.fillStyle=col; ctx.fill();
+        ctx.strokeStyle='#FFFFFF'; ctx.lineWidth=2.5; ctx.stroke();
+        // activation fill overlay
+        const fillH=r*2*act;
+        ctx.save(); ctx.beginPath(); ctx.arc(p.x,p.y,r,0,Math.PI*2); ctx.clip();
+        ctx.fillStyle='rgba(255,255,255,0.35)';
+        ctx.fillRect(p.x-r, p.y+r-fillH, r*2, fillH);
+        ctx.restore();
+        // label
+        ctx.fillStyle='#FFFFFF'; ctx.font='bold 11px Segoe UI'; ctx.textAlign='center';
+        ctx.fillText(allLabels[l][i]||'', p.x, p.y+3);
+        // activation value
+        ctx.fillStyle='#2D3748'; ctx.font='11px Segoe UI';
+        ctx.fillText(act.toFixed(2), p.x, p.y+r+14);
+      }
+    }
+    // legend
+    ctx.fillStyle='#718096'; ctx.font='13px Segoe UI'; ctx.textAlign='left';
+    ctx.fillText('🔵 Pozitif ağırlık   🔴 Negatif ağırlık', 10, cv.height-10);
+  }
+  draw();
+  // click handler
+  cv.onclick=function(e){
+    const rect=cv.getBoundingClientRect();
+    const mx=e.clientX-rect.left, my=e.clientY-rect.top;
+    const counts=[N_IN,N_HID,N_OUT];
+    for(let l=0;l<3;l++){
+      for(let i=0;i<counts[l];i++){
+        const p=getNodePos(cv,l,i,counts[l]);
+        if(Math.hypot(mx-p.x,my-p.y)<26){
+          showNeuronInfo(l,i);
+        }
+      }
+    }
+  };
+}
+
+function showNeuronInfo(layer,idx){
+  const panel=document.getElementById('p0-panel');
+  const {h,out}=forward(p0Net,P0_SAMPLE);
+  const acts=[[...P0_SAMPLE],[...h],[...out]];
+  const names=[INPUT_LABELS,['Gizli 1','Gizli 2','Gizli 3','Gizli 4'],['Çıktı']];
+  const name=names[layer][idx];
+  const act=acts[layer][idx];
+  let html=`<h3>🔍 ${name}</h3>`;
+  html+=`<p>Aktivasyon değeri: <strong>${act.toFixed(4)}</strong></p>`;
+  if(layer===1){
+    html+=`<div class="formula-box">Hesaplama:<br>`;
+    let s=p0Net.b1[idx];
+    for(let i=0;i<N_IN;i++){
+      const w=p0Net.w1[idx][i];
+      html+=`${INPUT_LABELS[i]} × ${w.toFixed(2)}`;
+      s+=w*P0_SAMPLE[i];
+      if(i<N_IN-1) html+=` + `;
+    }
+    html+=`<br>Toplam z = ${s.toFixed(3)}<br>σ(${s.toFixed(3)}) = ${sigmoid(s).toFixed(4)}</div>`;
+    html+=`<div class="key-point">Bu nöron girdi özelliklerinin ağırlıklı toplamını alır, sigmoid fonksiyonundan geçirir ve sonucu bir sonraki katmana iletir.</div>`;
+  } else if(layer===0){
+    html+=`<div class="key-point">${name} = ${act.toFixed(2)}<br>Bu normalizasyon değeri doğrudan ağa girdi olarak verilir.</div>`;
+  } else {
+    html+=`<div class="success-box">İşe Alım Olasılığı: <strong>${(act*100).toFixed(1)}%</strong><br>${act>0.5?'✅ İşe AL önerilir':'❌ İşe ALMA önerilir'}</div>`;
+  }
+  panel.innerHTML=html;
+}
+
+// ════════════════════════════════════════════════════════════
+// PAGE 1 — FORWARD PASS
+// ════════════════════════════════════════════════════════════
+let fwdStep=0;
+let p1AnimId=null;
+const FWD_SAMPLE=[0.85,0.72,0.90];
+const FWD_SAMPLE_LABELS=['Deneyim (8.5 yıl)','Liderlik (7.2/10)','Teknik (9.0/10)'];
+
+const FWD_DESCS=[
+  'Bir aday profili sisteme giriyor. Her özellik 0–1 arasında normalize ediliyor.',
+  'Her ağırlık, karşılık gelen giriş değeriyle çarpılıyor. Bu çarpımlar toplanıyor.',
+  'Toplam değer sigmoid fonksiyonundan geçiyor: σ(z) = 1/(1+e⁻ᶻ). Sonuç 0–1 arası oluyor.',
+  'Çıktı katmanı işe alım olasılığını üretiyor. Model kararını verdi!'
+];
+
+const FWD_FORMULAS=[
+  'Giriş: [0.85, 0.72, 0.90]',
+  'z₁ = w₁₁·0.85 + w₁₂·0.72 + w₁₃·0.90 + b₁\nz₂ = w₂₁·0.85 + w₂₂·0.72 + w₂₃·0.90 + b₂\n...',
+  'h₁ = σ(z₁) = 1/(1+e⁻ᶻ¹)\nh₂ = σ(z₂)\n...',
+  'out = σ(w₄₁·h₁ + w₄₂·h₂ + w₄₃·h₃ + w₄₄·h₄ + b_out)'
+];
+
+const FWD_INSIGHTS=[
+  '💡 Normalize etme önemlidir — ağın farklı ölçekteki özellikleri karşılaştırabilmesi için.',
+  '💡 Ağırlıklar "önem katsayıları"dır. Yüksek ağırlık = o özellik daha etkili.',
+  '💡 Sigmoid her değeri 0–1 arasına sıkıştırır, böylece olasılık yorumu kolaylaşır.',
+  '💡 Bu tek bir ileri geçiş — backpropagation ile bu hesaplamanın hataları geriye dönük analiz edilir.'
+];
+
+function setFwdStep(s){
+  fwdStep=s;
+  document.querySelectorAll('#fwd-steps .step-dot').forEach((d,i)=>{
+    d.classList.toggle('active',i===s);
+    d.classList.toggle('done',i<s);
+  });
+  document.getElementById('fwd-desc').textContent=FWD_DESCS[s];
+  const fb=document.getElementById('fwd-formula');
+  const fi=document.getElementById('fwd-insight');
+  fb.style.display='block'; fb.textContent=FWD_FORMULAS[s];
+  fi.style.display='block'; fi.innerHTML=FWD_INSIGHTS[s];
+  drawFwd();
+}
+
+function p1Init(){
+  fwdStep=0;
+  setFwdStep(0);
+  if(p1AnimId) cancelAnimationFrame(p1AnimId);
+  let t=0;
+  function anim(){
+    p1AnimId=requestAnimationFrame(anim);
+    t+=0.03;
+    drawFwd(t);
+  }
+  anim();
+}
+
+function drawFwd(t=0){
+  const cv=document.getElementById('c1');
+  const ctx=cv.getContext('2d');
+  ctx.clearRect(0,0,cv.width,cv.height);
+  const {h,out}=forward(p0Net,FWD_SAMPLE);
+  const acts=[[...FWD_SAMPLE],[...h],[...out]];
+  const counts=[N_IN,N_HID,N_OUT];
+  const phaseColors=['#3182CE','#D69E2E','#805AD5','#38A169'];
+
+  // connections — highlight active layer
+  for(let l=0;l<2;l++){
+    for(let i=0;i<counts[l];i++){
+      for(let j=0;j<counts[l+1];j++){
+        const a=getNodePos(cv,l,i,counts[l]);
+        const b=getNodePos(cv,l+1,j,counts[l+1]);
+        const active=(fwdStep===1&&l===0)||(fwdStep===2&&l===1)||(fwdStep===3&&l===1);
+        const w=(l===0)?p0Net.w1[j][i]:p0Net.w2[j][i];
+        const base=Math.abs(w)*0.5;
+        const alpha=active?clamp(base+0.3,0.3,0.85):clamp(base,0.05,0.25);
+        ctx.strokeStyle=active?phaseColors[fwdStep]:(w>0?`rgba(49,130,206,${alpha})`:`rgba(229,62,62,${alpha})`);
+        ctx.lineWidth=active?2.5:1;
+        if(active){
+          // animated dash
+          ctx.setLineDash([6,4]);
+          ctx.lineDashOffset=-t*8;
+        } else {
+          ctx.setLineDash([]);
+        }
+        ctx.beginPath(); ctx.moveTo(a.x,a.y); ctx.lineTo(b.x,b.y); ctx.stroke();
+      }
+    }
+  }
+  ctx.setLineDash([]);
+  // nodes
+  const allLabels=[INPUT_LABELS,['H₁','H₂','H₃','H₄'],['Çıktı']];
+  for(let l=0;l<3;l++){
+    const tp=getNodePos(cv,l,0,counts[l]);
+    ctx.fillStyle='#4A5568'; ctx.font='bold 14px Segoe UI'; ctx.textAlign='center';
+    ctx.fillText(['Girdi','Gizli','Çıktı'][l], tp.x, 22);
+    for(let i=0;i<counts[l];i++){
+      const p=getNodePos(cv,l,i,counts[l]);
+      const act=acts[l][i];
+      const r=22;
+      const highlight=(fwdStep===0&&l===0)||(fwdStep===1&&(l===0||l===1))||(fwdStep===2&&l===1)||(fwdStep===3&&l===2);
+      ctx.beginPath(); ctx.arc(p.x,p.y,r,0,Math.PI*2);
+      const col=l===0?INPUT_COLORS[i]:(l===1?`hsl(${270+i*15},60%,48%)`:'#2F855A');
+      ctx.fillStyle=highlight?col:'#CBD5E0';
+      ctx.fill();
+      ctx.strokeStyle=highlight?'#FFFFFF':'#A0AEC0'; ctx.lineWidth=2.5; ctx.stroke();
+      if(highlight){
+        const fillH=r*2*act;
+        ctx.save(); ctx.beginPath(); ctx.arc(p.x,p.y,r,0,Math.PI*2); ctx.clip();
+        ctx.fillStyle='rgba(255,255,255,0.3)';
+        ctx.fillRect(p.x-r, p.y+r-fillH, r*2, fillH);
+        ctx.restore();
+      }
+      ctx.fillStyle=highlight?'#FFFFFF':'#718096'; ctx.font='bold 11px Segoe UI'; ctx.textAlign='center';
+      ctx.fillText(allLabels[l][i]||'', p.x, p.y+3);
+      if(highlight){
+        ctx.fillStyle='#1A202C'; ctx.font='11px Segoe UI';
+        ctx.fillText(act.toFixed(2), p.x, p.y+r+14);
+      }
+    }
+  }
+  // input labels
+  if(fwdStep===0){
+    for(let i=0;i<N_IN;i++){
+      const p=getNodePos(cv,0,i,N_IN);
+      ctx.fillStyle='#2D3748'; ctx.font='13px Segoe UI'; ctx.textAlign='right';
+      ctx.fillText(FWD_SAMPLE_LABELS[i], p.x-30, p.y+4);
+    }
+  }
+}
+
+// ════════════════════════════════════════════════════════════
+// PAGE 2 — BACKPROP
+// ════════════════════════════════════════════════════════════
+let bpNet=makeNetwork();
+let bpPlaying=false;
+let bpIter=0;
+let bpPhase=0; // 0=fwd,1=err,2=back,3=update
+let bpAnimId=null;
+let bpLossHistory=[];
+const BP_TRAIN=[
+  {x:[0.9,0.85,0.80],y:1},{x:[0.3,0.4,0.9],y:1},
+  {x:[0.1,0.2,0.15],y:0},{x:[0.8,0.7,0.6],y:1},
+  {x:[0.2,0.1,0.3],y:0},{x:[0.7,0.8,0.7],y:1}
+];
+let bpCurSample=0;
+let bpLastResult={h:new Array(N_HID).fill(0.5),out:[0.5],loss:0.5};
+let bpDisplayActs=new Array(N_IN+N_HID+N_OUT).fill(0.5);
+let bpDisplayW1=bpNet.w1.map(r=>[...r]);
+let bpPhaseTimer=0;
+const PHASE_LABELS=['İleri Geçiş','Hata Ölçümü','Geri Yayılım','Ağırlık Güncelleme'];
+const PHASE_CLASSES=['forward','error','back','update'];
+
+function p2Init(){
+  bpNet=makeNetwork(); bpIter=0; bpPhase=0; bpLossHistory=[];
+  bpLastResult={h:new Array(N_HID).fill(0.5),out:[0.5],loss:0.5};
+  bpDisplayActs=new Array(N_IN+N_HID+N_OUT).fill(0.3);
+  updateBpStats();
+  if(bpAnimId) cancelAnimationFrame(bpAnimId);
+  let t=0;
+  function frame(){
+    bpAnimId=requestAnimationFrame(frame);
+    t+=0.025;
+    if(bpPlaying){
+      bpPhaseTimer++;
+      if(bpPhaseTimer>28){
+        bpPhaseTimer=0;
+        bpPhase=(bpPhase+1)%4;
+        if(bpPhase===0){
+          // do actual train step
+          const sample=BP_TRAIN[bpCurSample%BP_TRAIN.length];
+          bpLastResult=trainStep(bpNet,sample.x,sample.y,0.55);
+          bpLossHistory.push(bpLastResult.loss);
+          if(bpLossHistory.length>80) bpLossHistory.shift();
+          bpCurSample++;
+          bpIter++;
+          updateBpStats();
+        }
+      }
+    }
+    drawBp(t);
+    drawBpLoss();
+  }
+  frame();
+}
+
+function bpPlay(){ bpPlaying=!bpPlaying; document.querySelector('.btn[onclick="bpPlay()"]').textContent=bpPlaying?'⏸ Durdur':'▶ Otomatik Oynat'; }
+function bpStep(){ bpPhaseTimer=99; }
+function bpReset(){ bpNet=makeNetwork(); bpIter=0; bpPhase=0; bpLossHistory=[]; bpPlaying=false; updateBpStats(); document.querySelector('.btn[onclick="bpPlay()"]').textContent='▶ Otomatik Oynat'; }
+
+function updateBpStats(){
+  document.getElementById('bp-iter').textContent=bpIter;
+  document.getElementById('bp-loss').textContent=bpLastResult.loss<1?bpLastResult.loss.toFixed(4):'—';
+  document.getElementById('bp-pred').textContent=bpIter>0?(bpLastResult.out[0]*100).toFixed(0)+'%':'—';
+  // accuracy over training set
+  let correct=0;
+  BP_TRAIN.forEach(s=>{ const {out}=forward(bpNet,s.x); if((out[0]>0.5?1:0)===s.y) correct++; });
+  const acc=Math.round(correct/BP_TRAIN.length*100);
+  document.getElementById('bp-acc').textContent=bpIter>0?acc+'%':'—';
+  const badge=document.getElementById('bp-phase-badge');
+  badge.textContent=PHASE_LABELS[bpPhase];
+  badge.className='phase-badge '+PHASE_CLASSES[bpPhase];
+  // step desc
+  if(bpIter>0){
+    const sample=BP_TRAIN[(bpCurSample-1)%BP_TRAIN.length];
+    const desc=document.getElementById('bp-step-desc');
+    desc.innerHTML=`
+      <div class="key-point"><strong>Mevcut Aşama:</strong> ${PHASE_LABELS[bpPhase]}</div>
+      <div class="key-point"><strong>İterasyon ${bpIter}:</strong> Kayıp = ${bpLastResult.loss.toFixed(4)}<br>Tahmin: ${(bpLastResult.out[0]*100).toFixed(1)}% — Gerçek: ${sample.y===1?'✅ İşe Al':'❌ Alma'}</div>
+      ${bpPhase===1?'<div class="warning-box">⚠️ Hata ölçüldü. Formül: L = ½('+bpLastResult.out[0].toFixed(3)+' − '+sample.y+')² = '+bpLastResult.loss.toFixed(4)+'</div>':''}
+      ${bpPhase===2?'<div class="key-point">🔗 Zincir kuralı çalışıyor — her ağırlığın hataya katkısı calculus ile hesaplanıyor.</div>':''}
+      ${bpPhase===3?'<div class="success-box">✅ Ağırlıklar güncellendi: w = w − α·∂L/∂w (α=0.55)</div>':''}
+      <div class="success-box" style="margin-top:10px;">🤖 Doğruluk: <strong>${acc}%</strong> — İnsan müdahalesi: <strong style="color:#E53E3E;">YOK</strong></div>
+    `;
+  }
+}
+
+function drawBp(t=0){
+  const cv=document.getElementById('c2');
+  const ctx=cv.getContext('2d');
+  ctx.clearRect(0,0,cv.width,cv.height);
+  // simplified layout for smaller canvas
+  const layerX=[70,230,440,590];
+  const counts=[N_IN,N_HID,N_OUT];
+  const canH=340;
+
+  function gp(l,i,tot){ return {x:layerX[l], y:canH/(tot+1)*(i+1)}; }
+
+  const sample=BP_TRAIN[(bpCurSample||0)%BP_TRAIN.length];
+  const {h,out}=forward(bpNet,sample.x);
+  const acts=[[...sample.x],[...h],[...out]];
+
+  // phase highlight colors
+  const phaseArc=bpPhase===2; // geri yayilim
+  const phaseUp=bpPhase===3;  // update
+
+  // connections
+  for(let l=0;l<2;l++){
+    for(let i=0;i<counts[l];i++){
+      for(let j=0;j<counts[l+1];j++){
+        const a=gp(l,i,counts[l]);
+        const b=gp(l+1,j,counts[l+1]);
+        const w=(l===0)?bpNet.w1[j][i]:bpNet.w2[j][i];
+        const abs=Math.abs(w);
+        let color, lw;
+        if(bpPhase===0){ // forward
+          color=`rgba(49,130,206,${clamp(abs*0.5,0.05,0.5)})`; lw=1.5;
+          ctx.setLineDash([6,4]); ctx.lineDashOffset=-t*6;
+        } else if(bpPhase===2&&l===1){ // backward pass layer 2
+          color=`rgba(56,161,105,${clamp(abs*0.7,0.2,0.8)})`; lw=2.5;
+          ctx.setLineDash([6,4]); ctx.lineDashOffset=t*6;
+        } else if(bpPhase===2&&l===0){
+          color=`rgba(56,161,105,${clamp(abs*0.5,0.1,0.5)})`; lw=1.5;
+          ctx.setLineDash([6,4]); ctx.lineDashOffset=t*5;
+        } else if(phaseUp){
+          const changed=Math.abs(w)>0.01;
+          color=changed?`rgba(214,158,46,${clamp(abs*0.7,0.2,0.8)})`:`rgba(160,174,192,0.2)`; lw=changed?2:1;
+          ctx.setLineDash([]);
+        } else {
+          color=`rgba(160,174,192,0.2)`; lw=1;
+          ctx.setLineDash([]);
+        }
+        ctx.strokeStyle=color; ctx.lineWidth=lw;
+        ctx.beginPath(); ctx.moveTo(a.x,a.y); ctx.lineTo(b.x,b.y); ctx.stroke();
+      }
+    }
+  }
+  ctx.setLineDash([]);
+
+  // nodes
+  const allLabels=[INPUT_LABELS,['H₁','H₂','H₃','H₄'],['Sonuç']];
+  const nodeColors=[INPUT_COLORS,['#7B4EA6','#7B4EA6','#7B4EA6','#7B4EA6'],['#2F855A']];
+  for(let l=0;l<3;l++){
+    const tp=gp(l,0,counts[l]);
+    ctx.fillStyle='#4A5568'; ctx.font='bold 13px Segoe UI'; ctx.textAlign='center';
+    ctx.fillText(['Girdi','Gizli','Çıktı'][l], tp.x, 18);
+    for(let i=0;i<counts[l];i++){
+      const p=gp(l,i,counts[l]);
+      const act=acts[l][i];
+      const r=20;
+      ctx.beginPath(); ctx.arc(p.x,p.y,r,0,Math.PI*2);
+      const col=l===0?INPUT_COLORS[i]:(l===1?`hsl(${270+i*15},55%,48%)`:'#2F855A');
+      ctx.fillStyle=col; ctx.fill();
+      ctx.strokeStyle=bpPhase===1&&l===2?'#E53E3E':'#FFFFFF'; ctx.lineWidth=bpPhase===1&&l===2?3:2; ctx.stroke();
+      if(bpPhase===1&&l===2){
+        ctx.beginPath(); ctx.arc(p.x,p.y,r+5+Math.sin(t*4)*3,0,Math.PI*2);
+        ctx.strokeStyle=`rgba(229,62,62,${0.4+Math.sin(t*4)*0.3})`; ctx.lineWidth=2; ctx.stroke();
+      }
+      const fillH=r*2*act;
+      ctx.save(); ctx.beginPath(); ctx.arc(p.x,p.y,r,0,Math.PI*2); ctx.clip();
+      ctx.fillStyle='rgba(255,255,255,0.3)'; ctx.fillRect(p.x-r,p.y+r-fillH,r*2,fillH);
+      ctx.restore();
+      ctx.fillStyle='#FFFFFF'; ctx.font='bold 10px Segoe UI'; ctx.textAlign='center';
+      ctx.fillText(allLabels[l][i]||'', p.x, p.y+3);
+      ctx.fillStyle='#2D3748'; ctx.font='11px Segoe UI';
+      ctx.fillText(act.toFixed(2), p.x, p.y+r+13);
+    }
+  }
+
+  // phase annotation
+  const phaseText=['⏩ Veriler ileriye akıyor...','❌ Hata ölçülüyor!','↩️ Gradyanlar geriye yayılıyor...','✅ Ağırlıklar güncellendi!'];
+  const phaseBg=['rgba(49,130,206,0.1)','rgba(229,62,62,0.1)','rgba(56,161,105,0.1)','rgba(214,158,46,0.1)'];
+  ctx.fillStyle=phaseBg[bpPhase];
+  ctx.fillRect(0,0,cv.width,cv.height);
+  ctx.fillStyle=bpPhase===0?'#2B6CB0':bpPhase===1?'#C53030':bpPhase===2?'#276749':'#744210';
+  ctx.font='bold 15px Segoe UI'; ctx.textAlign='center';
+  ctx.fillText(phaseText[bpPhase], cv.width/2, cv.height-12);
+}
+
+function drawBpLoss(){
+  const cv=document.getElementById('c2loss');
+  const ctx=cv.getContext('2d');
+  ctx.clearRect(0,0,cv.width,cv.height);
+  const pad={l:50,r:20,t:15,b:30};
+  const W=cv.width-pad.l-pad.r, H=cv.height-pad.t-pad.b;
+  // axes
+  ctx.strokeStyle='#CBD5E0'; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.moveTo(pad.l,pad.t); ctx.lineTo(pad.l,pad.t+H); ctx.lineTo(pad.l+W,pad.t+H); ctx.stroke();
+  // axis labels
+  ctx.fillStyle='#718096'; ctx.font='12px Segoe UI'; ctx.textAlign='center';
+  ctx.fillText('İterasyon', pad.l+W/2, cv.height-2);
+  ctx.save(); ctx.translate(14, pad.t+H/2); ctx.rotate(-Math.PI/2);
+  ctx.fillText('Kayıp (Loss)', 0, 0); ctx.restore();
+  ctx.fillStyle='#4A5568'; ctx.font='bold 12px Segoe UI'; ctx.textAlign='left';
+  ctx.fillText('📉 Kayıp Eğrisi', pad.l+4, pad.t+12);
+  if(bpLossHistory.length<2) return;
+  const maxL=Math.max(...bpLossHistory, 0.05);
+  ctx.strokeStyle='#2B6CB0'; ctx.lineWidth=2.5;
+  ctx.beginPath();
+  bpLossHistory.forEach((v,i)=>{
+    const x=pad.l+i/bpLossHistory.length*W;
+    const y=pad.t+H-(v/maxL)*H;
+    i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+  });
+  ctx.stroke();
+  // fill
+  ctx.beginPath();
+  bpLossHistory.forEach((v,i)=>{
+    const x=pad.l+i/bpLossHistory.length*W;
+    const y=pad.t+H-(v/maxL)*H;
+    i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+  });
+  ctx.lineTo(pad.l+W,pad.t+H); ctx.lineTo(pad.l,pad.t+H);
+  ctx.fillStyle='rgba(43,108,176,0.10)'; ctx.fill();
+  // last val
+  const lv=bpLossHistory[bpLossHistory.length-1];
+  ctx.fillStyle='#2B6CB0'; ctx.font='bold 12px Segoe UI'; ctx.textAlign='right';
+  ctx.fillText(`Son kayıp: ${lv.toFixed(4)}`, pad.l+W, pad.t+12);
+}
+
+// ════════════════════════════════════════════════════════════
+// PAGE 3 — GAME
+// ════════════════════════════════════════════════════════════
+const CANDIDATES=[
+  {name:'Ahmet K.',  profile:'8 yıl deneyim, güçlü liderlik',   x:[0.88,0.82,0.70], correct:1, color:'#3182CE'},
+  {name:'Zeynep A.', profile:'Üstün teknik, 2 yıl deneyim',     x:[0.28,0.45,0.96], correct:1, color:'#38A169'},
+  {name:'Murat D.',  profile:'Uzun deneyim, zayıf teknik',      x:[0.90,0.60,0.22], correct:0, color:'#D69E2E'},
+  {name:'Selin Y.',  profile:'Dengeli profil, orta her şey',    x:[0.55,0.58,0.62], correct:1, color:'#805AD5'},
+  {name:'Emre T.',   profile:'Yeni mezun, çok yüksek teknik',   x:[0.12,0.30,0.98], correct:1, color:'#E53E3E'},
+  {name:'Ayşe B.',   profile:'Deneyimsiz, düşük tüm kriterler', x:[0.18,0.20,0.25], correct:0, color:'#DD6B20'},
+  {name:'Can Ö.',    profile:'Orta deneyim, güçlü liderlik',    x:[0.60,0.88,0.55], correct:1, color:'#2C7A7B'},
+  {name:'Leyla S.',  profile:'Uzun deneyim, çok zayıf teknik',  x:[0.85,0.50,0.15], correct:0, color:'#C53030'},
+  {name:'Burak A.',  profile:'Kısa deneyim, çok düşük liderlik',x:[0.25,0.18,0.60], correct:0, color:'#718096'},
+  {name:'Nur K.',    profile:'Dengeli, güçlü tüm kriterler',    x:[0.78,0.80,0.85], correct:1, color:'#1A365D'}
+];
+let gameNet=makeNetwork();
+let gameLabels={}; // idx -> 0 or 1
+let gameTraining=false;
+let gameLossHistory=[];
+let gameIter=0;
+let gameAnimId=null;
+let gameTrainBatch=[];
+
+function p3Init(){
+  gameNet=makeNetwork(); gameLabels={}; gameTraining=false;
+  gameLossHistory=[]; gameIter=0; gameTrainBatch=[];
+  renderCandidates();
+  updateGameStats();
+  if(gameAnimId) cancelAnimationFrame(gameAnimId);
+  let t=0;
+  function frame(){
+    gameAnimId=requestAnimationFrame(frame);
+    t+=0.025;
+    if(gameTraining && gameTrainBatch.length>0){
+      // do 3 steps per frame
+      for(let s=0;s<3;s++){
+        const idx=Math.floor(Math.random()*gameTrainBatch.length);
+        const samp=gameTrainBatch[idx];
+        const res=trainStep(gameNet,samp.x,samp.y,0.7);
+        gameLossHistory.push(res.loss);
+        if(gameLossHistory.length>120) gameLossHistory.shift();
+        gameIter++;
+      }
+      if(gameIter%12===0) updateGameStats();
+      if(gameIter>2000) gameTraining=false;
+    }
+    drawGame(t);
+    drawGameLoss();
+  }
+  frame();
+}
+
+function renderCandidates(){
+  const el=document.getElementById('candidate-list-inner');
+  el.innerHTML='';
+  CANDIDATES.forEach((c,i)=>{
+    const d=document.createElement('div');
+    d.className='candidate-card';
+    d.id='cand-'+i;
+    d.innerHTML=`
+      <div class="c-name">${c.name}</div>
+      <div class="c-profile">${c.profile}</div>
+      <div class="c-bars">
+        ${['Deneyim','Liderlik','Teknik'].map((l,j)=>`
+          <div class="c-bar-row">
+            <div class="c-bar-label">${l}</div>
+            <div class="c-bar-track"><div class="c-bar-fill" style="width:${c.x[j]*100}%;background:${INPUT_COLORS[j]};"></div></div>
+          </div>`).join('')}
+      </div>
+      <div class="label-btns">
+        <div class="label-btn hire" id="hire-${i}" onclick="labelCand(${i},1)">✅ İşe Al</div>
+        <div class="label-btn nohire" id="nohire-${i}" onclick="labelCand(${i},0)">❌ Alma</div>
+      </div>
+    `;
+    el.appendChild(d);
+  });
+}
+
+function labelCand(i,v){
+  gameLabels[i]=v;
+  document.querySelectorAll(`#hire-${i}, #nohire-${i}`).forEach(b=>b.classList.remove('chosen'));
+  document.getElementById(v===1?`hire-${i}`:`nohire-${i}`).classList.add('chosen');
+  document.getElementById('g-labeled').textContent=Object.keys(gameLabels).length;
+  document.getElementById('train-status').textContent=
+    Object.keys(gameLabels).length<4?`${Object.keys(gameLabels).length}/10 etiketlendi. En az 4 gerekli.`:`${Object.keys(gameLabels).length}/10 etiketlendi. Hazır!`;
+}
+
+function startTraining(){
+  const labeled=Object.keys(gameLabels);
+  if(labeled.length<4){ alert('Eğitim için en az 4 aday etiketleyin!'); return; }
+  gameTrainBatch=labeled.map(i=>({x:CANDIDATES[i].x, y:gameLabels[i]}));
+  gameNet=makeNetwork(); gameLossHistory=[]; gameIter=0;
+  gameTraining=true;
+  document.getElementById('train-status').textContent='🔄 Eğitim devam ediyor — matematiksel formüller çalışıyor...';
+}
+
+function resetGame(){
+  gameTraining=false; gameLabels={}; gameLossHistory=[]; gameIter=0;
+  gameNet=makeNetwork(); gameTrainBatch=[];
+  renderCandidates();
+  updateGameStats();
+  document.getElementById('train-status').textContent='Henüz eğitim başlamadı. En az 4 aday etiketleyin.';
+}
+
+function updateGameStats(){
+  document.getElementById('g-iter').textContent=gameIter;
+  if(gameLossHistory.length>0){
+    const lv=gameLossHistory[gameLossHistory.length-1];
+    document.getElementById('g-loss').textContent=lv.toFixed(4);
+  }
+  // accuracy
+  let correct=0;
+  CANDIDATES.forEach(c=>{ const {out}=forward(gameNet,c.x); if((out[0]>0.5?1:0)===c.correct) correct++; });
+  const pct=Math.round(correct/CANDIDATES.length*100);
+  const bar=document.getElementById('g-acc-bar');
+  bar.style.width=pct+'%'; bar.textContent=pct+'%';
+  // weight viz
+  const wrows=document.getElementById('w-rows');
+  wrows.innerHTML='';
+  INPUT_LABELS.forEach((lab,i)=>{
+    const avgW=bpNet.w1.reduce((s,row)=>s+Math.abs(row[i]),0)/N_HID;
+    const pctW=clamp(avgW*100,5,100);
+    wrows.innerHTML+=`<div class="weight-row">
+      <div class="weight-label">${lab}</div>
+      <div class="weight-bar-track">
+        <div class="weight-bar-fill" style="width:${pctW}%;background:${INPUT_COLORS[i]};"></div>
+      </div>
+      <div style="font-size:12px;color:#4A5568;width:36px;text-align:right;">${pctW.toFixed(0)}%</div>
+    </div>`;
+  });
+  // predictions
+  const predEl=document.getElementById('pred-list');
+  predEl.innerHTML='';
+  CANDIDATES.forEach((c,i)=>{
+    const {out}=forward(gameNet,c.x);
+    const pct=Math.round(out[0]*100);
+    const labeled=gameLabels[i]!==undefined;
+    const correct2=(out[0]>0.5?1:0)===c.correct;
+    predEl.innerHTML+=`<div style="display:flex;align-items:center;gap:6px;margin-bottom:5px;">
+      <span style="font-weight:700;color:${c.color};width:58px;font-size:12px;">${c.name}</span>
+      <div style="flex:1;height:8px;background:#E2E8F0;border-radius:4px;overflow:hidden;">
+        <div style="width:${pct}%;height:100%;background:${pct>50?'#38A169':'#E53E3E'};border-radius:4px;transition:width 0.5s;"></div>
+      </div>
+      <span style="font-size:12px;font-weight:700;color:${pct>50?'#276749':'#C53030'};width:34px;">${pct}%</span>
+      <span style="font-size:11px;">${labeled?(gameLabels[i]===1?'✅':'❌'):'❓'}</span>
+    </div>`;
+  });
+}
+
+function drawGame(t=0){
+  const cv=document.getElementById('c3');
+  const ctx=cv.getContext('2d');
+  ctx.clearRect(0,0,cv.width,cv.height);
+  const layerX=[70,220,400,510];
+  const counts=[N_IN,N_HID,N_OUT];
+  const canH=360;
+  function gp(l,i,tot){ return {x:layerX[l], y:canH/(tot+1)*(i+1)}; }
+
+  // connections
+  for(let l=0;l<2;l++){
+    for(let i=0;i<counts[l];i++){
+      for(let j=0;j<counts[l+1];j++){
+        const a=gp(l,i,counts[l]); const b=gp(l+1,j,counts[l+1]);
+        const w=(l===0)?gameNet.w1[j][i]:gameNet.w2[j][i];
+        const abs=Math.abs(w);
+        if(gameTraining){
+          ctx.setLineDash([5,4]); ctx.lineDashOffset=-t*6;
+        } else { ctx.setLineDash([]); }
+        ctx.strokeStyle=w>0?`rgba(49,130,206,${clamp(abs*0.6,0.05,0.55)})`:`rgba(229,62,62,${clamp(abs*0.6,0.05,0.55)})`;
+        ctx.lineWidth=clamp(abs*2,0.5,3);
+        ctx.beginPath(); ctx.moveTo(a.x,a.y); ctx.lineTo(b.x,b.y); ctx.stroke();
+      }
+    }
+  }
+  ctx.setLineDash([]);
+
+  // nodes
+  const allLabels=[INPUT_LABELS,['H₁','H₂','H₃','H₄'],['Karar']];
+  for(let l=0;l<3;l++){
+    const tp=gp(l,0,counts[l]);
+    ctx.fillStyle='#4A5568'; ctx.font='bold 13px Segoe UI'; ctx.textAlign='center';
+    ctx.fillText(['Girdi','Gizli','Çıktı'][l], tp.x, 18);
+    for(let i=0;i<counts[l];i++){
+      const p=gp(l,i,counts[l]); const r=20;
+      ctx.beginPath(); ctx.arc(p.x,p.y,r,0,Math.PI*2);
+      const col=l===0?INPUT_COLORS[i]:(l===1?`hsl(${270+i*15},55%,48%)`:'#2F855A');
+      ctx.fillStyle=col; ctx.fill();
+      ctx.strokeStyle=gameTraining?'rgba(214,158,46,0.8)':'#FFFFFF'; ctx.lineWidth=2; ctx.stroke();
+      ctx.fillStyle='#FFFFFF'; ctx.font='bold 10px Segoe UI'; ctx.textAlign='center';
+      ctx.fillText(allLabels[l][i]||'', p.x, p.y+3);
+    }
+  }
+
+  // training particles
+  if(gameTraining && gameIter>0){
+    ctx.fillStyle='rgba(214,158,46,0.7)';
+    for(let p=0;p<6;p++){
+      const phase=(t+p*1.0)%3;
+      const l=Math.floor(phase);
+      if(l>=2) continue;
+      const frac=phase-l;
+      const from=gp(l, Math.floor(Math.random()*counts[l])%counts[l], counts[l]);
+      const to=gp(l+1, Math.floor(Math.random()*counts[l+1])%counts[l+1], counts[l+1]);
+      const x=lerp(from.x,to.x,frac); const y=lerp(from.y,to.y,frac);
+      ctx.beginPath(); ctx.arc(x,y,3.5,0,Math.PI*2); ctx.fill();
+    }
+  }
+
+  // status text
+  const statusColor=gameTraining?'#276749':'#4A5568';
+  ctx.fillStyle=statusColor; ctx.font='bold 13px Segoe UI'; ctx.textAlign='center';
+  ctx.fillText(gameTraining?`🔄 Eğitim: ${gameIter} iterasyon`:'Eğitim bekleniyor...', cv.width/2, cv.height-10);
+}
+
+function drawGameLoss(){
+  const cv=document.getElementById('c3loss');
+  const ctx=cv.getContext('2d');
+  ctx.clearRect(0,0,cv.width,cv.height);
+  const pad={l:50,r:20,t:15,b:28};
+  const W=cv.width-pad.l-pad.r, H=cv.height-pad.t-pad.b;
+  ctx.strokeStyle='#CBD5E0'; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.moveTo(pad.l,pad.t); ctx.lineTo(pad.l,pad.t+H); ctx.lineTo(pad.l+W,pad.t+H); ctx.stroke();
+  ctx.fillStyle='#4A5568'; ctx.font='bold 12px Segoe UI'; ctx.textAlign='left';
+  ctx.fillText('📉 Kayıp Eğrisi — Öğrenme Süreci', pad.l+4, pad.t+12);
+  if(gameLossHistory.length<2){
+    ctx.fillStyle='#A0AEC0'; ctx.font='13px Segoe UI'; ctx.textAlign='center';
+    ctx.fillText('Eğitim başladığında kayıp eğrisi burada görünecek', pad.l+W/2, pad.t+H/2+4);
+    return;
+  }
+  const smooth=[]; const win=8;
+  for(let i=0;i<gameLossHistory.length;i++){
+    let s=0,c=0;
+    for(let j=Math.max(0,i-win);j<=Math.min(gameLossHistory.length-1,i+win);j++){s+=gameLossHistory[j];c++;}
+    smooth.push(s/c);
+  }
+  const maxL=Math.max(...smooth,0.02);
+  ctx.strokeStyle='#E53E3E'; ctx.lineWidth=2; ctx.beginPath();
+  smooth.forEach((v,i)=>{ const x=pad.l+i/smooth.length*W; const y=pad.t+H-(v/maxL)*H; i===0?ctx.moveTo(x,y):ctx.lineTo(x,y); });
+  ctx.stroke();
+  ctx.beginPath();
+  smooth.forEach((v,i)=>{ const x=pad.l+i/smooth.length*W; const y=pad.t+H-(v/maxL)*H; i===0?ctx.moveTo(x,y):ctx.lineTo(x,y); });
+  ctx.lineTo(pad.l+W,pad.t+H); ctx.lineTo(pad.l,pad.t+H);
+  ctx.fillStyle='rgba(229,62,62,0.08)'; ctx.fill();
+  const lv=smooth[smooth.length-1];
+  ctx.fillStyle='#C53030'; ctx.font='bold 12px Segoe UI'; ctx.textAlign='right';
+  ctx.fillText(`${lv.toFixed(4)}`, pad.l+W, pad.t+12);
+  ctx.fillStyle='#718096'; ctx.font='12px Segoe UI'; ctx.textAlign='center';
+  ctx.fillText('İterasyon', pad.l+W/2, cv.height-2);
+}
+
+// ════════════════════════════════════════════════════════════
+// INIT
+// ════════════════════════════════════════════════════════════
+p0Init();
+</script>
+</body>
+</html>
