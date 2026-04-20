@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Banking AI Agent Telemetry Output</title>
+<style>
+  :root {
+    --bg: #f7f8fa;
+    --surface: #ffffff;
+    --border: #e4e7ec;
+    --border-strong: #d0d5dd;
+    --text: #101828;
+    --text-muted: #667085;
+    --text-soft: #475467;
+    --accent: #1570ef;
+    --accent-soft: #eff8ff;
+    --green: #12b76a;
+    --green-soft: #ecfdf3;
+    --amber: #f79009;
+    --amber-soft: #fffaeb;
+    --red: #f04438;
+    --red-soft: #fef3f2;
+    --mono: "SFMono-Regular", ui-monospace, Menlo, Consolas, "Liberation Mono", monospace;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, "Helvetica Neue", Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap {
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: 32px 24px 64px;
+  }
+
+  /* Title */
+  .title-block {
+    margin-bottom: 24px;
+  }
+  .eyebrow {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 6px;
+  }
+  h1 {
+    font-size: 28px;
+    font-weight: 700;
+    margin: 0 0 8px;
+    letter-spacing: -0.01em;
+  }
+  .subtitle {
+    color: var(--text-muted);
+    font-size: 14px;
+    margin: 0;
+  }
+
+  /* Trace header bar */
+  .trace-bar {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px 20px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 16px 24px;
+    margin-bottom: 20px;
+  }
+  .trace-bar .cell .k {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 4px;
+  }
+  .trace-bar .cell .v {
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--text);
+    word-break: break-all;
+  }
+  .trace-bar .cell.status .v {
+    font-family: inherit;
+  }
+
+  /* Pills */
+  .pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+    border: 1px solid transparent;
+  }
+  .pill::before {
+    content: "";
+    width: 6px; height: 6px; border-radius: 50%;
+    background: currentColor;
+  }
+  .pill.green  { background: var(--green-soft);  color: var(--green);  border-color: #a6f4c5; }
+  .pill.amber  { background: var(--amber-soft);  color: var(--amber);  border-color: #fec84b; }
+  .pill.red    { background: var(--red-soft);    color: var(--red);    border-color: #fecdca; }
+  .pill.blue   { background: var(--accent-soft); color: var(--accent); border-color: #b2ddff; }
+  .pill.neutral{ background: #f2f4f7; color: var(--text-soft); border-color: var(--border); }
+
+  /* Two column context */
+  .two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 28px;
+  }
+  @media (max-width: 720px) { .two-col { grid-template-columns: 1fr; } }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 18px 20px;
+  }
+  .card h3 {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin: 0 0 12px;
+  }
+  .kv {
+    display: grid;
+    grid-template-columns: 160px 1fr;
+    gap: 6px 16px;
+    font-size: 14px;
+  }
+  .kv dt { color: var(--text-muted); }
+  .kv dd { margin: 0; color: var(--text); font-family: var(--mono); font-size: 13px; }
+
+  /* Section heading */
+  .section-h {
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin: 12px 0 12px;
+  }
+
+  /* Timeline / steps */
+  .timeline {
+    position: relative;
+    padding-left: 44px;
+  }
+  .timeline::before {
+    content: "";
+    position: absolute;
+    left: 18px;
+    top: 8px;
+    bottom: 8px;
+    width: 2px;
+    background: var(--border);
+  }
+  .step {
+    position: relative;
+    margin-bottom: 16px;
+  }
+  .step .dot {
+    position: absolute;
+    left: -44px;
+    top: 10px;
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    background: var(--surface);
+    border: 2px solid var(--border-strong);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 13px;
+    color: var(--text-soft);
+  }
+  .step.done .dot {
+    background: var(--green-soft);
+    color: var(--green);
+    border-color: #a6f4c5;
+  }
+  .step.warn .dot {
+    background: var(--amber-soft);
+    color: var(--amber);
+    border-color: #fec84b;
+  }
+  .step .body {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 18px;
+  }
+  .step .head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 10px;
+  }
+  .step .head h4 {
+    font-size: 15px;
+    font-weight: 600;
+    margin: 0;
+    letter-spacing: -0.005em;
+  }
+  .step .head .meta {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .step .kv {
+    grid-template-columns: 180px 1fr;
+    font-size: 13px;
+  }
+  .step .kv dd { font-size: 12.5px; }
+
+  /* Chunk list */
+  .chunks {
+    list-style: none;
+    margin: 6px 0 4px;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .chunks li {
+    display: grid;
+    grid-template-columns: 1fr auto auto;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 12px;
+    background: #f9fafb;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 13px;
+  }
+  .chunks li.selected {
+    background: var(--green-soft);
+    border-color: #a6f4c5;
+  }
+  .chunks li .id { font-family: var(--mono); color: var(--text-muted); font-size: 12px; }
+  .chunks li .title { color: var(--text); }
+  .chunks li .score {
+    font-family: var(--mono);
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--accent);
+  }
+
+  /* Quote block for AI response */
+  .quote {
+    margin: 4px 0 0;
+    padding: 10px 14px;
+    background: #f9fafb;
+    border-left: 3px solid var(--accent);
+    border-radius: 4px;
+    color: var(--text);
+    font-size: 13.5px;
+    font-style: italic;
+  }
+
+  /* Final metrics strip */
+  .metrics {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-top: 24px;
+  }
+  @media (max-width: 720px) { .metrics { grid-template-columns: repeat(2, 1fr); } }
+  .metric {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 16px;
+    text-align: center;
+  }
+  .metric .label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 6px;
+  }
+  .metric .value {
+    font-family: var(--mono);
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text);
+  }
+  .metric.good .value { color: var(--green); }
+
+  /* Footer */
+  .footer {
+    margin-top: 28px;
+    background: var(--accent-soft);
+    border: 1px solid #b2ddff;
+    border-radius: 12px;
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  .footer .label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--accent);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+  .footer .info {
+    font-size: 13px;
+    color: var(--text-soft);
+    font-family: var(--mono);
+  }
+
+  .mono { font-family: var(--mono); }
+  .muted { color: var(--text-muted); }
+</style>
+</head>
+<body>
+  <div class="wrap">
+
+    <div class="title-block">
+      <div class="eyebrow">Observability · Audit Trail</div>
+      <h1>Banking AI Agent Telemetry Output</h1>
+      <p class="subtitle">Bir AI çağrısının uçtan uca kanıt zinciri — correlation ID ile bağlı span, karar ve değerlendirme sinyalleri.</p>
+    </div>
+
+    <!-- Trace header -->
+    <div class="trace-bar">
+      <div class="cell">
+        <div class="k">Trace ID</div>
+        <div class="v">9f3a-7c21-kredi-001</div>
+      </div>
+      <div class="cell">
+        <div class="k">Timestamp</div>
+        <div class="v">2026-04-20T10:15:32Z</div>
+      </div>
+      <div class="cell">
+        <div class="k">Tenant</div>
+        <div class="v">RetailBank_TR</div>
+      </div>
+      <div class="cell">
+        <div class="k">User ID</div>
+        <div class="v">784512</div>
+      </div>
+      <div class="cell">
+        <div class="k">Session</div>
+        <div class="v">sess-9921</div>
+      </div>
+      <div class="cell status">
+        <div class="k">Status</div>
+        <div class="v"><span class="pill green">SUCCESS</span></div>
+      </div>
+    </div>
+
+    <!-- Request & Customer context -->
+    <div class="two-col">
+      <div class="card">
+        <h3>Request</h3>
+        <dl class="kv">
+          <dt>Channel</dt><dd>Mobile App</dd>
+          <dt>User Query</dt><dd style="font-family:inherit; font-style:italic; color: var(--text);">"Gelirime göre kredi çekebilir miyim?"</dd>
+          <dt>Authentication</dt><dd><span class="pill green">PASSED</span></dd>
+        </dl>
+      </div>
+      <div class="card">
+        <h3>Customer Profile</h3>
+        <dl class="kv">
+          <dt>Monthly Income</dt><dd>45.000 TL</dd>
+          <dt>Existing Loans</dt><dd>2</dd>
+          <dt>Credit Score</dt><dd>1420</dd>
+          <dt>Risk Segment</dt><dd><span class="pill amber" style="font-family:inherit;">Medium</span></dd>
+        </dl>
+      </div>
+    </div>
+
+    <div class="section-h">Execution Timeline</div>
+
+    <!-- Timeline -->
+    <div class="timeline">
+
+      <!-- Step 1 -->
+      <div class="step done">
+        <div class="dot">1</div>
+        <div class="body">
+          <div class="head">
+            <h4>Prompt Resolution</h4>
+            <div class="meta"><span class="pill green">RESOLVED</span></div>
+          </div>
+          <dl class="kv">
+            <dt>Template Name</dt><dd>credit_advisor_v2</dd>
+            <dt>Template Version</dt><dd>2.3.1</dd>
+            <dt>Variant</dt><dd>default_tr</dd>
+            <dt>Prompt Hash</dt><dd>a8f92c…</dd>
+          </dl>
+        </div>
+      </div>
+
+      <!-- Step 2 -->
+      <div class="step done">
+        <div class="dot">2</div>
+        <div class="body">
+          <div class="head">
+            <h4>Retrieval — Bank Policy & Data</h4>
+            <div class="meta">
+              <span class="pill blue">RAG</span>
+              <span class="pill neutral">reranker: ON</span>
+            </div>
+          </div>
+          <dl class="kv">
+            <dt>Vector Store</dt><dd>internal_policy_db</dd>
+            <dt>Embedding Model</dt><dd>text-embedding-3-large</dd>
+            <dt>Top-K</dt><dd>5</dd>
+          </dl>
+          <div style="margin-top:10px;">
+            <div style="font-size:12px; color:var(--text-muted); font-weight:600; letter-spacing:0.04em; text-transform:uppercase; margin-bottom:6px;">Retrieved Chunks</div>
+            <ul class="chunks">
+              <li class="selected">
+                <div><span class="id">policy_kredi_01</span> · <span class="title">Bireysel Kredi Limit Hesaplama</span></div>
+                <span class="pill green" style="font-family:inherit;">selected</span>
+                <span class="score">0.91</span>
+              </li>
+              <li class="selected">
+                <div><span class="id">policy_risk_03</span> · <span class="title">Risk Segmentine Göre Limitler</span></div>
+                <span class="pill green" style="font-family:inherit;">selected</span>
+                <span class="score">0.87</span>
+              </li>
+              <li>
+                <div><span class="id">faq_kredi_02</span> · <span class="title">Gelire Göre Kredi Hesabı</span></div>
+                <span class="pill neutral" style="font-family:inherit;">dropped</span>
+                <span class="score">0.82</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 3 -->
+      <div class="step done">
+        <div class="dot">3</div>
+        <div class="body">
+          <div class="head">
+            <h4>Prompt Assembly</h4>
+            <div class="meta"><span class="pill green">OK</span></div>
+          </div>
+          <dl class="kv">
+            <dt>System Prompt</dt><dd style="font-family:inherit; font-style:italic;">"Banka kredi danışmanı gibi davran…"</dd>
+            <dt>Context Included</dt><dd>TRUE</dd>
+            <dt>Total Tokens</dt><dd>1.850</dd>
+            <dt>Truncation Applied</dt><dd>FALSE</dd>
+          </dl>
+        </div>
+      </div>
+
+      <!-- Step 4 -->
+      <div class="step warn">
+        <div class="dot">4</div>
+        <div class="body">
+          <div class="head">
+            <h4>Policy & Safety Check — Input</h4>
+            <div class="meta">
+              <span class="pill amber">PII DETECTED</span>
+              <span class="pill green">ALLOWED</span>
+            </div>
+          </div>
+          <dl class="kv">
+            <dt>PII Detected</dt><dd>YES (financial data)</dd>
+            <dt>Action</dt><dd>ALLOWED — authorized user</dd>
+            <dt>Prompt Injection</dt><dd>NOT DETECTED</dd>
+          </dl>
+        </div>
+      </div>
+
+      <!-- Step 5 -->
+      <div class="step done">
+        <div class="dot">5</div>
+        <div class="body">
+          <div class="head">
+            <h4>Model Invocation</h4>
+            <div class="meta">
+              <span class="pill blue">INFERENCE</span>
+              <span class="pill neutral">retries: 0</span>
+            </div>
+          </div>
+          <dl class="kv">
+            <dt>Model</dt><dd>gpt-4-turbo-2024-04-09</dd>
+            <dt>Provider Region</dt><dd>EU-West</dd>
+            <dt>Temperature</dt><dd>0.2</dd>
+            <dt>Max Tokens</dt><dd>500</dd>
+            <dt>Time to First Token</dt><dd>420 ms</dd>
+            <dt>Total Response Time</dt><dd>2.10 s</dd>
+            <dt>Fallback Used</dt><dd>FALSE</dd>
+          </dl>
+        </div>
+      </div>
+
+      <!-- Step 6 -->
+      <div class="step done">
+        <div class="dot">6</div>
+        <div class="body">
+          <div class="head">
+            <h4>Response Generation</h4>
+            <div class="meta"><span class="pill green">finish: completed</span></div>
+          </div>
+          <div class="quote">"Gelirinize ve mevcut kredi durumunuza göre yaklaşık 300.000 TL'ye kadar kredi kullanabilirsiniz…"</div>
+          <dl class="kv" style="margin-top:10px;">
+            <dt>Prompt Tokens</dt><dd>1.850</dd>
+            <dt>Completion Tokens</dt><dd>210</dd>
+            <dt>Total Tokens</dt><dd>2.060</dd>
+            <dt>Estimated Cost</dt><dd>$0.045</dd>
+          </dl>
+        </div>
+      </div>
+
+      <!-- Step 7 -->
+      <div class="step done">
+        <div class="dot">7</div>
+        <div class="body">
+          <div class="head">
+            <h4>Policy & Safety Check — Output</h4>
+            <div class="meta">
+              <span class="pill amber">FINANCIAL ADVICE</span>
+              <span class="pill green">COMPLIANCE PASSED</span>
+            </div>
+          </div>
+          <dl class="kv">
+            <dt>Financial Advice Flag</dt><dd>TRUE</dd>
+            <dt>Regulation</dt><dd>BDDK_credit_guidelines</dd>
+            <dt>Compliance Result</dt><dd>PASSED</dd>
+            <dt>Hallucination Risk</dt><dd>LOW</dd>
+            <dt>Action</dt><dd>ALLOWED</dd>
+          </dl>
+        </div>
+      </div>
+
+      <!-- Step 8 -->
+      <div class="step done">
+        <div class="dot">8</div>
+        <div class="body">
+          <div class="head">
+            <h4>Post-Processing</h4>
+            <div class="meta"><span class="pill green">VALIDATED</span></div>
+          </div>
+          <dl class="kv">
+            <dt>Format Validation</dt><dd>PASSED</dd>
+            <dt>Currency Formatting</dt><dd>applied (TL)</dd>
+            <dt>Disclaimer Added</dt><dd>TRUE</dd>
+          </dl>
+        </div>
+      </div>
+
+      <!-- Step 9 -->
+      <div class="step done">
+        <div class="dot">9</div>
+        <div class="body">
+          <div class="head">
+            <h4>Evaluation Signals</h4>
+            <div class="meta"><span class="pill green">RISK: NONE</span></div>
+          </div>
+          <div class="metrics" style="margin-top:4px;">
+            <div class="metric good">
+              <div class="label">Faithfulness</div>
+              <div class="value">0.93</div>
+            </div>
+            <div class="metric good">
+              <div class="label">Answer Relevancy</div>
+              <div class="value">0.95</div>
+            </div>
+            <div class="metric good">
+              <div class="label">Context Precision</div>
+              <div class="value">0.90</div>
+            </div>
+            <div class="metric good">
+              <div class="label">Risk Flag</div>
+              <div class="value">NONE</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Final delivery -->
+    <div class="footer">
+      <div>
+        <div class="label">Final Response Delivery</div>
+        <div class="info">Channel: Mobile App  ·  Delivered: <strong style="color:var(--green);">SUCCESS</strong>  ·  User Feedback: NOT_PROVIDED</div>
+      </div>
+      <span class="pill green">DELIVERED</span>
+    </div>
+
+  </div>
+</body>
+</html>
