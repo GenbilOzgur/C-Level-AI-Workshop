@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Sales Intelligence Platform</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f5f5f3;color:#1a1a18;min-height:100vh}
+:root{
+  --bg-primary:#ffffff;--bg-secondary:#f1efe8;--bg-tertiary:#f5f5f3;
+  --text-primary:#1a1a18;--text-secondary:#6b6b67;
+  --border:#e0ddd5;--border-md:#c8c5bc;
+  --radius:8px;--radius-lg:12px;
+}
+input,button{font-family:inherit}
+input:focus{outline:none;border-color:#378add!important;box-shadow:0 0 0 2px #378add22}
+::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:#ccc;border-radius:3px}
+@keyframes bounce{0%,80%,100%{transform:translateY(0)}40%{transform:translateY(-5px)}}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.msg{animation:fadeIn 0.2s ease}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const {useState,useEffect,useRef}=React;
+const C={
+  blue:"#378ADD",blueL:"#E6F1FB",blueD:"#0C447C",
+  teal:"#1D9E75",tealL:"#E1F5EE",tealD:"#085041",
+  amber:"#BA7517",amberL:"#FAEEDA",amberD:"#633806",
+  red:"#E24B4A",redL:"#FCEBEB",redD:"#791F1F",
+  green:"#639922",greenL:"#EAF3DE",greenD:"#27500A",
+  purple:"#7F77DD",purpleL:"#EEEDFE",purpleD:"#3C3489",
+  gray:"#888780",grayL:"#F1EFE8",grayD:"#444441",
+};
+const REPS=[
+  {id:1,name:"Ayşe Kaya",av:"AK"},{id:2,name:"Mehmet Demir",av:"MD"},
+  {id:3,name:"Zeynep Arslan",av:"ZA"},{id:4,name:"Can Yılmaz",av:"CY"},
+  {id:5,name:"Elif Şahin",av:"EŞ"},
+];
+const OPPS=[
+  {id:1,name:"Koç Holding - ERP Upgrade",rep:1,stage:"Proposal",value:450000,winProb:72,days:12,industry:"Conglomerate"},
+  {id:2,name:"Garanti BBVA - CRM Platform",rep:2,stage:"Negotiation",value:320000,winProb:85,days:5,industry:"Banking"},
+  {id:3,name:"Turkcell - Digital Transform",rep:1,stage:"Discovery",value:680000,winProb:38,days:21,industry:"Telecom"},
+  {id:4,name:"Anadolu Efes - BI Solution",rep:3,stage:"Proposal",value:195000,winProb:61,days:8,industry:"FMCG"},
+  {id:5,name:"Sabancı Holding - Cloud Mig.",rep:4,stage:"Closed Won",value:520000,winProb:100,days:0,industry:"Conglomerate"},
+  {id:6,name:"İş Bankası - Data Warehouse",rep:2,stage:"Discovery",value:280000,winProb:29,days:34,industry:"Banking"},
+  {id:7,name:"Arçelik - IoT Platform",rep:5,stage:"Closed Lost",value:175000,winProb:0,days:0,industry:"Manufacturing"},
+  {id:8,name:"THY - Ops Intelligence",rep:3,stage:"Negotiation",value:890000,winProb:78,days:3,industry:"Aviation"},
+  {id:9,name:"Yapı Kredi - Risk Analytics",rep:5,stage:"Proposal",value:340000,winProb:55,days:15,industry:"Banking"},
+  {id:10,name:"Enerjisa - Grid Monitoring",rep:4,stage:"Discovery",value:210000,winProb:42,days:18,industry:"Energy"},
+];
+const LEADS=[
+  {id:1,name:"Borsa Istanbul",contact:"Ali Öztürk",rep:1,source:"LinkedIn",score:82},
+  {id:2,name:"Pegasus Airlines",contact:"Selin Çelik",rep:2,source:"Referral",score:67},
+  {id:3,name:"Migros",contact:"Burak Yıldız",rep:3,source:"Web",score:45},
+  {id:4,name:"Türk Telekom",contact:"Merve Kara",rep:4,source:"Event",score:91},
+  {id:5,name:"Akbank",contact:"Onur Aydın",rep:5,source:"Cold Outreach",score:58},
+  {id:6,name:"Şişecam Group",contact:"Pınar Doğan",rep:1,source:"Partner",score:74},
+];
+const INIT_TASKS=[
+  {id:1,oppId:1,repId:1,type:"pre-appointment",title:"Pre-Appointment Check",status:"pending",due:"2026-04-22"},
+  {id:2,oppId:3,repId:1,type:"post-appointment",title:"Post-Appointment Review",status:"pending",due:"2026-04-21"},
+  {id:3,oppId:2,repId:2,type:"pre-appointment",title:"Pre-Appointment Check",status:"completed",due:"2026-04-20"},
+  {id:4,oppId:7,repId:5,type:"post-mortem-lost",title:"Loss Post-Mortem",status:"pending",due:"2026-04-23"},
+  {id:5,oppId:5,repId:4,type:"post-mortem-won",title:"Win Post-Mortem",status:"pending",due:"2026-04-22"},
+  {id:6,oppId:4,repId:3,type:"pre-appointment",title:"Pre-Appointment Check",status:"pending",due:"2026-04-24"},
+  {id:7,oppId:8,repId:3,type:"post-appointment",title:"Post-Appointment Review",status:"completed",due:"2026-04-19"},
+  {id:8,oppId:9,repId:5,type:"pre-appointment",title:"Pre-Appointment Check",status:"pending",due:"2026-04-25"},
+];
+const QS={
+  "pre-appointment":["What do you know about the customer's main pain points?","Have you reviewed their recent financial performance or news?","What objections do you anticipate and how will you handle them?","What is your clear value proposition for this specific customer?","What is your desired outcome from this appointment?"],
+  "post-appointment":["How did the appointment go overall?","What were the customer's main concerns or objections?","What is the agreed next step and timeline?","Did any new stakeholders or requirements emerge?","What is your updated win probability assessment and why?"],
+  "post-mortem-won":["What were the top 3 factors that led to winning this deal?","Which competitive advantages proved most decisive?","What would you do differently to win faster next time?","How can we replicate this success in similar accounts?"],
+  "post-mortem-lost":["What were the primary reasons we lost this deal?","Were there any early warning signs we missed?","What did the competition offer that we couldn't match?","What could we have done differently at each stage?","Would you approach the same customer again in the future?"],
+};
+const TLABELS={"pre-appointment":"Pre-Appointment","post-appointment":"Post-Appointment","post-mortem-won":"Win Post-Mortem","post-mortem-lost":"Loss Post-Mortem"};
+function tcolor(t){
+  if(t==="pre-appointment")return{bg:C.blueL,txt:C.blueD,b:C.blue};
+  if(t==="post-appointment")return{bg:C.tealL,txt:C.tealD,b:C.teal};
+  if(t==="post-mortem-won")return{bg:C.greenL,txt:C.greenD,b:C.green};
+  return{bg:C.redL,txt:C.redD,b:C.red};
+}
+function scolor(s){return{"Discovery":C.blue,"Proposal":C.purple,"Negotiation":C.amber,"Closed Won":C.green,"Closed Lost":C.gray}[s]||C.gray;}
+
+function Av({initials,size=36,color=C.blue}){
+  return <div style={{width:size,height:size,borderRadius:"50%",background:color+"22",border:`1.5px solid ${color}44`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:size*0.33,fontWeight:500,color,flexShrink:0}}>{initials}</div>;
+}
+function Badge({label,bg,txt,b}){
+  return <span style={{fontSize:11,fontWeight:500,padding:"2px 8px",borderRadius:999,background:bg,color:txt,border:`0.5px solid ${b}44`,whiteSpace:"nowrap"}}>{label}</span>;
+}
+function WinBar({p}){
+  const c=p>=70?C.green:p>=40?C.amber:C.red;
+  return <div style={{display:"flex",alignItems:"center",gap:6}}>
+    <div style={{flex:1,height:5,background:"#e5e5e2",borderRadius:3,overflow:"hidden"}}>
+      <div style={{width:`${p}%`,height:"100%",background:c,borderRadius:3}}/>
+    </div>
+    <span style={{fontSize:11,fontWeight:500,color:c,minWidth:28}}>{p}%</span>
+  </div>;
+}
+
+function AIChat({task,opp,onComplete}){
+  const qs=QS[task.type]||QS["pre-appointment"];
+  const [step,setStep]=useState(0);
+  const [answers,setAnswers]=useState({});
+  const [input,setInput]=useState("");
+  const [msgs,setMsgs]=useState([]);
+  const [loading,setLoading]=useState(false);
+  const [done,setDone]=useState(false);
+  const endRef=useRef(null);
+  const tc=tcolor(task.type);
+
+  useEffect(()=>{
+    setMsgs([
+      {r:"ai",t:`Hello! I'm your Sales Helper AI. I'll guide you through the ${TLABELS[task.type]} for: ${opp?.name}.`},
+      {r:"ai",t:qs[0]}
+    ]);
+  },[]);
+  useEffect(()=>{endRef.current?.scrollIntoView({behavior:"smooth"});},[msgs]);
+
+  async function send(){
+    if(!input.trim()||loading)return;
+    const txt=input.trim();setInput("");
+    const nm=[...msgs,{r:"user",t:txt}];
+    setMsgs(nm);setLoading(true);
+    const isLast=step>=qs.length-1;
+    const prompt=`You are a Sales Helper AI doing a ${TLABELS[task.type]} for opportunity "${opp?.name}" (${opp?.industry}, ₺${opp?.value?.toLocaleString()}).
+Current question: "${qs[step]}"
+Rep answer: "${txt}"
+${isLast?"This was the last question. Give a brief encouraging 2-sentence summary and wish them success.":(`Next question: "${qs[step+1]}"`)}
+Respond briefly (1-2 sentences acknowledging their answer), then ${isLast?"summarize.":"ask the next question."} Be professional and constructive.`;
+    try{
+      const res=await fetch("https://api.anthropic.com/v1/messages",{
+        method:"POST",headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:300,messages:[{role:"user",content:prompt}]})
+      });
+      const d=await res.json();
+      const ai=d.content?.[0]?.text||"Thank you. Let's continue.";
+      setMsgs([...nm,{r:"ai",t:ai}]);
+      if(isLast)setDone(true); else setStep(step+1);
+    }catch{
+      setMsgs([...nm,{r:"ai",t:"Thank you for your answer. Let's continue."}]);
+      if(isLast)setDone(true); else setStep(step+1);
+    }
+    setLoading(false);
+  }
+
+  return <div style={{display:"flex",flexDirection:"column",height:"100%",minHeight:420}}>
+    <div style={{padding:"10px 16px",background:tc.bg,borderBottom:`0.5px solid ${tc.b}33`,display:"flex",alignItems:"center",gap:8}}>
+      <div style={{width:8,height:8,borderRadius:"50%",background:tc.b}}/>
+      <span style={{fontSize:13,fontWeight:500,color:tc.txt}}>{TLABELS[task.type]} — {opp?.name}</span>
+      {!done&&<span style={{marginLeft:"auto",fontSize:11,color:tc.txt}}>{step+1}/{qs.length}</span>}
+      {done&&<span style={{marginLeft:"auto",fontSize:11,color:C.greenD,background:C.greenL,padding:"2px 8px",borderRadius:999}}>Complete</span>}
+    </div>
+    <div style={{flex:1,overflowY:"auto",padding:16,display:"flex",flexDirection:"column",gap:10}}>
+      {msgs.map((m,i)=>(
+        <div key={i} className="msg" style={{display:"flex",justifyContent:m.r==="user"?"flex-end":"flex-start"}}>
+          {m.r==="ai"&&<div style={{width:26,height:26,borderRadius:"50%",background:tc.bg,border:`1px solid ${tc.b}55`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:10,fontWeight:500,color:tc.txt,marginRight:8,flexShrink:0,marginTop:2}}>AI</div>}
+          <div style={{maxWidth:"76%",padding:"8px 12px",borderRadius:m.r==="user"?"12px 12px 2px 12px":"12px 12px 12px 2px",background:m.r==="user"?C.blue:"#fff",color:m.r==="user"?"#fff":"#1a1a18",fontSize:13,lineHeight:1.6,border:m.r==="user"?"none":"0.5px solid #e0ddd5"}}>
+            {m.t}
+          </div>
+        </div>
+      ))}
+      {loading&&<div style={{display:"flex",alignItems:"center",gap:8}}>
+        <div style={{width:26,height:26,borderRadius:"50%",background:tc.bg,border:`1px solid ${tc.b}55`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:10,fontWeight:500,color:tc.txt}}>AI</div>
+        <div style={{display:"flex",gap:4,padding:"10px 14px",background:"#fff",borderRadius:"12px 12px 12px 2px",border:"0.5px solid #e0ddd5"}}>
+          {[0,1,2].map(i=><div key={i} style={{width:5,height:5,borderRadius:"50%",background:C.gray,animation:`bounce 1s ${i*0.15}s infinite`}}/>)}
+        </div>
+      </div>}
+      <div ref={endRef}/>
+    </div>
+    {!done?(
+      <div style={{padding:"10px 16px",borderTop:"0.5px solid #e0ddd5",display:"flex",gap:8}}>
+        <input value={input} onChange={e=>setInput(e.target.value)} onKeyDown={e=>e.key==="Enter"&&send()} placeholder="Type your answer..." style={{flex:1,padding:"8px 12px",fontSize:13,borderRadius:8,border:"0.5px solid #c8c5bc",background:"#fff",color:"#1a1a18"}}/>
+        <button onClick={send} disabled={loading||!input.trim()} style={{padding:"8px 16px",background:loading||!input.trim()?"#aaa":C.blue,color:"#fff",border:"none",borderRadius:8,fontSize:13,fontWeight:500,cursor:loading||!input.trim()?"not-allowed":"pointer"}}>Send</button>
+      </div>
+    ):(
+      <div style={{padding:16,borderTop:"0.5px solid #e0ddd5",display:"flex",justifyContent:"center"}}>
+        <button onClick={onComplete} style={{padding:"10px 28px",background:C.green,color:"#fff",border:"none",borderRadius:8,fontSize:13,fontWeight:500,cursor:"pointer"}}>Mark Task as Completed</button>
+      </div>
+    )}
+  </div>;
+}
+
+function RepView({repId,tasks,setTasks}){
+  const [activeTask,setActiveTask]=useState(null);
+  const rep=REPS.find(r=>r.id===repId);
+  const myOpps=OPPS.filter(o=>o.rep===repId);
+  const myLeads=LEADS.filter(l=>l.rep===repId);
+  const myTasks=tasks.filter(t=>t.repId===repId);
+  const pending=myTasks.filter(t=>t.status==="pending");
+
+  function complete(id){setTasks(p=>p.map(t=>t.id===id?{...t,status:"completed"}:t));setActiveTask(null);}
+
+  if(activeTask){
+    const opp=OPPS.find(o=>o.id===activeTask.oppId);
+    return <div style={{display:"flex",flexDirection:"column",height:"100%"}}>
+      <div style={{padding:"10px 20px",borderBottom:"0.5px solid #e0ddd5",display:"flex",alignItems:"center",gap:10,background:"#fff"}}>
+        <button onClick={()=>setActiveTask(null)} style={{padding:"4px 12px",fontSize:12,border:"0.5px solid #c8c5bc",borderRadius:6,background:"none",color:"#6b6b67",cursor:"pointer"}}>← Back</button>
+        <span style={{fontSize:14,fontWeight:500}}>{activeTask.title}</span>
+      </div>
+      <div style={{flex:1,overflow:"hidden"}}>
+        <AIChat task={activeTask} opp={opp} onComplete={()=>complete(activeTask.id)}/>
+      </div>
+    </div>;
+  }
+
+  return <div style={{padding:20,overflowY:"auto",height:"100%"}}>
+    <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:24}}>
+      <Av initials={rep.av} size={44} color={C.blue}/>
+      <div>
+        <div style={{fontWeight:500,fontSize:16}}>{rep.name}</div>
+        <div style={{fontSize:12,color:"#6b6b67"}}>Sales Representative</div>
+      </div>
+      {pending.length>0&&<div style={{marginLeft:"auto",background:C.redL,color:C.redD,fontSize:12,fontWeight:500,padding:"4px 12px",borderRadius:999}}>{pending.length} pending task{pending.length>1?"s":""}</div>}
+    </div>
+    <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:12,marginBottom:24}}>
+      {[{l:"Active Opps",v:myOpps.filter(o=>!o.stage.includes("Closed")).length,c:C.blue},{l:"Leads",v:myLeads.length,c:C.purple},{l:"Pending Tasks",v:pending.length,c:pending.length>0?C.red:C.green}].map(m=>(
+        <div key={m.l} style={{background:"#f1efe8",borderRadius:10,padding:"12px 14px"}}>
+          <div style={{fontSize:11,color:"#6b6b67",marginBottom:4}}>{m.l}</div>
+          <div style={{fontSize:24,fontWeight:500,color:m.c}}>{m.v}</div>
+        </div>
+      ))}
+    </div>
+    {pending.length>0&&<section style={{marginBottom:24}}>
+      <div style={{fontSize:13,fontWeight:500,marginBottom:10,color:"#6b6b67"}}>Pending Tasks</div>
+      <div style={{display:"flex",flexDirection:"column",gap:8}}>
+        {pending.map(task=>{
+          const tc=tcolor(task.type);const opp=OPPS.find(o=>o.id===task.oppId);
+          return <div key={task.id} onClick={()=>setActiveTask(task)} style={{background:"#fff",border:`0.5px solid ${tc.b}55`,borderLeft:`3px solid ${tc.b}`,borderRadius:8,padding:"12px 14px",display:"flex",alignItems:"center",gap:12,cursor:"pointer"}}>
+            <div style={{flex:1}}>
+              <div style={{fontWeight:500,fontSize:13,marginBottom:2}}>{task.title}</div>
+              <div style={{fontSize:11,color:"#6b6b67"}}>{opp?.name} · Due {task.due}</div>
+            </div>
+            <Badge label={TLABELS[task.type]} bg={tc.bg} txt={tc.txt} b={tc.b}/>
+            <span style={{fontSize:16,color:tc.b}}>→</span>
+          </div>;
+        })}
+      </div>
+    </section>}
+    <section style={{marginBottom:24}}>
+      <div style={{fontSize:13,fontWeight:500,marginBottom:10,color:"#6b6b67"}}>My Opportunities</div>
+      <div style={{display:"flex",flexDirection:"column",gap:6}}>
+        {myOpps.map(o=>(
+          <div key={o.id} style={{background:"#fff",border:"0.5px solid #e0ddd5",borderRadius:8,padding:"10px 14px",display:"flex",alignItems:"center",gap:12}}>
+            <div style={{flex:1}}>
+              <div style={{fontWeight:500,fontSize:13}}>{o.name}</div>
+              <div style={{fontSize:11,color:"#6b6b67",marginTop:2}}>₺{o.value.toLocaleString()}</div>
+            </div>
+            <div style={{minWidth:110}}><WinBar p={o.winProb}/></div>
+            <span style={{fontSize:11,fontWeight:500,padding:"2px 8px",borderRadius:999,background:scolor(o.stage)+"22",color:scolor(o.stage)}}>{o.stage}</span>
+          </div>
+        ))}
+      </div>
+    </section>
+    <section>
+      <div style={{fontSize:13,fontWeight:500,marginBottom:10,color:"#6b6b67"}}>My Leads</div>
+      <div style={{display:"flex",flexDirection:"column",gap:6}}>
+        {myLeads.map(l=>(
+          <div key={l.id} style={{background:"#fff",border:"0.5px solid #e0ddd5",borderRadius:8,padding:"10px 14px",display:"flex",alignItems:"center",gap:12}}>
+            <div style={{flex:1}}>
+              <div style={{fontWeight:500,fontSize:13}}>{l.name}</div>
+              <div style={{fontSize:11,color:"#6b6b67"}}>{l.contact} · {l.source}</div>
+            </div>
+            <div style={{fontSize:12,fontWeight:500,color:l.score>=75?C.green:l.score>=50?C.amber:C.red}}>Score: {l.score}</div>
+          </div>
+        ))}
+      </div>
+    </section>
+  </div>;
+}
+
+function DirectorView({tasks}){
+  const [tab,setTab]=useState("pipeline");
+  const [report,setReport]=useState(null);
+  const [repLoading,setRepLoading]=useState(false);
+  const totalPipe=OPPS.filter(o=>!o.stage.includes("Closed")).reduce((s,o)=>s+o.value,0);
+  const wonRev=OPPS.filter(o=>o.stage==="Closed Won").reduce((s,o)=>s+o.value,0);
+  const atRisk=OPPS.filter(o=>o.winProb<35&&!o.stage.includes("Closed"));
+  const stages=["Discovery","Proposal","Negotiation","Closed Won","Closed Lost"].map(s=>({s,count:OPPS.filter(o=>o.stage===s).length,val:OPPS.filter(o=>o.stage===s).reduce((a,o)=>a+o.value,0)}));
+  const maxVal=Math.max(...stages.map(s=>s.val));
+
+  async function genReport(){
+    setRepLoading(true);
+    const ctx=OPPS.map(o=>{const r=REPS.find(x=>x.id===o.rep);return `${o.name} (${o.stage}, ${o.winProb}% win, ₺${o.value.toLocaleString()}, rep: ${r?.name})`;}).join("\n");
+    try{
+      const res=await fetch("https://api.anthropic.com/v1/messages",{
+        method:"POST",headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:700,messages:[{role:"user",content:`You are a sales analytics AI. Generate a concise daily director report:\n\n${ctx}\n\nInclude: 1) Executive summary (2 sentences), 2) Top 2 at-risk deals, 3) Top 2 high-confidence opportunities, 4) One strategic recommendation. Use actual deal names and numbers. Plain text with clear sections.`}]})
+      });
+      const d=await res.json();
+      setReport(d.content?.[0]?.text||"Report generation failed.");
+    }catch{setReport("Unable to generate report at this time.");}
+    setRepLoading(false);
+  }
+
+  const tabs=[{id:"pipeline",l:"Pipeline"},{id:"team",l:"Team"},{id:"report",l:"AI Report"},{id:"tasks",l:"All Tasks"}];
+
+  return <div style={{display:"flex",flexDirection:"column",height:"100%"}}>
+    <div style={{padding:"0 20px",borderBottom:"0.5px solid #e0ddd5",display:"flex",gap:4,background:"#fff"}}>
+      {tabs.map(t=>(
+        <button key={t.id} onClick={()=>setTab(t.id)} style={{padding:"12px 14px",fontSize:13,border:"none",borderBottom:tab===t.id?`2px solid ${C.blue}`:"2px solid transparent",background:"none",color:tab===t.id?C.blue:"#6b6b67",fontWeight:tab===t.id?500:400,cursor:"pointer"}}>
+          {t.l}
+        </button>
+      ))}
+    </div>
+    <div style={{flex:1,overflowY:"auto",padding:20}}>
+      {tab==="pipeline"&&<>
+        <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:12,marginBottom:20}}>
+          {[{l:"Total pipeline",v:`₺${(totalPipe/1000000).toFixed(1)}M`,c:C.blue},{l:"Won revenue",v:`₺${(wonRev/1000).toFixed(0)}K`,c:C.green},{l:"At-risk deals",v:atRisk.length,c:C.red},{l:"Tasks completed",v:tasks.filter(t=>t.status==="completed").length,c:C.teal}].map(m=>(
+            <div key={m.l} style={{background:"#f1efe8",borderRadius:10,padding:"12px 14px"}}>
+              <div style={{fontSize:11,color:"#6b6b67",marginBottom:4}}>{m.l}</div>
+              <div style={{fontSize:22,fontWeight:500,color:m.c}}>{m.v}</div>
+            </div>
+          ))}
+        </div>
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16,marginBottom:16}}>
+          <div style={{background:"#fff",border:"0.5px solid #e0ddd5",borderRadius:10,padding:16}}>
+            <div style={{fontSize:13,fontWeight:500,marginBottom:12}}>Pipeline by stage</div>
+            {stages.map(s=>(
+              <div key={s.s} style={{marginBottom:10}}>
+                <div style={{display:"flex",justifyContent:"space-between",fontSize:12,marginBottom:3}}>
+                  <span style={{color:"#6b6b67"}}>{s.s}</span>
+                  <span style={{fontWeight:500}}>{s.count} · ₺{(s.val/1000).toFixed(0)}K</span>
+                </div>
+                <div style={{height:6,background:"#f1efe8",borderRadius:3,overflow:"hidden"}}>
+                  <div style={{width:`${maxVal>0?s.val/maxVal*100:0}%`,height:"100%",background:scolor(s.s),borderRadius:3}}/>
+                </div>
+              </div>
+            ))}
+          </div>
+          <div style={{background:"#fff",border:"0.5px solid #e0ddd5",borderRadius:10,padding:16}}>
+            <div style={{fontSize:13,fontWeight:500,marginBottom:12,color:C.red}}>At-risk accounts</div>
+            {atRisk.map(o=>{const r=REPS.find(x=>x.id===o.rep);return(
+              <div key={o.id} style={{padding:"8px 0",borderBottom:"0.5px solid #e0ddd5",display:"flex",alignItems:"center",gap:10}}>
+                <div style={{flex:1}}>
+                  <div style={{fontSize:13,fontWeight:500}}>{o.name}</div>
+                  <div style={{fontSize:11,color:"#6b6b67"}}>{r?.name} · {o.days}d in stage</div>
+                </div>
+                <div style={{minWidth:100}}><WinBar p={o.winProb}/></div>
+              </div>
+            );})}
+          </div>
+        </div>
+        <div style={{background:"#fff",border:"0.5px solid #e0ddd5",borderRadius:10,padding:16}}>
+          <div style={{fontSize:13,fontWeight:500,marginBottom:12}}>All opportunities</div>
+          <div style={{display:"flex",flexDirection:"column",gap:6}}>
+            {OPPS.map(o=>{const r=REPS.find(x=>x.id===o.rep);return(
+              <div key={o.id} style={{display:"flex",alignItems:"center",gap:12,padding:"8px 10px",borderRadius:6,background:"#f8f7f5"}}>
+                <Av initials={r?.av||"?"} size={28} color={C.blue}/>
+                <div style={{flex:1}}>
+                  <div style={{fontSize:13,fontWeight:500}}>{o.name}</div>
+                  <div style={{fontSize:11,color:"#6b6b67"}}>{r?.name}</div>
+                </div>
+                <div style={{minWidth:100}}><WinBar p={o.winProb}/></div>
+                <span style={{fontSize:12,fontWeight:500,minWidth:56,textAlign:"right"}}>₺{(o.value/1000).toFixed(0)}K</span>
+                <span style={{fontSize:11,fontWeight:500,padding:"2px 8px",borderRadius:999,background:scolor(o.stage)+"22",color:scolor(o.stage),minWidth:88,textAlign:"center"}}>{o.stage}</span>
+              </div>
+            );})}
+          </div>
+        </div>
+      </>}
+
+      {tab==="team"&&<div style={{display:"flex",flexDirection:"column",gap:12}}>
+        {REPS.map(rep=>{
+          const ro=OPPS.filter(o=>o.rep===rep.id);
+          const pipe=ro.filter(o=>!o.stage.includes("Closed")).reduce((s,o)=>s+o.value,0);
+          const won=ro.filter(o=>o.stage==="Closed Won").reduce((s,o)=>s+o.value,0);
+          const rt=tasks.filter(t=>t.repId===rep.id);
+          const eff=rt.length>0?Math.round(rt.filter(t=>t.status==="completed").length/rt.length*100):0;
+          return <div key={rep.id} style={{background:"#fff",border:"0.5px solid #e0ddd5",borderRadius:10,padding:16,display:"flex",alignItems:"center",gap:16}}>
+            <Av initials={rep.av} size={44} color={C.purple}/>
+            <div style={{flex:1}}>
+              <div style={{fontWeight:500,fontSize:14}}>{rep.name}</div>
+              <div style={{fontSize:12,color:"#6b6b67"}}>{ro.length} opportunities</div>
+            </div>
+            {[{l:"Pipeline",v:`₺${(pipe/1000).toFixed(0)}K`,c:C.blue},{l:"Won",v:`₺${(won/1000).toFixed(0)}K`,c:C.green},{l:"Task eff.",v:`${eff}%`,c:eff>=75?C.green:eff>=40?C.amber:C.red}].map(m=>(
+              <div key={m.l} style={{textAlign:"center",minWidth:70}}>
+                <div style={{fontSize:11,color:"#6b6b67"}}>{m.l}</div>
+                <div style={{fontSize:16,fontWeight:500,color:m.c}}>{m.v}</div>
+              </div>
+            ))}
+          </div>;
+        })}
+      </div>}
+
+      {tab==="report"&&<div>
+        <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:16}}>
+          <div>
+            <div style={{fontWeight:500,fontSize:15}}>Daily AI Report</div>
+            <div style={{fontSize:12,color:"#6b6b67"}}>{new Date().toLocaleDateString("tr-TR")}</div>
+          </div>
+          <button onClick={genReport} disabled={repLoading} style={{padding:"8px 18px",background:repLoading?"#aaa":C.blue,color:"#fff",border:"none",borderRadius:8,fontSize:13,fontWeight:500,cursor:repLoading?"not-allowed":"pointer"}}>
+            {repLoading?"Generating...":report?"Regenerate":"Generate Report"}
+          </button>
+        </div>
+        {!report&&!repLoading&&<div style={{padding:40,textAlign:"center",background:"#f1efe8",borderRadius:10,color:"#6b6b67",fontSize:13}}>Click "Generate Report" to get your daily AI-powered sales digest.</div>}
+        {repLoading&&<div style={{padding:40,textAlign:"center",background:"#f1efe8",borderRadius:10,color:"#6b6b67",fontSize:13}}>Analyzing pipeline data...</div>}
+        {report&&<div style={{background:"#fff",border:"0.5px solid #e0ddd5",borderRadius:10,padding:20}}><div style={{whiteSpace:"pre-wrap",fontSize:13,lineHeight:1.9,color:"#1a1a18"}}>{report}</div></div>}
+      </div>}
+
+      {tab==="tasks"&&<div style={{display:"flex",flexDirection:"column",gap:8}}>
+        {tasks.map(task=>{
+          const tc=tcolor(task.type);const r=REPS.find(x=>x.id===task.repId);const o=OPPS.find(x=>x.id===task.oppId);
+          return <div key={task.id} style={{background:"#fff",borderLeft:`3px solid ${task.status==="completed"?C.green:tc.b}`,border:`0.5px solid #e0ddd5`,borderRadius:8,padding:"12px 14px",display:"flex",alignItems:"center",gap:12}}>
+            <Av initials={r?.av||"?"} size={32} color={C.purple}/>
+            <div style={{flex:1}}>
+              <div style={{fontWeight:500,fontSize:13}}>{task.title}</div>
+              <div style={{fontSize:11,color:"#6b6b67"}}>{r?.name} · {o?.name}</div>
+            </div>
+            <Badge label={TLABELS[task.type]} bg={tc.bg} txt={tc.txt} b={tc.b}/>
+            <span style={{fontSize:11,fontWeight:500,padding:"2px 8px",borderRadius:999,background:task.status==="completed"?C.greenL:C.amberL,color:task.status==="completed"?C.greenD:C.amberD}}>
+              {task.status==="completed"?"Completed":"Pending"}
+            </span>
+          </div>;
+        })}
+      </div>}
+    </div>
+  </div>;
+}
+
+function App(){
+  const [screen,setScreen]=useState("login");
+  const [role,setRole]=useState(null);
+  const [repId,setRepId]=useState(null);
+  const [tasks,setTasks]=useState(INIT_TASKS);
+
+  function login(r,id=null){setRole(r);setRepId(id);setScreen("app");}
+
+  if(screen==="login")return(
+    <div style={{minHeight:"100vh",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:32,background:"#f5f5f3"}}>
+      <div style={{marginBottom:32,textAlign:"center"}}>
+        <div style={{display:"flex",alignItems:"center",gap:8,justifyContent:"center",marginBottom:8}}>
+          <div style={{width:10,height:10,borderRadius:"50%",background:C.blue}}/>
+          <span style={{fontWeight:500,fontSize:20}}>Sales Intelligence Platform</span>
+        </div>
+        <p style={{fontSize:13,color:"#6b6b67"}}>Select your role to continue</p>
+      </div>
+      <div style={{display:"flex",flexDirection:"column",gap:10,width:"100%",maxWidth:380}}>
+        <div style={{fontWeight:500,fontSize:11,color:"#6b6b67",textTransform:"uppercase",letterSpacing:1,marginBottom:4}}>Sales Director</div>
+        <button onClick={()=>login("director")} style={{padding:"12px 20px",background:C.blue,color:"#fff",border:"none",borderRadius:10,fontSize:14,fontWeight:500,cursor:"pointer",display:"flex",alignItems:"center",gap:10,transition:"opacity 0.15s"}}
+          onMouseOver={e=>e.currentTarget.style.opacity=0.88} onMouseOut={e=>e.currentTarget.style.opacity=1}>
+          <span style={{width:32,height:32,borderRadius:"50%",background:"rgba(255,255,255,0.2)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:12}}>SD</span>
+          Login as Sales Director
+        </button>
+        <div style={{fontWeight:500,fontSize:11,color:"#6b6b67",textTransform:"uppercase",letterSpacing:1,marginTop:12,marginBottom:4}}>Sales Representatives</div>
+        {REPS.map(rep=>(
+          <button key={rep.id} onClick={()=>login("rep",rep.id)} style={{padding:"10px 16px",background:"#fff",color:"#1a1a18",border:"0.5px solid #e0ddd5",borderRadius:10,fontSize:13,cursor:"pointer",display:"flex",alignItems:"center",gap:10,textAlign:"left",transition:"background 0.15s"}}
+            onMouseOver={e=>e.currentTarget.style.background="#f1efe8"} onMouseOut={e=>e.currentTarget.style.background="#fff"}>
+            <span style={{width:30,height:30,borderRadius:"50%",background:C.purpleL,color:C.purpleD,display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:500,flexShrink:0}}>{rep.av}</span>
+            {rep.name}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+
+  const rep=REPS.find(r=>r.id===repId);
+  return(
+    <div style={{height:"100vh",display:"flex",flexDirection:"column",background:"#f5f5f3"}}>
+      <div style={{padding:"10px 20px",borderBottom:"0.5px solid #e0ddd5",display:"flex",alignItems:"center",gap:10,background:"#fff",flexShrink:0}}>
+        <div style={{width:8,height:8,borderRadius:"50%",background:C.blue}}/>
+        <span style={{fontWeight:500,fontSize:14}}>Sales Intelligence Platform</span>
+        <span style={{fontSize:11,padding:"2px 8px",borderRadius:999,background:role==="director"?C.blueL:C.purpleL,color:role==="director"?C.blueD:C.purpleD,marginLeft:4}}>
+          {role==="director"?"Director":rep?.name}
+        </span>
+        <button onClick={()=>setScreen("login")} style={{marginLeft:"auto",padding:"4px 12px",fontSize:12,border:"0.5px solid #c8c5bc",borderRadius:6,background:"none",color:"#6b6b67",cursor:"pointer"}}>Switch user</button>
+      </div>
+      <div style={{flex:1,overflow:"hidden",background:"#fff"}}>
+        {role==="rep"?<RepView repId={repId} tasks={tasks} setTasks={setTasks}/>:<DirectorView tasks={tasks}/>}
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
+</script>
+</body>
+</html>
