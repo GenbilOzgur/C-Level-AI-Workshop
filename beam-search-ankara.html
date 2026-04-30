@@ -7,235 +7,706 @@
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
-body { background: #f7f8fc; color: #1a1d27; font-family: 'Inter', sans-serif; min-height: 100vh; padding: 36px 28px 60px; max-width: 860px; margin: 0 auto; }
-h1 { font-size: 20px; font-weight: 700; color: #1a1d27; margin-bottom: 4px; letter-spacing: -0.3px; }
-.subtitle { font-size: 12px; color: #9aa0b4; font-family: 'JetBrains Mono', monospace; margin-bottom: 28px; }
-.card { background: #fff; border: 1px solid #e4e8f0; border-radius: 12px; padding: 18px 20px; margin-bottom: 14px; }
-.ctitle { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: #9aa0b4; margin-bottom: 12px; font-family: 'JetBrains Mono', monospace; }
-.step-badge { background: #e8f0fe; color: #1a56db; font-size: 10px; font-weight: 700; font-family: 'JetBrains Mono', monospace; padding: 3px 9px; border-radius: 20px; }
-.ctx { font-size: 12px; color: #9aa0b4; font-family: 'JetBrains Mono', monospace; }
-.ctx b { color: #1a56db; font-weight: 500; }
-.bar-row { margin-bottom: 6px; }
+body {
+  background: #f7f8fc;
+  color: #1a1d27;
+  font-family: 'Inter', sans-serif;
+  min-height: 100vh;
+  padding: 36px 28px 80px;
+  max-width: 900px;
+  margin: 0 auto;
+}
+h1 { font-size: 21px; font-weight: 700; letter-spacing: -0.4px; margin-bottom: 4px; }
+.subtitle { font-size: 12px; color: #9aa0b4; font-family: 'JetBrains Mono', monospace; margin-bottom: 30px; }
+
+.input-card {
+  background: #fff;
+  border: 1px solid #e4e8f0;
+  border-radius: 14px;
+  padding: 20px 22px;
+  margin-bottom: 16px;
+}
+.input-row {
+  display: flex;
+  gap: 10px;
+  align-items: flex-end;
+  flex-wrap: wrap;
+}
+.input-wrap { flex: 1; min-width: 200px; }
+.input-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.07em; color: #9aa0b4; font-family: 'JetBrains Mono', monospace; margin-bottom: 6px; }
+input[type=text] {
+  width: 100%;
+  background: #f4f5f8;
+  border: 1px solid #e2e5ed;
+  border-radius: 8px;
+  padding: 10px 13px;
+  font-size: 14px;
+  font-family: 'Inter', sans-serif;
+  color: #1a1d27;
+  outline: none;
+  transition: border-color 0.15s;
+}
+input[type=text]:focus { border-color: #1a56db; }
+.ctrl-wrap { min-width: 200px; }
+.ctrl-row { display: flex; align-items: center; gap: 10px; }
+input[type=range] {
+  flex: 1;
+  -webkit-appearance: none;
+  height: 3px;
+  background: #dde1ec;
+  border-radius: 2px;
+  outline: none;
+  cursor: pointer;
+}
+input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 16px; height: 16px;
+  border-radius: 50%;
+  background: #1a56db;
+  cursor: pointer;
+  border: 2px solid #fff;
+  box-shadow: 0 0 0 1px #1a56db;
+}
+.ctrl-val {
+  font-size: 12px; font-weight: 600;
+  color: #1a56db;
+  font-family: 'JetBrains Mono', monospace;
+  min-width: 44px; text-align: right;
+}
+.beam-ctrl { display: flex; gap: 8px; align-items: center; }
+.beam-btn {
+  width: 28px; height: 28px;
+  border-radius: 6px;
+  border: 1px solid #e2e5ed;
+  background: #f4f5f8;
+  font-size: 14px;
+  font-weight: 700;
+  color: #1a1d27;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.1s;
+  user-select: none;
+}
+.beam-btn:hover { background: #e8f0fe; border-color: #1a56db; color: #1a56db; }
+.beam-val { font-size: 14px; font-weight: 600; color: #1a1d27; min-width: 18px; text-align: center; font-family: 'JetBrains Mono', monospace; }
+
+.run-btn {
+  background: #1a56db;
+  color: #fff;
+  border: none;
+  border-radius: 9px;
+  padding: 11px 26px;
+  font-size: 13px;
+  font-weight: 700;
+  font-family: 'Inter', sans-serif;
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+  align-self: flex-end;
+}
+.run-btn:hover { background: #1648c0; }
+.run-btn:active { transform: scale(0.97); }
+.run-btn:disabled { background: #a0b4e8; cursor: not-allowed; }
+
+.temp-note {
+  font-size: 11px;
+  color: #9aa0b4;
+  font-family: 'JetBrains Mono', monospace;
+  margin-top: 10px;
+  padding: 8px 10px;
+  background: #f4f5f8;
+  border-radius: 7px;
+  line-height: 1.6;
+}
+.temp-note span { color: #1a1d27; font-weight: 500; }
+
+/* Pipeline şeması */
+.pipeline {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  margin-bottom: 20px;
+  overflow-x: auto;
+  padding: 14px 18px;
+  background: #fff;
+  border: 1px solid #e4e8f0;
+  border-radius: 12px;
+}
+.pipe-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+.pipe-box {
+  padding: 6px 12px;
+  border-radius: 7px;
+  font-size: 11px;
+  font-weight: 600;
+  font-family: 'JetBrains Mono', monospace;
+  border: 1px solid #e2e5ed;
+  background: #f4f5f8;
+  color: #7a80a0;
+  transition: all 0.3s;
+  white-space: nowrap;
+}
+.pipe-box.active { background: #e8f0fe; border-color: #1a56db; color: #1a56db; }
+.pipe-box.done { background: #e8f7ef; border-color: #0f766e; color: #0f766e; }
+.pipe-arrow {
+  font-size: 14px;
+  color: #c8cfe0;
+  margin: 0 6px;
+  padding-bottom: 16px;
+  flex-shrink: 0;
+}
+.pipe-sub { font-size: 9px; color: #b0b6c8; font-family: 'JetBrains Mono', monospace; }
+
+/* Step kartları */
+.step-card {
+  background: #fff;
+  border: 1px solid #e4e8f0;
+  border-radius: 12px;
+  padding: 18px 20px;
+  margin-bottom: 12px;
+  opacity: 0;
+  transform: translateY(12px);
+  transition: opacity 0.4s ease, transform 0.4s ease;
+}
+.step-card.visible { opacity: 1; transform: translateY(0); }
+
+.step-header {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-bottom: 14px;
+}
+.step-badge {
+  background: #e8f0fe;
+  color: #1a56db;
+  font-size: 10px;
+  font-weight: 700;
+  font-family: 'JetBrains Mono', monospace;
+  padding: 3px 9px;
+  border-radius: 20px;
+}
+.step-ctx {
+  font-size: 12px;
+  color: #9aa0b4;
+  font-family: 'JetBrains Mono', monospace;
+}
+.step-ctx b { color: #1a56db; font-weight: 500; }
+
+.section-title {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #b0b6c8;
+  margin-bottom: 10px;
+  font-family: 'JetBrains Mono', monospace;
+}
+.divider { border: none; border-top: 1px solid #eaecf2; margin: 13px 0; }
+
+/* Bar chart */
+.bar-row { margin-bottom: 7px; }
 .bar-meta { display: flex; justify-content: space-between; align-items: center; margin-bottom: 3px; }
-.tok { font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 500; padding: 1px 7px; border-radius: 5px; background: #f4f5f8; color: #1a1d27; border: 1px solid #e2e5ed; }
+.tok {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px; font-weight: 500;
+  padding: 2px 8px; border-radius: 5px;
+  background: #f4f5f8; color: #1a1d27;
+  border: 1px solid #e2e5ed;
+}
 .tok.top { background: #e8f0fe; color: #1a56db; border-color: #b4ccfb; }
-.barpct { font-size: 11px; color: #9aa0b4; font-family: 'JetBrains Mono', monospace; }
-.bar-bg { height: 17px; background: #f4f5f8; border-radius: 3px; overflow: hidden; position: relative; }
-.bar-fill { height: 100%; border-radius: 3px; }
-.bar-txt { position: absolute; right: 6px; top: 50%; transform: translateY(-50%); font-size: 10px; font-family: 'JetBrains Mono', monospace; font-weight: 500; }
-.brow { background: #f8f9fb; border: 1px solid #e2e5ed; border-radius: 9px; padding: 10px 13px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 7px; gap: 10px; }
+.bar-pct { font-size: 11px; color: #9aa0b4; font-family: 'JetBrains Mono', monospace; }
+.bar-bg {
+  height: 18px;
+  background: #f4f5f8;
+  border-radius: 4px;
+  overflow: hidden;
+  position: relative;
+}
+.bar-fill {
+  height: 100%;
+  border-radius: 4px;
+  width: 0%;
+  transition: width 0.6s cubic-bezier(.4,0,.2,1);
+}
+.bar-inner {
+  position: absolute; right: 7px; top: 50%;
+  transform: translateY(-50%);
+  font-size: 10px; font-family: 'JetBrains Mono', monospace; font-weight: 500;
+}
+
+/* Beam rows */
+.brow {
+  background: #f8f9fb;
+  border: 1px solid #e2e5ed;
+  border-radius: 9px;
+  padding: 10px 13px;
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 7px; gap: 10px;
+  opacity: 0;
+  transform: translateX(-8px);
+  transition: opacity 0.35s ease, transform 0.35s ease, background 0.4s, border 0.4s;
+}
+.brow.show { opacity: 1; transform: translateX(0); }
 .brow.best { background: #e8f0fe; border: 1.5px solid #1a56db; }
-.brow.pruned { opacity: 0.28; }
-.bseq { font-family: 'JetBrains Mono', monospace; font-size: 13px; color: #2a3050; flex: 1; min-width: 0; word-break: break-word; line-height: 1.5; }
+.brow.pruned { opacity: 0.25 !important; }
+.brow.winner-highlight {
+  background: #e8f7ef !important;
+  border: 2px solid #0f766e !important;
+  animation: pulse-green 0.6s ease;
+}
+@keyframes pulse-green {
+  0% { box-shadow: 0 0 0 0 rgba(15,118,110,0.3); }
+  70% { box-shadow: 0 0 0 8px rgba(15,118,110,0); }
+  100% { box-shadow: none; }
+}
+.bseq {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px; color: #2a3050;
+  flex: 1; min-width: 0; word-break: break-word; line-height: 1.5;
+}
 .bseq .nt { color: #1a56db; font-weight: 700; }
 .brow.best .bseq { color: #1a56db; }
-.bsc { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #9aa0b4; white-space: nowrap; flex-shrink: 0; }
+.brow.winner-highlight .bseq { color: #0f766e !important; font-weight: 600; }
+.bsc {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px; color: #9aa0b4;
+  white-space: nowrap; flex-shrink: 0;
+}
 .brow.best .bsc { color: #1a56db; font-weight: 600; }
-.badge { font-size: 10px; padding: 2px 7px; border-radius: 20px; font-weight: 700; font-family: 'JetBrains Mono', monospace; margin-left: 5px; white-space: nowrap; }
-.b-best { background: #1a56db; color: #fff; }
-.b-pruned { background: #f0f0f5; color: #b0b6c8; }
-.divider { border: none; border-top: 1px solid #eaecf2; margin: 13px 0; }
-.final-box { background: #e8f0fe; border: 1.5px solid #1a56db; border-radius: 11px; padding: 16px 18px; margin-bottom: 13px; }
-.final-label { font-size: 10px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #1a56db; margin-bottom: 7px; font-family: 'JetBrains Mono', monospace; }
-.final-seq { font-size: 16px; font-weight: 700; color: #1a1d27; line-height: 1.6; }
-.final-score { font-size: 11px; color: #7a80a0; margin-top: 5px; font-family: 'JetBrains Mono', monospace; }
-.vsgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-.vsbox { background: #f8f9fb; border: 1px solid #e2e5ed; border-radius: 9px; padding: 13px; }
-.vsbox.win { background: #e8f0fe; border: 1.5px solid #1a56db; }
+.brow.winner-highlight .bsc { color: #0f766e !important; }
+.bdge {
+  font-size: 10px; padding: 2px 7px;
+  border-radius: 20px; font-weight: 700;
+  font-family: 'JetBrains Mono', monospace;
+  margin-left: 5px; white-space: nowrap;
+}
+.bdge-best { background: #1a56db; color: #fff; }
+.bdge-pruned { background: #f0f0f5; color: #b0b6c8; }
+.bdge-winner { background: #0f766e; color: #fff; }
+
+/* Sonuç */
+.result-card {
+  background: #fff;
+  border: 2px solid #0f766e;
+  border-radius: 14px;
+  padding: 20px 22px;
+  margin-bottom: 14px;
+  opacity: 0;
+  transform: translateY(12px);
+  transition: opacity 0.5s ease, transform 0.5s ease;
+}
+.result-card.visible { opacity: 1; transform: translateY(0); }
+.result-label {
+  font-size: 10px; font-weight: 700;
+  letter-spacing: 0.08em; text-transform: uppercase;
+  color: #0f766e; margin-bottom: 9px;
+  font-family: 'JetBrains Mono', monospace;
+}
+.result-seq { font-size: 18px; font-weight: 700; color: #1a1d27; line-height: 1.6; margin-bottom: 6px; }
+.result-score { font-size: 11px; color: #7a80a0; font-family: 'JetBrains Mono', monospace; }
+
+.vs-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 14px; }
+.vsbox {
+  background: #f8f9fb; border: 1px solid #e2e5ed;
+  border-radius: 9px; padding: 13px;
+}
+.vsbox.win { background: #e8f7ef; border: 1.5px solid #0f766e; }
 .vsm { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: #9aa0b4; font-family: 'JetBrains Mono', monospace; margin-bottom: 6px; }
 .vss { font-size: 13px; color: #2a3050; font-family: 'JetBrains Mono', monospace; line-height: 1.5; }
-.vsbox.win .vss { color: #1a56db; }
+.vsbox.win .vss { color: #0f766e; font-weight: 500; }
 .vssc { font-size: 11px; color: #9aa0b4; font-family: 'JetBrains Mono', monospace; margin-top: 4px; }
-.vsw { font-size: 11px; color: #1a56db; font-weight: 600; margin-top: 4px; }
-.note { background: #fffbf0; border: 1px solid #f0dfa0; border-radius: 8px; padding: 12px 14px; font-size: 12px; color: #7a6020; margin-top: 13px; line-height: 1.7; }
-.prompt-pill { display: inline-block; background: #f4f5f8; border: 1px solid #e2e5ed; border-radius: 20px; padding: 5px 14px; font-size: 12px; font-family: 'JetBrains Mono', monospace; color: #7a80a0; margin-bottom: 18px; }
-.prompt-pill b { color: #1a1d27; font-weight: 600; }
+.vsw { font-size: 11px; color: #0f766e; font-weight: 600; margin-top: 4px; }
+
+.note {
+  background: #fffbf0; border: 1px solid #f0dfa0;
+  border-radius: 8px; padding: 12px 14px;
+  font-size: 12px; color: #7a6020; margin-top: 13px; line-height: 1.7;
+}
+
+/* Typing animasyonu */
+.typing::after {
+  content: '▋';
+  animation: blink 0.7s step-end infinite;
+}
+@keyframes blink { 50% { opacity: 0; } }
+
+.progress-bar {
+  height: 3px;
+  background: #e4e8f0;
+  border-radius: 2px;
+  margin-bottom: 16px;
+  overflow: hidden;
+}
+.progress-fill {
+  height: 100%;
+  background: #1a56db;
+  border-radius: 2px;
+  width: 0%;
+  transition: width 0.4s ease;
+}
 </style>
 </head>
 <body>
 
 <h1>LLM Beam Search Simülatörü</h1>
-<p class="subtitle">// Türkiye'nin başkenti neresidir? · k=3 beam · 4 adım</p>
+<p class="subtitle">// token-by-token üretim · kümülatif olasılık optimizasyonu · gerçek zamanlı</p>
 
-<div id="root"></div>
+<div class="input-card">
+  <div class="input-row">
+    <div class="input-wrap">
+      <div class="input-label">Prompt</div>
+      <input type="text" id="prompt-in" value="Türkiye'nin başkenti neresidir?" placeholder="Bir soru yaz...">
+    </div>
+    <div class="ctrl-wrap">
+      <div class="input-label">Temperature</div>
+      <div class="ctrl-row">
+        <input type="range" id="temp" min="0.1" max="2.0" step="0.1" value="1.0" oninput="updateTemp()">
+        <span class="ctrl-val" id="temp-val">1.0</span>
+      </div>
+    </div>
+    <div class="ctrl-wrap">
+      <div class="input-label">Beam genişliği (k)</div>
+      <div class="beam-ctrl">
+        <button class="beam-btn" onclick="changeK(-1)">−</button>
+        <span class="beam-val" id="k-val">3</span>
+        <button class="beam-btn" onclick="changeK(+1)">+</button>
+      </div>
+    </div>
+    <button class="run-btn" id="run-btn" onclick="runSim()">&#9654; Çalıştır</button>
+  </div>
+  <div class="temp-note" id="temp-note">
+    Temperature <span>1.0</span> — standart dağılım. Yüksek temperature → rastgelelik artar, düşük → model daha kesin seçimler yapar.
+  </div>
+</div>
+
+<div class="pipeline" id="pipeline">
+  <div class="pipe-step">
+    <div class="pipe-box" id="p0">embedding</div>
+    <div class="pipe-sub">giriş → vektör</div>
+  </div>
+  <div class="pipe-arrow">→</div>
+  <div class="pipe-step">
+    <div class="pipe-box" id="p1">transformer</div>
+    <div class="pipe-sub">attention layers</div>
+  </div>
+  <div class="pipe-arrow">→</div>
+  <div class="pipe-step">
+    <div class="pipe-box" id="p2">MLP</div>
+    <div class="pipe-sub">feed-forward</div>
+  </div>
+  <div class="pipe-arrow">→</div>
+  <div class="pipe-step">
+    <div class="pipe-box" id="p3">unembedding</div>
+    <div class="pipe-sub">→ logitler</div>
+  </div>
+  <div class="pipe-arrow">→</div>
+  <div class="pipe-step">
+    <div class="pipe-box" id="p4">softmax/temp</div>
+    <div class="pipe-sub">olasılıklar</div>
+  </div>
+  <div class="pipe-arrow">→</div>
+  <div class="pipe-step">
+    <div class="pipe-box" id="p5">beam search</div>
+    <div class="pipe-sub">k yol seç</div>
+  </div>
+</div>
+
+<div class="progress-bar"><div class="progress-fill" id="prog"></div></div>
+<div id="steps-out"></div>
+<div id="result-out"></div>
 
 <script>
-const PROMPT = "Türkiye'nin başkenti neresidir?";
-const K = 3;
-
-const DATA = {
-  beams: [
-    {
-      id: 0,
-      tokens: ["Ankara", "Türkiye'nin", "resmî", "başkentidir"],
-      token_probs: [0.74, 0.70, 0.68, 0.88],
-      full_text: "Ankara Türkiye'nin resmî başkentidir"
-    },
-    {
-      id: 1,
-      tokens: ["Türkiye'nin", "başkenti", "Ankara'dır", "kesinlikle"],
-      token_probs: [0.18, 0.65, 0.80, 0.55],
-      full_text: "Türkiye'nin başkenti Ankara'dır kesinlikle"
-    },
-    {
-      id: 2,
-      tokens: ["Başkent", "Ankara'dır", "Türkiye'de", "bilinir"],
-      token_probs: [0.08, 0.72, 0.58, 0.60],
-      full_text: "Başkent Ankara'dır Türkiye'de bilinir"
-    }
-  ],
-  steps: [
-    {
-      step_index: 0,
-      candidates: [
-        { token: "Ankara",       prob: 0.74 },
-        { token: "Türkiye'nin",  prob: 0.18 },
-        { token: "Başkent",      prob: 0.08 },
-        { token: "Cevap:",       prob: 0.00 },
-        { token: "Şehir",        prob: 0.00 }
-      ]
-    },
-    {
-      step_index: 1,
-      candidates: [
-        { token: "Türkiye'nin",  prob: 0.70 },
-        { token: "şehridir",     prob: 0.14 },
-        { token: "ili",          prob: 0.09 },
-        { token: "kenti",        prob: 0.05 },
-        { token: "bölgesi",      prob: 0.02 }
-      ]
-    },
-    {
-      step_index: 2,
-      candidates: [
-        { token: "resmî",        prob: 0.68 },
-        { token: "başkentidir",  prob: 0.18 },
-        { token: "büyük",        prob: 0.09 },
-        { token: "önemli",       prob: 0.03 },
-        { token: "tek",          prob: 0.02 }
-      ]
-    },
-    {
-      step_index: 3,
-      candidates: [
-        { token: "başkentidir",  prob: 0.88 },
-        { token: "merkezi",      prob: 0.07 },
-        { token: "şehridir",     prob: 0.03 },
-        { token: "kentidir",     prob: 0.01 },
-        { token: "yeridir",      prob: 0.01 }
-      ]
-    }
-  ]
+// ── Veri tabanı: farklı promptlar için logitler ──────────────────────────────
+const PROMPT_DATA = {
+  default: {
+    label: "Türkiye'nin başkenti neresidir?",
+    steps: [
+      { candidates: [
+        { token: "Ankara",       logit: 4.8 },
+        { token: "Türkiye'nin",  logit: 2.9 },
+        { token: "Başkent",      logit: 2.1 },
+        { token: "Cevabı",       logit: 0.8 },
+        { token: "Şehir",        logit: 0.2 },
+      ]},
+      { candidates: [
+        { token: "Türkiye'nin",  logit: 4.5 },
+        { token: "şehridir",     logit: 2.8 },
+        { token: "ili",          logit: 1.9 },
+        { token: "kenti",        logit: 1.2 },
+        { token: "bölgesi",      logit: 0.5 },
+      ]},
+      { candidates: [
+        { token: "resmî",        logit: 4.2 },
+        { token: "başkentidir",  logit: 3.1 },
+        { token: "büyük",        logit: 1.8 },
+        { token: "önemli",       logit: 1.0 },
+        { token: "tek",          logit: 0.3 },
+      ]},
+      { candidates: [
+        { token: "başkentidir",  logit: 5.5 },
+        { token: "merkezi",      logit: 2.2 },
+        { token: "şehridir",     logit: 1.5 },
+        { token: "kentidir",     logit: 0.8 },
+        { token: "yeridir",      logit: 0.2 },
+      ]},
+    ],
+    beams: [
+      { tokens: ["Ankara",      "Türkiye'nin", "resmî",        "başkentidir"],  full: "Ankara Türkiye'nin resmî başkentidir" },
+      { tokens: ["Türkiye'nin", "başkenti",    "Ankara'dır",   "kesinlikle"],   full: "Türkiye'nin başkenti Ankara'dır kesinlikle" },
+      { tokens: ["Başkent",     "Ankara'dır",  "Türkiye'de",   "bilinir"],      full: "Başkent Ankara'dır Türkiye'de bilinir" },
+      { tokens: ["Cevabı",      "Ankara",      "olarak",       "verilebilir"],  full: "Cevabı Ankara olarak verilebilir" },
+    ]
+  }
 };
 
-const COLORS = [
-  { bar: '#1a56db', txt: '#1a56db' },
-  { bar: '#0f766e', txt: '#0f766e' },
-  { bar: '#7c3aed', txt: '#7c3aed' },
-  { bar: '#b45309', txt: '#b45309' },
-  { bar: '#dc2626', txt: '#dc2626' },
-];
+// ── State ────────────────────────────────────────────────────────────────────
+let K = 3;
+let currentTemp = 1.0;
+let running = false;
+
+function updateTemp() {
+  currentTemp = parseFloat(document.getElementById('temp').value);
+  const t = currentTemp.toFixed(1);
+  document.getElementById('temp-val').textContent = t;
+  let note = '';
+  if (currentTemp <= 0.3)      note = `Temperature <span>${t}</span> — çok düşük: model neredeyse her zaman aynı tokeni seçer (greedy'ye yakın).`;
+  else if (currentTemp <= 0.7) note = `Temperature <span>${t}</span> — düşük: yüksek olasılıklı tokenlar çok baskın, az çeşitlilik.`;
+  else if (currentTemp <= 1.2) note = `Temperature <span>${t}</span> — standart dağılım. Olasılıklar ham logitlerden hesaplanır.`;
+  else if (currentTemp <= 1.6) note = `Temperature <span>${t}</span> — yüksek: dağılım yayılıyor, düşük olasılıklı tokenlar şans kazanıyor.`;
+  else                          note = `Temperature <span>${t}</span> — çok yüksek: dağılım neredeyse düz, her token benzer olasılıkla seçilebilir.`;
+  document.getElementById('temp-note').innerHTML = note;
+}
+
+function changeK(d) {
+  K = Math.max(2, Math.min(4, K + d));
+  document.getElementById('k-val').textContent = K;
+}
+
+// ── Softmax with temperature ──────────────────────────────────────────────────
+function softmaxTemp(logits, temp) {
+  const scaled = logits.map(l => l / Math.max(temp, 0.01));
+  const maxV = Math.max(...scaled);
+  const exps = scaled.map(l => Math.exp(l - maxV));
+  const sum = exps.reduce((a,b) => a+b, 0);
+  return exps.map(e => e/sum);
+}
 
 function lp(p) { return Math.log(Math.max(p, 1e-9)); }
 
-function renderBars(candidates) {
-  const tot = candidates.reduce((s, c) => s + c.prob, 0) || 1;
+// ── Pipeline animasyonu ──────────────────────────────────────────────────────
+const PIPE_IDS = ['p0','p1','p2','p3','p4','p5'];
+async function animatePipeline() {
+  PIPE_IDS.forEach(id => { document.getElementById(id).className = 'pipe-box'; });
+  for (let i = 0; i < PIPE_IDS.length; i++) {
+    await sleep(260);
+    if (i > 0) document.getElementById(PIPE_IDS[i-1]).className = 'pipe-box done';
+    document.getElementById(PIPE_IDS[i]).className = 'pipe-box active';
+  }
+  await sleep(300);
+  document.getElementById(PIPE_IDS[PIPE_IDS.length-1]).className = 'pipe-box done';
+}
+
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+function setProgress(pct) {
+  document.getElementById('prog').style.width = pct + '%';
+}
+
+// ── Render helpers ────────────────────────────────────────────────────────────
+function renderBars(candidates, probs) {
   return candidates.map((c, i) => {
-    const col = COLORS[i % COLORS.length];
-    const pct = (c.prob / tot * 100).toFixed(1);
-    return `<div class="bar-row">
+    const col = ['#1a56db','#0f766e','#7c3aed','#b45309','#dc2626'][i % 5];
+    const pct = (probs[i] * 100).toFixed(1);
+    return `<div class="bar-row" id="bar-${c.token.replace(/[^a-zA-Z]/g,'')}">
       <div class="bar-meta">
-        <span class="tok ${i === 0 ? 'top' : ''}">${c.token}</span>
-        <span class="barpct">${pct}%</span>
+        <span class="tok ${i===0?'top':''}">${c.token}</span>
+        <span class="bar-pct">${pct}%</span>
       </div>
       <div class="bar-bg">
-        <div class="bar-fill" style="width:${pct}%;background:${col.bar}22;border-right:2.5px solid ${col.bar}"></div>
-        <span class="bar-txt" style="color:${col.bar}">${pct}%</span>
+        <div class="bar-fill" id="fill-${i}" style="background:${col}22;border-right:2.5px solid ${col};width:0%"></div>
+        <span class="bar-inner" style="color:${col}">${pct}%</span>
       </div>
     </div>`;
   }).join('');
 }
 
-function renderBeamRows(beams, stepIdx) {
-  return beams.map((beam, bi) => {
-    const safeLen = Math.min(stepIdx + 1, beam.tokens.length);
-    const pLogP = beam.token_probs.slice(0, safeLen).reduce((a, p) => a + lp(p), 0);
-    const prev = beam.tokens.slice(0, stepIdx).join(' ');
-    const nt = beam.tokens[stepIdx] || '…';
-    const isBest = bi === 0;
-    const isPruned = bi >= K;
-    return `<div class="brow ${isBest ? 'best' : ''} ${isPruned ? 'pruned' : ''}">
-      <div class="bseq">${prev ? prev + ' ' : ''}<span class="nt">${nt}</span></div>
-      <div style="display:flex;align-items:center;flex-shrink:0">
-        <span class="bsc">log-p: ${pLogP.toFixed(3)}</span>
-        ${isBest ? '<span class="badge b-best">en iyi</span>' : ''}
-        ${isPruned ? '<span class="badge b-pruned">budandı</span>' : ''}
-      </div>
-    </div>`;
-  }).join('');
-}
+// ── Ana simülasyon ────────────────────────────────────────────────────────────
+async function runSim() {
+  if (running) return;
+  running = true;
+  const btn = document.getElementById('run-btn');
+  btn.disabled = true; btn.textContent = '⏳ Çalışıyor...';
 
-function build() {
-  const beams = DATA.beams
-    .map(b => ({ ...b, cumLogP: b.token_probs.reduce((s, p) => s + lp(p), 0) }))
-    .sort((a, b) => b.cumLogP - a.cumLogP);
+  document.getElementById('steps-out').innerHTML = '';
+  document.getElementById('result-out').innerHTML = '';
+  setProgress(0);
 
-  let html = `<div class="prompt-pill">prompt: <b>${PROMPT}</b></div>`;
+  const promptVal = document.getElementById('prompt-in').value.trim() || "Türkiye'nin başkenti neresidir?";
+  const data = PROMPT_DATA.default;
+  const steps = data.steps;
+  const beamDefs = data.beams.slice(0, Math.max(K + 1, 4));
 
-  DATA.steps.forEach((si, s) => {
+  // Pipeline animasyonu
+  await animatePipeline();
+  await sleep(300);
+
+  // Her beam için kümülatif log-p hesapla (temperature'a göre)
+  const beams = beamDefs.map((b, id) => {
+    let cumLogP = 0;
+    b.tokens.forEach((tok, si) => {
+      if (si >= steps.length) return;
+      const cands = steps[si].candidates;
+      const logits = cands.map(c => c.logit);
+      const probs = softmaxTemp(logits, currentTemp);
+      const ti = cands.findIndex(c => c.token === tok);
+      cumLogP += lp(ti >= 0 ? probs[ti] : 0.01);
+    });
+    return { ...b, id, cumLogP };
+  }).sort((a,b) => b.cumLogP - a.cumLogP);
+
+  const stepsOut = document.getElementById('steps-out');
+  const totalSteps = steps.length;
+
+  for (let s = 0; s < totalSteps; s++) {
+    setProgress(((s) / totalSteps) * 85);
+
+    const si = steps[s];
+    const logits = si.candidates.map(c => c.logit);
+    const probs = softmaxTemp(logits, currentTemp);
     const ctx = beams[0].tokens.slice(0, s).join(' ');
-    html += `<div class="card">
-      <div style="display:flex;align-items:center;gap:9px;margin-bottom:12px;">
-        <span class="step-badge">adım ${s + 1}</span>
-        <span class="ctx">bağlam: "<b>${PROMPT}${ctx ? ' → ' + ctx : ''}</b>"</span>
-      </div>
-      <div class="ctitle">token adayları — olasılık dağılımı</div>
-      ${renderBars(si.candidates)}
-      <div class="divider"></div>
-      <div class="ctitle">beam yolları · kümülatif log-olasılık sıralaması</div>
-      ${renderBeamRows(beams, s)}
-    </div>`;
-  });
 
+    // Kart oluştur
+    const card = document.createElement('div');
+    card.className = 'step-card';
+    card.innerHTML = `
+      <div class="step-header">
+        <span class="step-badge">adım ${s+1} / ${totalSteps}</span>
+        <span class="step-ctx">bağlam: "<b>${promptVal}${ctx?' → '+ctx:''}</b>"</span>
+      </div>
+      <div class="section-title">token adayları — temperature=${currentTemp.toFixed(1)}</div>
+      <div id="bars-${s}">${renderBars(si.candidates, probs)}</div>
+      <div class="divider"></div>
+      <div class="section-title">beam yolları · kümülatif log-olasılık</div>
+      <div id="beams-${s}"></div>`;
+    stepsOut.appendChild(card);
+
+    // Görünür yap
+    await sleep(80);
+    card.classList.add('visible');
+    await sleep(150);
+
+    // Bar animasyonu
+    probs.forEach((p, i) => {
+      const fill = card.querySelector(`#fill-${i}`);
+      if (fill) fill.style.width = (p * 100).toFixed(1) + '%';
+    });
+    await sleep(500);
+
+    // Beam satırları birer birer
+    const beamsDiv = card.querySelector(`#beams-${s}`);
+    for (let bi = 0; bi < beams.length; bi++) {
+      const beam = beams[bi];
+      const safeLen = Math.min(s+1, beam.tokens.length);
+      const partialLogP = beam.tokens.slice(0, safeLen).reduce((acc, tok, ti) => {
+        if (ti >= steps.length) return acc;
+        const cands = steps[ti].candidates;
+        const lgs = cands.map(c => c.logit);
+        const ps = softmaxTemp(lgs, currentTemp);
+        const idx = cands.findIndex(c => c.token === tok);
+        return acc + lp(idx >= 0 ? ps[idx] : 0.01);
+      }, 0);
+
+      const prev = beam.tokens.slice(0, s).join(' ');
+      const nt = beam.tokens[s] || '…';
+      const isBest = bi === 0;
+      const isPruned = bi >= K;
+
+      const row = document.createElement('div');
+      row.className = `brow ${isBest?'best':''} ${isPruned?'pruned':''}`;
+      row.innerHTML = `
+        <div class="bseq">${prev?prev+' ':''}<span class="nt">${nt}</span></div>
+        <div style="display:flex;align-items:center;flex-shrink:0">
+          <span class="bsc">log-p: ${partialLogP.toFixed(3)}</span>
+          ${isBest?'<span class="bdge bdge-best">en iyi</span>':''}
+          ${isPruned?'<span class="bdge bdge-pruned">budandı</span>':''}
+        </div>`;
+      beamsDiv.appendChild(row);
+      await sleep(60);
+      row.classList.add('show');
+      await sleep(90);
+    }
+
+    await sleep(400);
+  }
+
+  setProgress(90);
+  await sleep(300);
+
+  // Sonuç kartı
   const winner = beams[0];
-  const greedyTokens = DATA.steps.map(st => st.candidates.reduce((a, b) => a.prob > b.prob ? a : b).token);
-  const greedyLogP = DATA.steps.reduce((acc, st) => acc + lp(st.candidates.reduce((a, b) => a.prob > b.prob ? a : b).prob), 0);
+  const greedyTokens = steps.map(st => {
+    const lgs = st.candidates.map(c => c.logit);
+    const ps = softmaxTemp(lgs, currentTemp);
+    return st.candidates[ps.indexOf(Math.max(...ps))].token;
+  });
+  const greedyLogP = steps.reduce((acc, st, si) => {
+    const lgs = st.candidates.map(c => c.logit);
+    const ps = softmaxTemp(lgs, currentTemp);
+    return acc + lp(Math.max(...ps));
+  }, 0);
   const beamWins = winner.cumLogP > greedyLogP;
 
-  html += `<div class="card">
-    <div class="ctitle">sonuç</div>
-    <div class="final-box">
-      <div class="final-label">Kazanan dizi · en yüksek kümülatif log-olasılık</div>
-      <div class="final-seq">${winner.full_text}</div>
-      <div class="final-score">kümülatif log-p: ${winner.cumLogP.toFixed(4)}</div>
-    </div>
-    <div class="ctitle" style="margin-bottom:10px;">greedy vs beam search</div>
-    <div class="vsgrid">
-      <div class="vsbox ${!beamWins ? 'win' : ''}">
+  // Winner beam'i highlight et
+  const allBrows = document.querySelectorAll('.brow.best');
+  allBrows.forEach(el => {
+    el.classList.add('winner-highlight');
+    el.querySelector('.bsc').textContent = `log-p: ${winner.cumLogP.toFixed(3)}`;
+    const badge = el.querySelector('.bdge-best');
+    if (badge) { badge.className = 'bdge bdge-winner'; badge.textContent = 'kazanan'; }
+  });
+
+  const resultCard = document.createElement('div');
+  resultCard.className = 'result-card';
+  resultCard.innerHTML = `
+    <div class="result-label">Kazanan dizi — en yüksek kümülatif log-olasılık</div>
+    <div class="result-seq">${winner.full}</div>
+    <div class="result-score">kümülatif log-p: ${winner.cumLogP.toFixed(4)} &nbsp;·&nbsp; temperature: ${currentTemp.toFixed(1)} &nbsp;·&nbsp; beam-k: ${K}</div>
+    <div class="vs-grid">
+      <div class="vsbox ${!beamWins?'win':''}">
         <div class="vsm">Greedy · her adımda max token</div>
         <div class="vss">${greedyTokens.join(' ')}</div>
         <div class="vssc">log-p: ${greedyLogP.toFixed(4)}</div>
-        ${!beamWins ? '<div class="vsw">bu senaryoda kazandı</div>' : ''}
+        ${!beamWins?'<div class="vsw">bu senaryoda kazandı</div>':''}
       </div>
-      <div class="vsbox ${beamWins ? 'win' : ''}">
+      <div class="vsbox ${beamWins?'win':''}">
         <div class="vsm">Beam search · kümülatif max</div>
-        <div class="vss">${winner.full_text}</div>
+        <div class="vss">${winner.full}</div>
         <div class="vssc">log-p: ${winner.cumLogP.toFixed(4)}</div>
-        ${beamWins ? '<div class="vsw">bu senaryoda kazandı</div>' : ''}
+        ${beamWins?'<div class="vsw">bu senaryoda kazandı</div>':''}
       </div>
     </div>
     <div class="note">
-      <strong>Greedy vs beam search:</strong> Greedy her adımda en yüksek olasılıklı tokeni seçer.
-      Beam search ise <strong>3 paralel yolu</strong> eş zamanlı takip ederek tüm dizi boyunca
-      kümülatif log-olasılığı en yüksek tamamlamayı belirler. Dizi uzadıkça ve bağlaçlar,
-      çekimli fiiller devreye girdikçe greedy ile beam arasındaki fark belirginleşir.
-    </div>
-  </div>`;
+      <strong>Temperature etkisi:</strong> Temperature logitleri ölçekler —
+      düşük temperature (&lt;0.7) baskın tokeni daha da öne çıkarır, beam yolları birbirine benzer.
+      Yüksek temperature (&gt;1.3) dağılımı düzleştirir, alternatif beam yolları daha rekabetçi hale gelir.
+      Tekrar çalıştır ve temperature'ı değiştir — kümülatif log-p skorlarının nasıl değiştiğini gözlemle.
+    </div>`;
+  document.getElementById('result-out').appendChild(resultCard);
+  await sleep(100);
+  resultCard.classList.add('visible');
+  setProgress(100);
 
-  document.getElementById('root').innerHTML = html;
+  await sleep(400);
+  btn.disabled = false; btn.textContent = '▶ Tekrar Çalıştır';
+  running = false;
 }
 
-build();
+updateTemp();
 </script>
 </body>
 </html>
