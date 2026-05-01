@@ -1,0 +1,1154 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8" />
+<title>PensionSoft AI Agent — Mimari Diyagramı</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    /* Soft paper background */
+    --bg: oklch(0.985 0.005 80);
+    --bg-2: oklch(0.97 0.01 80);
+    --ink: oklch(0.22 0.02 270);
+    --ink-soft: oklch(0.42 0.02 270);
+    --ink-mute: oklch(0.62 0.015 270);
+    --line: oklch(0.88 0.01 270);
+    --line-strong: oklch(0.78 0.015 270);
+
+    /* Pastel accents — same chroma, varied hue */
+    --peach:    oklch(0.88 0.07 50);
+    --peach-ink: oklch(0.40 0.10 40);
+    --mint:     oklch(0.90 0.06 165);
+    --mint-ink: oklch(0.38 0.09 165);
+    --sky:      oklch(0.89 0.06 240);
+    --sky-ink:  oklch(0.38 0.10 250);
+    --lilac:    oklch(0.88 0.06 300);
+    --lilac-ink: oklch(0.40 0.10 300);
+    --butter:   oklch(0.93 0.07 95);
+    --butter-ink: oklch(0.42 0.09 80);
+    --rose:     oklch(0.88 0.06 20);
+    --rose-ink: oklch(0.42 0.10 25);
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: 'Inter', system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    -webkit-font-smoothing: antialiased;
+    min-height: 100vh;
+  }
+
+  .page {
+    max-width: 1480px;
+    margin: 0 auto;
+    padding: 48px 56px 80px;
+  }
+
+  /* ======== Header ======== */
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 32px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid var(--line);
+    margin-bottom: 36px;
+  }
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .brand-mark {
+    width: 38px; height: 38px; border-radius: 10px;
+    background: linear-gradient(135deg, var(--lilac), var(--sky));
+    display: grid; place-items: center;
+    color: var(--lilac-ink);
+    font-weight: 700;
+    font-size: 18px;
+    border: 1px solid var(--line);
+  }
+  .brand-text .eyebrow {
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-mute);
+    font-weight: 600;
+  }
+  .brand-text h1 {
+    font-family: 'Instrument Serif', serif;
+    font-weight: 400;
+    font-size: 30px;
+    margin: 2px 0 0;
+    letter-spacing: -0.01em;
+  }
+  .meta {
+    display: flex; gap: 24px;
+    font-size: 12px;
+    color: var(--ink-mute);
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .meta span b { color: var(--ink); font-weight: 500; }
+
+  /* ======== Tabs ======== */
+  .tabs {
+    display: inline-flex;
+    background: var(--bg-2);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 4px;
+    margin-bottom: 36px;
+  }
+  .tab {
+    appearance: none;
+    border: 0;
+    background: transparent;
+    padding: 10px 22px;
+    font: inherit;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--ink-soft);
+    border-radius: 999px;
+    cursor: pointer;
+    transition: all 0.18s ease;
+  }
+  .tab:hover { color: var(--ink); }
+  .tab.active {
+    background: white;
+    color: var(--ink);
+    box-shadow: 0 1px 2px rgba(0,0,0,0.04), 0 0 0 1px var(--line);
+  }
+
+  .panel { display: none; }
+  .panel.active { display: block; animation: fade 0.3s ease; }
+  @keyframes fade { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+
+  /* ======== Section intro ======== */
+  .intro {
+    max-width: 780px;
+    margin-bottom: 40px;
+  }
+  .intro h2 {
+    font-family: 'Instrument Serif', serif;
+    font-weight: 400;
+    font-size: 42px;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    margin: 0 0 16px;
+    text-wrap: balance;
+  }
+  .intro p {
+    font-size: 16px;
+    line-height: 1.55;
+    color: var(--ink-soft);
+    margin: 0;
+    text-wrap: pretty;
+  }
+  .intro p em {
+    font-style: normal;
+    color: var(--ink);
+    background: linear-gradient(transparent 60%, var(--butter) 60%);
+    padding: 0 2px;
+  }
+
+  /* =====================================================
+     VARIATION 1 — FLOW DIAGRAM
+     ===================================================== */
+  .flow {
+    background: white;
+    border: 1px solid var(--line);
+    border-radius: 20px;
+    padding: 56px 48px;
+    position: relative;
+    overflow: hidden;
+  }
+  .flow::before {
+    content: "";
+    position: absolute; inset: 0;
+    background-image:
+      radial-gradient(circle, var(--line) 1px, transparent 1px);
+    background-size: 24px 24px;
+    opacity: 0.35;
+    pointer-events: none;
+  }
+  .flow-grid {
+    display: grid;
+    grid-template-columns: 220px 1fr 240px;
+    gap: 0;
+    align-items: center;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* Reusable node */
+  .node {
+    background: white;
+    border: 1.5px solid var(--line-strong);
+    border-radius: 14px;
+    padding: 18px 18px;
+    position: relative;
+    z-index: 2;
+  }
+  .node.tinted-peach { background: var(--peach); border-color: color-mix(in oklch, var(--peach), black 12%); }
+  .node.tinted-sky   { background: var(--sky);   border-color: color-mix(in oklch, var(--sky), black 12%); }
+  .node.tinted-mint  { background: var(--mint);  border-color: color-mix(in oklch, var(--mint), black 12%); }
+  .node.tinted-lilac { background: var(--lilac); border-color: color-mix(in oklch, var(--lilac), black 12%); }
+  .node.tinted-butter { background: var(--butter); border-color: color-mix(in oklch, var(--butter), black 14%); }
+  .node.tinted-rose  { background: var(--rose);  border-color: color-mix(in oklch, var(--rose), black 12%); }
+
+  .node .kicker {
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    font-weight: 600;
+    color: var(--ink-mute);
+    margin-bottom: 4px;
+  }
+  .node h3 {
+    font-size: 15px;
+    font-weight: 600;
+    margin: 0 0 4px;
+    line-height: 1.25;
+  }
+  .node p {
+    font-size: 12.5px;
+    line-height: 1.45;
+    color: var(--ink-soft);
+    margin: 0;
+  }
+  .node.tinted-peach h3, .node.tinted-peach .kicker { color: var(--peach-ink); }
+  .node.tinted-sky h3, .node.tinted-sky .kicker { color: var(--sky-ink); }
+  .node.tinted-mint h3, .node.tinted-mint .kicker { color: var(--mint-ink); }
+  .node.tinted-lilac h3, .node.tinted-lilac .kicker { color: var(--lilac-ink); }
+  .node.tinted-butter h3, .node.tinted-butter .kicker { color: var(--butter-ink); }
+  .node.tinted-rose h3, .node.tinted-rose .kicker { color: var(--rose-ink); }
+
+  /* Column 1: source */
+  .col-source {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  /* Senders strip above Exchange */
+  .senders {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 2px;
+  }
+  .sender {
+    flex: 1;
+    background: white;
+    border: 1px solid var(--line-strong);
+    border-radius: 12px;
+    padding: 10px 8px 10px 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .sender .ico {
+    width: 28px; height: 28px;
+    border-radius: 8px;
+    display: grid; place-items: center;
+    flex-shrink: 0;
+  }
+  .sender.s-agency .ico { background: var(--lilac); color: var(--lilac-ink); }
+  .sender.s-customer .ico { background: var(--peach); color: var(--peach-ink); }
+  .sender .lbl {
+    font-size: 11px;
+    line-height: 1.15;
+  }
+  .sender .lbl b {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--ink);
+  }
+  .sender .lbl span {
+    color: var(--ink-mute);
+    font-size: 10.5px;
+  }
+
+  /* Tiny user icons on dispatcher node */
+  .users-row {
+    display: inline-flex;
+    gap: 4px;
+    margin-top: 8px;
+    align-items: center;
+  }
+  .users-row .uavatar {
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    background: white;
+    border: 1.5px solid color-mix(in oklch, var(--butter), black 25%);
+    display: grid; place-items: center;
+    color: var(--butter-ink);
+  }
+  .users-row .ulabel {
+    font-size: 10.5px;
+    color: var(--butter-ink);
+    font-weight: 600;
+    margin-left: 4px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  /* CRM tile under agent */
+  .crm-link {
+    margin-top: 18px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+  }
+  .crm-link .mcp-pill {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    color: var(--lilac-ink);
+    background: white;
+    border: 1px dashed color-mix(in oklch, var(--lilac), black 20%);
+    padding: 3px 10px;
+    border-radius: 999px;
+    text-transform: uppercase;
+    font-weight: 600;
+  }
+  .crm-node {
+    background: var(--lilac);
+    border: 1.5px solid color-mix(in oklch, var(--lilac), black 15%);
+    border-radius: 14px;
+    padding: 14px 18px;
+    text-align: center;
+    min-width: 240px;
+  }
+  .crm-node .kicker {
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    font-weight: 600;
+    color: var(--lilac-ink);
+    margin-bottom: 2px;
+  }
+  .crm-node h3 {
+    font-size: 14px;
+    font-weight: 600;
+    margin: 0 0 2px;
+    color: var(--ink);
+  }
+  .crm-node p {
+    font-size: 11.5px;
+    line-height: 1.4;
+    color: var(--ink-soft);
+    margin: 0;
+  }
+
+  /* Column 2: AI Agent center */
+  .col-agent {
+    display: grid;
+    place-items: center;
+    padding: 0 32px;
+    position: relative;
+  }
+
+  /* LLM models block above agent */
+  .llm-block {
+    width: 100%;
+    margin-bottom: 18px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+  }
+  .llm-card {
+    background: white;
+    border: 1.5px solid color-mix(in oklch, var(--mint), black 18%);
+    border-radius: 14px;
+    padding: 12px 16px 14px;
+    width: 100%;
+    max-width: 320px;
+  }
+  .llm-card .kicker {
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    font-weight: 600;
+    color: var(--mint-ink);
+    margin-bottom: 6px;
+    text-align: center;
+  }
+  .llm-card h3 {
+    font-size: 14px;
+    font-weight: 600;
+    margin: 0 0 8px;
+    text-align: center;
+  }
+  .llm-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    justify-content: center;
+  }
+  .llm-row .group-label {
+    width: 100%;
+    text-align: center;
+    font-size: 10px;
+    color: var(--ink-mute);
+    font-family: 'JetBrains Mono', monospace;
+    margin-top: 4px;
+    letter-spacing: 0.05em;
+  }
+  .llm-chip {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    border: 1px solid var(--line-strong);
+    background: var(--bg-2);
+    color: var(--ink);
+    display: inline-flex; align-items: center; gap: 5px;
+  }
+  .llm-chip::before {
+    content: "";
+    width: 5px; height: 5px; border-radius: 50%;
+    background: var(--ink-mute);
+  }
+  .llm-chip.os::before    { background: var(--mint-ink); }
+  .llm-chip.cloud::before { background: var(--sky-ink); }
+  .llm-pill {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--mint-ink);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    font-weight: 600;
+  }
+  .agent {
+    width: 280px;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    background: radial-gradient(circle at 30% 30%, white, var(--lilac) 65%, color-mix(in oklch, var(--lilac), black 10%) 100%);
+    border: 1.5px solid color-mix(in oklch, var(--lilac), black 15%);
+    display: grid;
+    place-items: center;
+    text-align: center;
+    padding: 32px;
+    position: relative;
+    box-shadow: 0 30px 60px -30px color-mix(in oklch, var(--lilac-ink), transparent 70%);
+  }
+  .agent .label {
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--lilac-ink);
+    font-weight: 600;
+  }
+  .agent h2 {
+    font-family: 'Instrument Serif', serif;
+    font-weight: 400;
+    font-size: 36px;
+    margin: 6px 0 8px;
+    letter-spacing: -0.01em;
+    color: var(--ink);
+  }
+  .agent .desc {
+    font-size: 12.5px;
+    color: var(--ink-soft);
+    line-height: 1.4;
+    margin: 0;
+    max-width: 200px;
+  }
+
+  /* MCP tool chips orbiting agent */
+  .mcp-ring {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+  }
+  .mcp-chip {
+    position: absolute;
+    background: white;
+    border: 1px solid var(--line-strong);
+    border-radius: 999px;
+    padding: 6px 12px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    color: var(--ink);
+    white-space: nowrap;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+    display: flex; align-items: center; gap: 6px;
+  }
+  .mcp-chip::before {
+    content: "";
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--mint-ink);
+  }
+  .mcp-chip.c1 { top: 6%;  left: 50%; transform: translateX(-50%); }
+  .mcp-chip.c2 { top: 38%; left: -8%; }
+  .mcp-chip.c3 { top: 38%; right: -8%; }
+  .mcp-chip.c4 { bottom: 4%; left: 18%; }
+  .mcp-chip.c5 { bottom: 4%; right: 18%; }
+
+  /* Column 3: outcomes */
+  .col-out {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  /* Connectors (SVG layer) */
+  .connectors {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  /* Outcome path labels */
+  .path-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: white;
+    border: 1px solid var(--line);
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 10.5px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    margin-bottom: 6px;
+  }
+  .path-label .dot { width: 8px; height: 8px; border-radius: 50%; }
+
+  /* Legend below flow */
+  .legend {
+    margin-top: 28px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+  }
+  .legend-card {
+    background: white;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 18px;
+  }
+  .legend-card .lbar {
+    height: 3px; width: 32px; border-radius: 2px;
+    margin-bottom: 12px;
+  }
+  .legend-card h4 {
+    font-size: 13px; font-weight: 600; margin: 0 0 4px;
+  }
+  .legend-card p {
+    font-size: 12px; color: var(--ink-soft); line-height: 1.5; margin: 0;
+  }
+  .legend-card .stat {
+    margin-top: 10px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--ink-mute);
+  }
+  .legend-card .stat b { color: var(--ink); font-weight: 500; }
+
+  /* =====================================================
+     VARIATION 2 — STORY / SCENARIOS
+     ===================================================== */
+  .scenarios {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    margin-bottom: 40px;
+  }
+  .scn {
+    background: white;
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    padding: 28px 26px;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+  }
+  .scn .scn-num {
+    font-family: 'Instrument Serif', serif;
+    font-size: 64px;
+    line-height: 1;
+    color: var(--ink);
+    opacity: 0.12;
+    position: absolute;
+    top: 18px; right: 22px;
+  }
+  .scn .scn-tag {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    font-weight: 600;
+    padding: 5px 10px;
+    border-radius: 999px;
+    margin-bottom: 14px;
+    width: fit-content;
+  }
+  .scn-1 .scn-tag { background: var(--mint); color: var(--mint-ink); }
+  .scn-2 .scn-tag { background: var(--sky); color: var(--sky-ink); }
+  .scn-3 .scn-tag { background: var(--butter); color: var(--butter-ink); }
+  .scn h3 {
+    font-family: 'Instrument Serif', serif;
+    font-weight: 400;
+    font-size: 26px;
+    margin: 0 0 8px;
+    letter-spacing: -0.01em;
+    line-height: 1.15;
+  }
+  .scn .scn-lead {
+    font-size: 13px;
+    color: var(--ink-soft);
+    margin: 0 0 20px;
+    line-height: 1.5;
+  }
+
+  .email-card {
+    background: var(--bg-2);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 14px;
+    margin-bottom: 18px;
+  }
+  .email-card .from {
+    font-size: 11px;
+    color: var(--ink-mute);
+    font-family: 'JetBrains Mono', monospace;
+    margin-bottom: 4px;
+  }
+  .email-card .subj {
+    font-size: 12.5px;
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+  .email-card .body {
+    font-size: 12px;
+    color: var(--ink-soft);
+    line-height: 1.5;
+    font-style: italic;
+  }
+
+  .steps {
+    list-style: none;
+    margin: 0; padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    flex: 1;
+  }
+  .steps li {
+    display: grid;
+    grid-template-columns: 22px 1fr;
+    gap: 10px;
+    align-items: flex-start;
+    font-size: 12.5px;
+    line-height: 1.45;
+    color: var(--ink);
+  }
+  .steps li .step-n {
+    width: 20px; height: 20px;
+    border-radius: 50%;
+    background: var(--bg-2);
+    border: 1px solid var(--line-strong);
+    display: grid; place-items: center;
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--ink-soft);
+    font-family: 'JetBrains Mono', monospace;
+    margin-top: 1px;
+  }
+  .scn-1 .steps li .step-n { background: var(--mint); border-color: color-mix(in oklch, var(--mint), black 15%); color: var(--mint-ink); }
+  .scn-2 .steps li .step-n { background: var(--sky); border-color: color-mix(in oklch, var(--sky), black 15%); color: var(--sky-ink); }
+  .scn-3 .steps li .step-n { background: var(--butter); border-color: color-mix(in oklch, var(--butter), black 18%); color: var(--butter-ink); }
+
+  .steps li b { font-weight: 600; }
+  .steps li code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    background: var(--bg-2);
+    padding: 1px 6px;
+    border-radius: 4px;
+    color: var(--ink);
+    border: 1px solid var(--line);
+  }
+
+  .scn-out {
+    margin-top: 18px;
+    padding-top: 16px;
+    border-top: 1px dashed var(--line-strong);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 12px;
+    color: var(--ink-soft);
+  }
+  .scn-out b { color: var(--ink); font-weight: 600; }
+  .scn-out .check {
+    width: 18px; height: 18px; border-radius: 50%;
+    display: grid; place-items: center;
+    color: white;
+    font-size: 11px;
+    flex-shrink: 0;
+  }
+  .scn-1 .scn-out .check { background: var(--mint-ink); }
+  .scn-2 .scn-out .check { background: var(--sky-ink); }
+  .scn-3 .scn-out .check { background: var(--butter-ink); }
+
+  /* Bottom: components + pipeline strip */
+  .pipeline {
+    background: white;
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    padding: 28px 32px;
+  }
+  .pipeline h3 {
+    font-family: 'Instrument Serif', serif;
+    font-weight: 400;
+    font-size: 24px;
+    margin: 0 0 4px;
+    letter-spacing: -0.01em;
+  }
+  .pipeline > p {
+    font-size: 13px;
+    color: var(--ink-soft);
+    margin: 0 0 22px;
+  }
+  .pipeline-row {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 14px;
+    align-items: stretch;
+    position: relative;
+  }
+  .pcomp {
+    background: var(--bg-2);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 16px;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .pcomp .pic {
+    width: 32px; height: 32px;
+    border-radius: 8px;
+    background: white;
+    border: 1px solid var(--line);
+    display: grid; place-items: center;
+    margin-bottom: 4px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    font-weight: 600;
+  }
+  .pcomp.p-peach { background: var(--peach); border-color: color-mix(in oklch, var(--peach), black 12%); }
+  .pcomp.p-rose  { background: var(--rose); border-color: color-mix(in oklch, var(--rose), black 12%); }
+  .pcomp.p-lilac { background: var(--lilac); border-color: color-mix(in oklch, var(--lilac), black 12%); }
+  .pcomp.p-mint  { background: var(--mint); border-color: color-mix(in oklch, var(--mint), black 12%); }
+  .pcomp.p-sky   { background: var(--sky); border-color: color-mix(in oklch, var(--sky), black 12%); }
+  .pcomp .pic.i-peach { color: var(--peach-ink); }
+  .pcomp .pic.i-rose  { color: var(--rose-ink); }
+  .pcomp .pic.i-lilac { color: var(--lilac-ink); }
+  .pcomp .pic.i-mint  { color: var(--mint-ink); }
+  .pcomp .pic.i-sky   { color: var(--sky-ink); }
+
+  .pcomp h4 {
+    font-size: 13px;
+    font-weight: 600;
+    margin: 0;
+    line-height: 1.25;
+  }
+  .pcomp p {
+    font-size: 11.5px;
+    color: var(--ink-soft);
+    margin: 0;
+    line-height: 1.45;
+  }
+  .pcomp.p-peach h4 { color: var(--peach-ink); }
+  .pcomp.p-rose  h4 { color: var(--rose-ink); }
+  .pcomp.p-lilac h4 { color: var(--lilac-ink); }
+  .pcomp.p-mint  h4 { color: var(--mint-ink); }
+  .pcomp.p-sky   h4 { color: var(--sky-ink); }
+
+  .pcomp::after {
+    content: "→";
+    position: absolute;
+    right: -14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--line-strong);
+    font-size: 14px;
+    z-index: 2;
+  }
+  .pcomp:last-child::after { display: none; }
+
+  /* Footer */
+  .foot {
+    margin-top: 48px;
+    padding-top: 24px;
+    border-top: 1px solid var(--line);
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    color: var(--ink-mute);
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  @media (max-width: 1100px) {
+    .flow-grid { grid-template-columns: 1fr; gap: 24px; }
+    .scenarios { grid-template-columns: 1fr; }
+    .pipeline-row { grid-template-columns: repeat(2, 1fr); }
+    .pcomp::after { display: none; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- ============ HEADER ============ -->
+  <header class="header">
+    <div class="brand">
+      <div class="brand-mark">P</div>
+      <div class="brand-text">
+        <div class="eyebrow">PensionSoft × Zurich</div>
+        <h1>AI Agent — Otomatik E-posta İşleme Mimarisi</h1>
+      </div>
+    </div>
+    <div class="meta">
+      <span><b>v0.1</b> · Konsept</span>
+      <span>Hazırlayan: <b>Mehmet Özgür Genç</b></span>
+    </div>
+  </header>
+
+  <!-- ============ TABS ============ -->
+  <div class="tabs" role="tablist">
+    <button class="tab active" data-target="p-flow">Akış Diyagramı</button>
+    <button class="tab" data-target="p-story">Senaryo Anlatımı</button>
+  </div>
+
+  <!-- =====================================================
+       PANEL 1 — FLOW DIAGRAM
+       ===================================================== -->
+  <section class="panel active" id="p-flow">
+
+    <div class="intro">
+      <h2>Müşteri e-postalarını <em>insan müdahalesi olmadan</em> doğru ekibe ya da doğru aksiyona ulaştırıyoruz.</h2>
+      <p>AI Agent, Exchange üzerinden gelen müşteri e-postalarını sürekli tarar. %100 güvenle anladığı talepleri PensionSoft MCP araçları ile doğrudan uygular; eşleştirebildiği fakat işlem yapamadığı talepleri doğru kategori ve müşteri bilgisiyle ticket'a çevirir. Sadece belirsiz durumlar Dispatcher ekibine düşer.</p>
+    </div>
+
+    <!-- ====== Main flow ====== -->
+    <div class="flow">
+      <!-- SVG connector layer -->
+      <svg class="connectors" viewBox="0 0 1300 540" preserveAspectRatio="none">
+        <defs>
+          <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="oklch(0.62 0.015 270)"/>
+          </marker>
+          <marker id="arrow-mint" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="oklch(0.38 0.09 165)"/>
+          </marker>
+          <marker id="arrow-sky" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="oklch(0.38 0.10 250)"/>
+          </marker>
+          <marker id="arrow-butter" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="oklch(0.42 0.09 80)"/>
+          </marker>
+        </defs>
+        <!-- Exchange Server -> PS Email Reader (vertical, inside left column) -->
+        <path d="M 110 175 C 110 220, 110 250, 110 285" stroke="oklch(0.62 0.015 270)" stroke-width="1.5" fill="none" stroke-dasharray="4 4" marker-end="url(#arrow)"/>
+        <!-- PS Email Reader -> Dynamics 365 CRM (right edge to left edge) -->
+        <path d="M 330 367 C 380 367, 410 419, 445 419" stroke="oklch(0.62 0.015 270)" stroke-width="1.5" fill="none" stroke-dasharray="4 4" marker-end="url(#arrow)"/>
+        <!-- Agent -> outcomes (three colored paths) -->
+        <path d="M 820 240 C 940 200, 980 100, 1080 100" stroke="oklch(0.38 0.09 165)" stroke-width="2" fill="none" marker-end="url(#arrow-mint)"/>
+        <path d="M 820 270 C 940 270, 980 270, 1080 270" stroke="oklch(0.38 0.10 250)" stroke-width="2" fill="none" marker-end="url(#arrow-sky)"/>
+        <path d="M 820 300 C 940 340, 980 440, 1080 440" stroke="oklch(0.42 0.09 80)" stroke-width="2" fill="none" marker-end="url(#arrow-butter)"/>
+      </svg>
+
+      <div class="flow-grid">
+        <!-- LEFT: sources -->
+        <div class="col-source">
+          <div class="senders">
+            <div class="sender s-agency" title="Acente (kurum)">
+              <div class="ico" aria-hidden="true">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21V7l9-4 9 4v14"/><path d="M3 21h18"/><path d="M9 21v-6h6v6"/><path d="M9 11h.01M15 11h.01M9 7h.01M15 7h.01"/></svg>
+              </div>
+              <div class="lbl"><b>Acente</b><span>kurum</span></div>
+            </div>
+            <div class="sender s-customer" title="Müşteri (insan)">
+              <div class="ico" aria-hidden="true">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.5"/><path d="M4.5 20c1.5-3.6 4.5-5.5 7.5-5.5s6 1.9 7.5 5.5"/></svg>
+              </div>
+              <div class="lbl"><b>Müşteri</b><span>insan</span></div>
+            </div>
+          </div>
+          <div class="node tinted-peach">
+            <div class="kicker">Kaynak</div>
+            <h3>Exchange Server</h3>
+            <p>Acentelerden ve müşterilerden gelen e-posta akışı, sürekli olarak okunur.</p>
+          </div>
+          <div class="node tinted-rose">
+            <div class="kicker">Proses</div>
+            <h3>PensionSoft Email Reader</h3>
+            <p>Exchange'i dinleyip e-postaları Dynamics 365'e aktaran mevcut süreç.</p>
+          </div>
+        </div>
+
+        <!-- CENTER: agent -->
+        <div class="col-agent">
+          <div class="llm-block" aria-hidden="true">
+            <div class="llm-card">
+              <div class="kicker">LLM Modelleri</div>
+              <h3>Pluggable model katmanı</h3>
+              <div class="llm-row">
+                <span class="group-label">Açık kaynak (on-prem)</span>
+                <span class="llm-chip os">Llama</span>
+                <span class="llm-chip os">Gemma</span>
+                <span class="group-label">Bulut</span>
+                <span class="llm-chip cloud">Azure OpenAI</span>
+                <span class="llm-chip cloud">Claude</span>
+              </div>
+            </div>
+            <span class="llm-pill">↓ model çağrısı</span>
+          </div>
+          <div class="agent">
+            <div class="mcp-ring">
+              <span class="mcp-chip c1">customer.lookup</span>
+              <span class="mcp-chip c2">contract.read</span>
+              <span class="mcp-chip c3">email.update</span>
+              <span class="mcp-chip c4">ticket.create</span>
+              <span class="mcp-chip c5">exit.request</span>
+            </div>
+            <div>
+              <div class="label">AI Agent</div>
+              <h2>Anla · Eşleştir · Karar Ver</h2>
+              <p class="desc">PensionSoft MCP araçlarıyla müşteriyi ve niyeti doğrular, güvenli ise işlemi kendisi yapar.</p>
+            </div>
+          </div>
+          <div class="crm-link" aria-hidden="true">
+            <span class="mcp-pill">↑ PensionSoft MCP ↓</span>
+            <div class="crm-node">
+              <div class="kicker">Sistem</div>
+              <h3>Dynamics 365 CRM</h3>
+              <p>Müşteri, sözleşme, e-posta aktiviteleri ve ticket'lar.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- RIGHT: outcomes -->
+        <div class="col-out">
+          <div>
+            <span class="path-label"><span class="dot" style="background: var(--mint-ink)"></span> Yol A · Otomatik İşlem</span>
+            <div class="node tinted-mint">
+              <h3>MCP ile doğrudan uygula</h3>
+              <p>Örn. e-posta adresi güncelleme. Ticket <b>kapalı</b> oluşturulur, sadece log amaçlıdır.</p>
+            </div>
+          </div>
+          <div>
+            <span class="path-label"><span class="dot" style="background: var(--sky-ink)"></span> Yol B · Kategorize &amp; Yönlendir</span>
+            <div class="node tinted-sky">
+              <h3>Doğru kategori ile ticket aç</h3>
+              <p>Müşteri MCP ile eşleşti, kategori belirlendi (örn. <b>Çıkış</b>). Ticket ilgili ekibe otomatik düşer.</p>
+            </div>
+          </div>
+          <div>
+            <span class="path-label"><span class="dot" style="background: var(--butter-ink)"></span> Yol C · İnsana Devret</span>
+            <div class="node tinted-butter">
+              <h3>Dispatcher ekranına düşür</h3>
+              <p>Belirsiz veya eksik bilgi. Mevcut Dispatcher iş akışı devreye girer.</p>
+              <div class="users-row">
+                <span class="uavatar" aria-hidden="true">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.5"/><path d="M4.5 20c1.5-3.6 4.5-5.5 7.5-5.5s6 1.9 7.5 5.5"/></svg>
+                </span>
+                <span class="uavatar" aria-hidden="true">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.5"/><path d="M4.5 20c1.5-3.6 4.5-5.5 7.5-5.5s6 1.9 7.5 5.5"/></svg>
+                </span>
+                <span class="ulabel">Dispatcher ekibi</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ====== Legend ====== -->
+    <div class="legend">
+      <div class="legend-card">
+        <div class="lbar" style="background: var(--mint-ink)"></div>
+        <h4>Yol A — Otomatik İşlem</h4>
+        <p>%100 güven eşiğini geçen, parametrik talepler. Müşteriye dokunulan değişiklik MCP üzerinden anında yapılır.</p>
+        <div class="stat">İnsan eforu · <b>0 dakika</b></div>
+      </div>
+      <div class="legend-card">
+        <div class="lbar" style="background: var(--sky-ink)"></div>
+        <h4>Yol B — Akıllı Yönlendirme</h4>
+        <p>Müşteri ve niyet doğrulandı, ancak işlem operasyon ekibi tarafından yapılmalı. Ticket doğru kategoride açılır.</p>
+        <div class="stat">Dispatcher devre dışı · <b>Direkt ilgili ekip</b></div>
+      </div>
+      <div class="legend-card">
+        <div class="lbar" style="background: var(--butter-ink)"></div>
+        <h4>Yol C — Manuel İnceleme</h4>
+        <p>AI Agent'ın güveni düşük veya bağlam eksik. Mevcut Dispatcher süreci aynen çalışır, hiçbir şey kaybedilmez.</p>
+        <div class="stat">Geri çekilme · <b>Güvenli mod</b></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =====================================================
+       PANEL 2 — STORY
+       ===================================================== -->
+  <section class="panel" id="p-story">
+
+    <div class="intro">
+      <h2>Üç tipik müşteri e-postası, üç farklı sonuç.</h2>
+      <p>Aşağıdaki senaryolar, AI Agent'ın aynı gelen kutusunda nasıl <em>farklı kararlar</em> alabildiğini gösterir. Hepsi aynı mantıkla çalışır: önce müşteriyi MCP ile eşleştir, sonra niyeti anla, sonra güven seviyesine göre yol seç.</p>
+    </div>
+
+    <div class="scenarios">
+
+      <!-- Scenario 1 -->
+      <article class="scn scn-1">
+        <span class="scn-num">01</span>
+        <span class="scn-tag">Yol A · Otomatik İşlem</span>
+        <h3>"E-posta adresimi güncelleyin"</h3>
+        <p class="scn-lead">AI Agent talebi anlıyor, müşteriyi doğruluyor ve değişikliği kendi yapıyor. Dispatcher ekranına hiç düşmüyor.</p>
+
+        <div class="email-card">
+          <div class="from">Kimden: <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="81e0f8f2e4afe5e4ece8f3c1e4f9e0ecf1ede4afe2eeec">[email&#160;protected]</a></div>
+          <div class="subj">E-posta adres değişikliği talebi</div>
+          <div class="body">"Merhaba, sözleşme no: 4421987. Yeni e-posta adresim <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="2b4a52584e054f6b4e534a465b474e05484446">[email&#160;protected]</a> olarak güncellenebilir mi? Teşekkürler."</div>
+        </div>
+
+        <ol class="steps">
+          <li><span class="step-n">1</span><span><b>Müşteri eşleştirme.</b> <code>customer.lookup</code> ile sözleşme no doğrulanır.</span></li>
+          <li><span class="step-n">2</span><span><b>Niyet anlaşılır.</b> Talep tek değişkenli ve parametrik: <code>e-posta güncelle</code>.</span></li>
+          <li><span class="step-n">3</span><span><b>Güven %100.</b> <code>email.update</code> MCP çağrısı ile değişiklik anında yapılır.</span></li>
+          <li><span class="step-n">4</span><span><b>Kapalı ticket.</b> CRM'e log amaçlı kapalı ticket düşülür.</span></li>
+        </ol>
+
+        <div class="scn-out">
+          <span class="check">✓</span>
+          <span><b>Sonuç:</b> İnsan dokunmadı. Müşteri saniyeler içinde güncellendi.</span>
+        </div>
+      </article>
+
+      <!-- Scenario 2 -->
+      <article class="scn scn-2">
+        <span class="scn-num">02</span>
+        <span class="scn-tag">Yol B · Kategorize &amp; Yönlendir</span>
+        <h3>"Sözleşmemden ayrılmak istiyorum"</h3>
+        <p class="scn-lead">AI Agent çıkış talebini tanıyor; müşteriyi MCP ile eşleştiriyor; ticket'i doğru kategoriyle açıp ilgili operasyon ekibine yönlendiriyor.</p>
+
+        <div class="email-card">
+          <div class="from">Kimden: <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="0e6320776762636f744e6b766f637e626b206d6163">[email&#160;protected]</a></div>
+          <div class="subj">Sözleşme iptali</div>
+          <div class="body">"Merhaba, BES sözleşmemden ayrılmak istiyorum. Gerekli işlemleri başlatabilir misiniz? TC: 1********8"</div>
+        </div>
+
+        <ol class="steps">
+          <li><span class="step-n">1</span><span><b>Müşteri eşleştirme.</b> <code>customer.lookup</code> + <code>contract.read</code> ile birebir kayıt bulunur.</span></li>
+          <li><span class="step-n">2</span><span><b>Niyet sınıflandırılır.</b> Kategori: <code>Çıkış</code>.</span></li>
+          <li><span class="step-n">3</span><span><b>Otomatik aksiyon yok.</b> İşlem operasyon süreci gerektirir.</span></li>
+          <li><span class="step-n">4</span><span><b>Ticket açılır.</b> <code>ticket.create</code> doğru kategori &amp; müşteriyle Çıkış ekibine düşer.</span></li>
+        </ol>
+
+        <div class="scn-out">
+          <span class="check">✓</span>
+          <span><b>Sonuç:</b> Dispatcher devre dışı. Çıkış ekibi hazır bilgiyle başlar.</span>
+        </div>
+      </article>
+
+      <!-- Scenario 3 -->
+      <article class="scn scn-3">
+        <span class="scn-num">03</span>
+        <span class="scn-tag">Yol C · İnsana Devret</span>
+        <h3>"Bir sorum var…"</h3>
+        <p class="scn-lead">Talep belirsiz, müşteri net eşleşmiyor veya birden fazla niyet birleşmiş. AI Agent emin değil — Dispatcher ekibi mevcut akışla devam eder.</p>
+
+        <div class="email-card">
+          <div class="from">Kimden: <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="4d2f2421242320283428230d2a202c2421632e2220">[email&#160;protected]</a></div>
+          <div class="subj">Yardım</div>
+          <div class="body">"Merhaba, geçen yıl sanırım bir sözleşme yapmıştım, ne durumda olduğuna bakar mısınız? Bir de oğluma da bir tane açtırmak istiyorum…"</div>
+        </div>
+
+        <ol class="steps">
+          <li><span class="step-n">1</span><span><b>Eşleştirme zayıf.</b> <code>customer.lookup</code> tek bir kayıt üretmiyor.</span></li>
+          <li><span class="step-n">2</span><span><b>Çoklu niyet.</b> Hem mevcut sözleşme sorgusu hem yeni satış talebi var.</span></li>
+          <li><span class="step-n">3</span><span><b>Güven düşük.</b> AI Agent otomatik aksiyon almaz.</span></li>
+          <li><span class="step-n">4</span><span><b>Dispatcher'a düşer.</b> Ekip e-postayı, dokümanları ve önerileri ekranda görür.</span></li>
+        </ol>
+
+        <div class="scn-out">
+          <span class="check">✓</span>
+          <span><b>Sonuç:</b> Mevcut süreç korundu, hiçbir şey kaybolmadı.</span>
+        </div>
+      </article>
+    </div>
+
+    <!-- ====== Pipeline strip ====== -->
+    <div class="pipeline">
+      <h3>Sistem bileşenleri</h3>
+      <p>Aynı veri, soldan sağa.</p>
+
+      <div class="pipeline-row">
+        <div class="pcomp p-peach">
+          <div class="pic i-peach">@</div>
+          <h4>Exchange Server</h4>
+          <p>Müşteri e-postalarının geldiği posta sunucusu.</p>
+        </div>
+        <div class="pcomp p-rose">
+          <div class="pic i-rose">≡</div>
+          <h4>Email Reader</h4>
+          <p>PensionSoft'un mevcut e-posta okuma servisi.</p>
+        </div>
+        <div class="pcomp p-lilac">
+          <div class="pic i-lilac">◎</div>
+          <h4>AI Agent</h4>
+          <p>Anla, eşleştir, karar ver — MCP araçlarıyla.</p>
+        </div>
+        <div class="pcomp p-mint">
+          <div class="pic i-mint">⇄</div>
+          <h4>Dynamics 365 CRM</h4>
+          <p>E-posta aktiviteleri ve ticket kayıtları burada tutulur.</p>
+        </div>
+        <div class="pcomp p-sky">
+          <div class="pic i-sky">▣</div>
+          <h4>Dispatcher Ekranı</h4>
+          <p>Sadece AI Agent emin olmadığında devreye giren mevcut ekip arayüzü.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ FOOTER ============ -->
+  <footer class="foot">
+    <span>PENSIONSOFT · ZURICH IT &amp; İŞ BİRİMİ</span>
+    <span>Konsept v0.1 · Mayıs 2026</span>
+  </footer>
+</div>
+
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+  // Tab switching
+  const tabs = document.querySelectorAll('.tab');
+  const panels = document.querySelectorAll('.panel');
+  tabs.forEach(t => {
+    t.addEventListener('click', () => {
+      tabs.forEach(x => x.classList.remove('active'));
+      panels.forEach(p => p.classList.remove('active'));
+      t.classList.add('active');
+      document.getElementById(t.dataset.target).classList.add('active');
+    });
+  });
+</script>
+</body>
+</html>
