@@ -346,6 +346,49 @@
     margin: 0;
   }
 
+  /* Knowledge badge — top-left of agent */
+  .knowledge-badge {
+    position: absolute;
+    top: -6px;
+    left: -14px;
+    background: white;
+    border: 1.5px solid color-mix(in oklch, var(--butter), black 22%);
+    border-radius: 12px;
+    padding: 8px 10px 8px 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 6px 14px -8px rgba(0,0,0,0.18);
+    z-index: 5;
+  }
+  .knowledge-badge .kb-ico {
+    width: 28px; height: 28px;
+    border-radius: 8px;
+    background: var(--butter);
+    color: var(--butter-ink);
+    display: grid; place-items: center;
+    flex-shrink: 0;
+  }
+  .knowledge-badge .kb-text {
+    font-size: 10.5px;
+    line-height: 1.25;
+    color: var(--ink);
+  }
+  .knowledge-badge .kb-text b {
+    display: block;
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--butter-ink);
+    margin-bottom: 2px;
+  }
+  .knowledge-badge .kb-list {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--ink-soft);
+  }
+
   /* Column 2: AI Agent center */
   .col-agent {
     display: grid;
@@ -473,9 +516,9 @@
     background: white;
     border: 1px solid var(--line-strong);
     border-radius: 999px;
-    padding: 6px 12px;
+    padding: 5px 10px;
     font-family: 'JetBrains Mono', monospace;
-    font-size: 10.5px;
+    font-size: 9.5px;
     color: var(--ink);
     white-space: nowrap;
     box-shadow: 0 2px 6px rgba(0,0,0,0.04);
@@ -486,11 +529,11 @@
     width: 6px; height: 6px; border-radius: 50%;
     background: var(--mint-ink);
   }
-  .mcp-chip.c1 { top: 6%;  left: 50%; transform: translateX(-50%); }
-  .mcp-chip.c2 { top: 38%; left: -8%; }
-  .mcp-chip.c3 { top: 38%; right: -8%; }
-  .mcp-chip.c4 { bottom: 4%; left: 18%; }
-  .mcp-chip.c5 { bottom: 4%; right: 18%; }
+  .mcp-chip.c1 { top: 18%;  left: -22%; }
+  .mcp-chip.c2 { top: 50%; left: -18%; }
+  .mcp-chip.c3 { top: 50%; right: -18%; }
+  .mcp-chip.c4 { bottom: 6%; left: 14%; }
+  .mcp-chip.c5 { bottom: 6%; right: 14%; }
 
   /* Column 3: outcomes */
   .col-out {
@@ -844,7 +887,7 @@
 
     <div class="intro">
       <h2>Müşteri e-postalarını <em>insan müdahalesi olmadan</em> doğru ekibe ya da doğru aksiyona ulaştırıyoruz.</h2>
-      <p>AI Agent, Exchange üzerinden gelen müşteri e-postalarını sürekli tarar. %100 güvenle anladığı talepleri PensionSoft MCP araçları ile doğrudan uygular; eşleştirebildiği fakat işlem yapamadığı talepleri doğru kategori ve müşteri bilgisiyle ticket'a çevirir. Sadece belirsiz durumlar Dispatcher ekibine düşer.</p>
+      <p>AI Agent, Dynamics 365 içerisindeki acente, banka ve müşteri e-postalarını sürekli tarar. %100 güvenle anladığı talepleri PensionSoft MCP araçları ile doğrudan uygular; eşleştirebildiği fakat işlem yapamadığı talepleri doğru kategori ve müşteri bilgisiyle ticket'a çevirir. Sadece belirsiz durumlar Dispatcher ekibine düşer.</p>
     </div>
 
     <!-- ====== Main flow ====== -->
@@ -922,6 +965,15 @@
             <span class="llm-pill">↓ model çağrısı</span>
           </div>
           <div class="agent">
+            <div class="knowledge-badge" title="Bilgi tabanı">
+              <div class="kb-ico" aria-hidden="true">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4.5A2.5 2.5 0 0 1 6.5 2H20v17H6.5A2.5 2.5 0 0 0 4 21.5z"/><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M8 7h8M8 11h6"/></svg>
+              </div>
+              <div class="kb-text">
+                <b>Bilgi tabanı</b>
+                <span class="kb-list">MD · Skills · Instructions</span>
+              </div>
+            </div>
             <div class="mcp-ring">
               <span class="mcp-chip c1">customer.lookup</span>
               <span class="mcp-chip c2">contract.read</span>
@@ -1024,9 +1076,9 @@
         <p class="scn-lead">AI Agent talebi anlıyor, müşteriyi doğruluyor ve değişikliği kendi yapıyor. Dispatcher ekranına hiç düşmüyor.</p>
 
         <div class="email-card">
-          <div class="from">Kimden: <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="81e0f8f2e4afe5e4ece8f3c1e4f9e0ecf1ede4afe2eeec">[email&#160;protected]</a></div>
+          <div class="from">Kimden: <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="eb8a92988ec58f8e868299ab8e938a869b878ec5888486">[email&#160;protected]</a></div>
           <div class="subj">E-posta adres değişikliği talebi</div>
-          <div class="body">"Merhaba, sözleşme no: 4421987. Yeni e-posta adresim <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="2b4a52584e054f6b4e534a465b474e05484446">[email&#160;protected]</a> olarak güncellenebilir mi? Teşekkürler."</div>
+          <div class="body">"Merhaba, sözleşme no: 4421987. Yeni e-posta adresim <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="b7d6cec4d299d3f7d2cfd6dac7dbd299d4d8da">[email&#160;protected]</a> olarak güncellenebilir mi? Teşekkürler."</div>
         </div>
 
         <ol class="steps">
@@ -1050,7 +1102,7 @@
         <p class="scn-lead">AI Agent çıkış talebini tanıyor; müşteriyi MCP ile eşleştiriyor; ticket'i doğru kategoriyle açıp ilgili operasyon ekibine yönlendiriyor.</p>
 
         <div class="email-card">
-          <div class="from">Kimden: <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="0e6320776762636f744e6b766f637e626b206d6163">[email&#160;protected]</a></div>
+          <div class="from">Kimden: <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="ea87c4938386878b90aa8f928b879a868fc4898587">[email&#160;protected]</a></div>
           <div class="subj">Sözleşme iptali</div>
           <div class="body">"Merhaba, BES sözleşmemden ayrılmak istiyorum. Gerekli işlemleri başlatabilir misiniz? TC: 1********8"</div>
         </div>
@@ -1076,7 +1128,7 @@
         <p class="scn-lead">Talep belirsiz, müşteri net eşleşmiyor veya birden fazla niyet birleşmiş. AI Agent emin değil — Dispatcher ekibi mevcut akışla devam eder.</p>
 
         <div class="email-card">
-          <div class="from">Kimden: <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="4d2f2421242320283428230d2a202c2421632e2220">[email&#160;protected]</a></div>
+          <div class="from">Kimden: <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="a6c4cfcacfc8cbc3dfc3c8e6c1cbc7cfca88c5c9cb">[email&#160;protected]</a></div>
           <div class="subj">Yardım</div>
           <div class="body">"Merhaba, geçen yıl sanırım bir sözleşme yapmıştım, ne durumda olduğuna bakar mısınız? Bir de oğluma da bir tane açtırmak istiyorum…"</div>
         </div>
