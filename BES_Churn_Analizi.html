@@ -1,0 +1,919 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8" />
+<title>BES Churn Analizi — Sunum</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: oklch(0.985 0.005 80);
+    --bg-2: oklch(0.97 0.01 80);
+    --ink: oklch(0.22 0.02 270);
+    --ink-soft: oklch(0.42 0.02 270);
+    --ink-mute: oklch(0.62 0.015 270);
+    --line: oklch(0.88 0.01 270);
+    --line-strong: oklch(0.78 0.015 270);
+
+    --peach:    oklch(0.88 0.07 50);
+    --peach-ink: oklch(0.40 0.10 40);
+    --mint:     oklch(0.90 0.06 165);
+    --mint-ink: oklch(0.38 0.09 165);
+    --sky:      oklch(0.89 0.06 240);
+    --sky-ink:  oklch(0.38 0.10 250);
+    --lilac:    oklch(0.88 0.06 300);
+    --lilac-ink: oklch(0.40 0.10 300);
+    --butter:   oklch(0.93 0.07 95);
+    --butter-ink: oklch(0.42 0.09 80);
+    --rose:     oklch(0.88 0.06 20);
+    --rose-ink: oklch(0.42 0.10 25);
+
+    --risk-low: oklch(0.70 0.12 165);
+    --risk-midlow: oklch(0.78 0.13 95);
+    --risk-mid: oklch(0.75 0.14 50);
+    --risk-high: oklch(0.65 0.18 25);
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: 'Inter', system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    -webkit-font-smoothing: antialiased;
+    min-height: 100vh;
+  }
+  .page {
+    max-width: 1480px;
+    margin: 0 auto;
+    padding: 48px 56px 80px;
+  }
+  /* Header */
+  .header {
+    display: flex; justify-content: space-between; align-items: flex-end;
+    gap: 32px; padding-bottom: 24px;
+    border-bottom: 1px solid var(--line);
+    margin-bottom: 28px;
+  }
+  .brand { display: flex; align-items: center; gap: 14px; }
+  .brand-mark {
+    width: 38px; height: 38px; border-radius: 10px;
+    background: linear-gradient(135deg, var(--rose), var(--peach));
+    display: grid; place-items: center;
+    color: var(--rose-ink); font-weight: 700; font-size: 18px;
+    border: 1px solid var(--line);
+  }
+  .brand .eyebrow {
+    font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--ink-mute); font-weight: 600;
+  }
+  .brand h1 {
+    font-family: 'Instrument Serif', serif;
+    font-weight: 400; font-size: 30px; margin: 2px 0 0; letter-spacing: -0.01em;
+  }
+  .meta { display: flex; gap: 24px; font-size: 12px; color: var(--ink-mute); font-family: 'JetBrains Mono', monospace; }
+  .meta b { color: var(--ink); font-weight: 500; }
+
+  /* Tabs */
+  .tabs {
+    display: inline-flex; background: var(--bg-2); border: 1px solid var(--line);
+    border-radius: 999px; padding: 4px; margin-bottom: 32px;
+    flex-wrap: wrap;
+  }
+  .tab {
+    appearance: none; border: 0; background: transparent; padding: 10px 18px;
+    font: inherit; font-size: 13px; font-weight: 500; color: var(--ink-soft);
+    border-radius: 999px; cursor: pointer; transition: all 0.18s ease;
+  }
+  .tab:hover { color: var(--ink); }
+  .tab.active {
+    background: white; color: var(--ink);
+    box-shadow: 0 1px 2px rgba(0,0,0,0.04), 0 0 0 1px var(--line);
+  }
+  .panel { display: none; }
+  .panel.active { display: block; animation: fade 0.3s ease; }
+  @keyframes fade { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+
+  .intro { max-width: 880px; margin-bottom: 36px; }
+  .intro h2 {
+    font-family: 'Instrument Serif', serif; font-weight: 400;
+    font-size: 42px; line-height: 1.1; letter-spacing: -0.02em;
+    margin: 0 0 14px; text-wrap: balance;
+  }
+  .intro p {
+    font-size: 16px; line-height: 1.55; color: var(--ink-soft); margin: 0;
+    text-wrap: pretty;
+  }
+  .intro p em {
+    font-style: normal; color: var(--ink);
+    background: linear-gradient(transparent 60%, var(--butter) 60%);
+    padding: 0 2px;
+  }
+
+  /* Generic card */
+  .card {
+    background: white; border: 1px solid var(--line); border-radius: 16px;
+    padding: 24px;
+  }
+  .card h3 {
+    font-family: 'Instrument Serif', serif; font-weight: 400;
+    font-size: 24px; margin: 0 0 4px; letter-spacing: -0.01em;
+  }
+  .card .lead { font-size: 13px; color: var(--ink-soft); margin: 0 0 18px; }
+
+  /* KPI grid */
+  .kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 28px; }
+  .kpi {
+    background: white; border: 1px solid var(--line); border-radius: 14px;
+    padding: 20px;
+    position: relative; overflow: hidden;
+  }
+  .kpi .label {
+    font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase;
+    font-weight: 600; color: var(--ink-mute); margin-bottom: 8px;
+  }
+  .kpi .value {
+    font-family: 'Instrument Serif', serif; font-weight: 400;
+    font-size: 44px; line-height: 1; letter-spacing: -0.02em; margin-bottom: 6px;
+  }
+  .kpi .sub { font-size: 12px; color: var(--ink-soft); }
+  .kpi.k-rose { background: var(--rose); border-color: color-mix(in oklch, var(--rose), black 12%); }
+  .kpi.k-rose .label, .kpi.k-rose .sub { color: var(--rose-ink); opacity: 0.85; }
+  .kpi.k-mint { background: var(--mint); border-color: color-mix(in oklch, var(--mint), black 12%); }
+  .kpi.k-mint .label, .kpi.k-mint .sub { color: var(--mint-ink); opacity: 0.85; }
+  .kpi.k-sky  { background: var(--sky); border-color: color-mix(in oklch, var(--sky), black 12%); }
+  .kpi.k-sky .label, .kpi.k-sky .sub { color: var(--sky-ink); opacity: 0.85; }
+  .kpi.k-lilac { background: var(--lilac); border-color: color-mix(in oklch, var(--lilac), black 12%); }
+  .kpi.k-lilac .label, .kpi.k-lilac .sub { color: var(--lilac-ink); opacity: 0.85; }
+
+  /* Findings (top drivers) */
+  .findings { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .finding {
+    background: white; border: 1px solid var(--line); border-radius: 14px;
+    padding: 20px; display: grid; grid-template-columns: 60px 1fr; gap: 16px;
+    align-items: flex-start;
+  }
+  .finding .num {
+    font-family: 'Instrument Serif', serif; font-size: 56px; line-height: 1;
+    color: var(--ink); opacity: 0.18;
+  }
+  .finding h4 { font-size: 15px; font-weight: 600; margin: 0 0 6px; }
+  .finding p { font-size: 13px; color: var(--ink-soft); line-height: 1.5; margin: 0; }
+  .finding .stat {
+    margin-top: 10px;
+    display: inline-block;
+    font-family: 'JetBrains Mono', monospace; font-size: 11px;
+    background: var(--bg-2); border: 1px solid var(--line);
+    padding: 3px 8px; border-radius: 6px;
+  }
+
+  /* Bar chart */
+  .bar-table { width: 100%; border-collapse: collapse; }
+  .bar-table th {
+    text-align: left; font-weight: 600; font-size: 11px;
+    color: var(--ink-mute); text-transform: uppercase; letter-spacing: 0.08em;
+    padding: 8px 10px; border-bottom: 1px solid var(--line);
+  }
+  .bar-table td {
+    padding: 9px 10px; font-size: 13px; border-bottom: 1px solid var(--line);
+    vertical-align: middle;
+  }
+  .bar-table .bar-cell { width: 50%; }
+  .bar-wrap {
+    background: var(--bg-2); border-radius: 6px; height: 18px;
+    position: relative; overflow: hidden;
+  }
+  .bar-wrap .fill {
+    height: 100%; border-radius: 6px;
+    background: linear-gradient(90deg, var(--rose), var(--peach));
+  }
+  .bar-wrap .pct {
+    position: absolute; right: 8px; top: 0; line-height: 18px;
+    font-size: 11px; font-family: 'JetBrains Mono', monospace; font-weight: 600;
+    color: var(--ink);
+  }
+  .bar-wrap .fill.mint { background: linear-gradient(90deg, var(--mint), var(--sky)); }
+
+  .grouped { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .group-block { background: white; border: 1px solid var(--line); border-radius: 14px; padding: 20px; }
+  .group-block h4 {
+    font-family: 'Instrument Serif', serif; font-weight: 400; font-size: 18px;
+    margin: 0 0 12px; letter-spacing: -0.01em;
+  }
+  .group-block .baseline {
+    font-size: 11px; font-family: 'JetBrains Mono', monospace; color: var(--ink-mute);
+    margin-bottom: 8px;
+  }
+  .group-block .baseline .dot {
+    display: inline-block; width: 8px; height: 8px; border-radius: 50%;
+    background: var(--ink-mute); margin-right: 4px; vertical-align: middle;
+  }
+
+  /* Significance ribbon */
+  .sig-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 24px;
+    margin-bottom: 24px;
+  }
+  .sig-list { padding: 0; list-style: none; margin: 0; display: flex; flex-direction: column; gap: 8px; }
+  .sig-list li {
+    display: grid; grid-template-columns: 1fr auto auto; gap: 12px;
+    padding: 10px 14px; background: var(--bg-2); border: 1px solid var(--line); border-radius: 10px;
+    align-items: center;
+  }
+  .sig-list li .v { font-size: 13px; font-weight: 600; }
+  .sig-list li .p {
+    font-family: 'JetBrains Mono', monospace; font-size: 11px;
+    color: var(--ink-soft);
+  }
+  .sig-list li .tag {
+    font-size: 10px; padding: 2px 8px; border-radius: 999px; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.06em;
+  }
+  .tag-yes { background: var(--mint); color: var(--mint-ink); }
+  .tag-no  { background: var(--bg-2); color: var(--ink-mute); border: 1px solid var(--line); }
+
+  /* Coefficient table */
+  .coef-table { width: 100%; border-collapse: collapse; }
+  .coef-table th, .coef-table td {
+    text-align: left; font-size: 12px; padding: 8px 10px;
+    border-bottom: 1px solid var(--line);
+  }
+  .coef-table th {
+    font-weight: 600; color: var(--ink-mute); text-transform: uppercase;
+    letter-spacing: 0.06em; font-size: 10.5px;
+  }
+  .coef-table td.mono { font-family: 'JetBrains Mono', monospace; font-size: 11.5px; }
+  .coef-table .ovr {
+    display: inline-block; padding: 1px 6px; border-radius: 4px;
+    font-family: 'JetBrains Mono', monospace; font-weight: 600; font-size: 11px;
+  }
+  .coef-table .ovr.up { background: oklch(0.88 0.08 25); color: oklch(0.40 0.12 25); }
+  .coef-table .ovr.dn { background: oklch(0.90 0.06 165); color: oklch(0.38 0.09 165); }
+
+  /* Risk segments */
+  .risk-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 14px; }
+  .risk-cell {
+    border-radius: 14px; padding: 18px; border: 1.5px solid;
+    display: flex; flex-direction: column; justify-content: space-between;
+    min-height: 150px;
+  }
+  .risk-cell .risk-name { font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; font-weight: 700; margin-bottom: 6px; }
+  .risk-cell .risk-num { font-family: 'Instrument Serif', serif; font-size: 44px; line-height: 1; letter-spacing: -0.02em; }
+  .risk-cell .risk-pct { font-size: 12px; font-weight: 600; margin-top: 4px; }
+  .r-low { background: var(--mint); border-color: color-mix(in oklch, var(--mint), black 18%); color: var(--mint-ink); }
+  .r-midlow { background: var(--butter); border-color: color-mix(in oklch, var(--butter), black 22%); color: var(--butter-ink); }
+  .r-mid { background: var(--peach); border-color: color-mix(in oklch, var(--peach), black 18%); color: var(--peach-ink); }
+  .r-high { background: var(--rose); border-color: color-mix(in oklch, var(--rose), black 18%); color: var(--rose-ink); }
+  .r-veryhigh { background: var(--bg-2); border-color: var(--line-strong); color: var(--ink-mute); }
+
+  /* Confusion matrix */
+  .confusion {
+    display: grid; grid-template-columns: 140px 1fr 1fr; gap: 8px;
+    margin-top: 16px;
+  }
+  .confusion .cm-cell {
+    background: var(--bg-2); border: 1px solid var(--line); border-radius: 10px;
+    padding: 14px; text-align: center;
+  }
+  .confusion .cm-h { background: white; font-weight: 600; font-size: 11px; text-transform: uppercase; color: var(--ink-mute); letter-spacing: 0.08em; }
+  .confusion .cm-h.row-h { text-align: right; padding-right: 14px; }
+  .confusion .cm-num {
+    font-family: 'Instrument Serif', serif; font-size: 30px; line-height: 1; margin: 0; letter-spacing: -0.01em;
+  }
+  .confusion .cm-cell.tp { background: var(--mint); border-color: color-mix(in oklch, var(--mint), black 18%); }
+  .confusion .cm-cell.fn { background: var(--rose); border-color: color-mix(in oklch, var(--rose), black 18%); }
+  .confusion .cm-cell.fp { background: var(--butter); border-color: color-mix(in oklch, var(--butter), black 22%); }
+  .confusion .cm-cell.tn { background: var(--mint); border-color: color-mix(in oklch, var(--mint), black 18%); }
+
+  /* Method list */
+  .methods { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .method-card {
+    background: var(--bg-2); border: 1px solid var(--line);
+    padding: 16px; border-radius: 12px;
+  }
+  .method-card h4 {
+    font-size: 12px; font-weight: 600; text-transform: uppercase;
+    letter-spacing: 0.08em; margin: 0 0 6px; color: var(--ink-mute);
+  }
+  .method-card p { font-size: 13px; color: var(--ink); margin: 0; line-height: 1.45; }
+
+  .warns { display: flex; flex-direction: column; gap: 8px; margin-top: 18px; }
+  .warn {
+    display: grid; grid-template-columns: 32px 1fr; gap: 12px;
+    background: var(--butter); border: 1px solid color-mix(in oklch, var(--butter), black 22%);
+    border-radius: 10px; padding: 12px 14px;
+    color: var(--butter-ink);
+  }
+  .warn .wn {
+    width: 24px; height: 24px; border-radius: 50%;
+    background: white; color: var(--butter-ink);
+    display: grid; place-items: center; font-size: 12px; font-weight: 700;
+    border: 1px solid color-mix(in oklch, var(--butter), black 25%);
+  }
+  .warn p { font-size: 13px; line-height: 1.45; margin: 0; color: var(--ink); }
+
+  /* Data table tab */
+  .table-controls {
+    display: flex; gap: 12px; flex-wrap: wrap; align-items: center;
+    margin-bottom: 16px; padding: 16px; background: white;
+    border: 1px solid var(--line); border-radius: 14px;
+  }
+  .table-controls input, .table-controls select {
+    padding: 8px 12px; border: 1px solid var(--line-strong); border-radius: 8px;
+    font: inherit; font-size: 13px; background: white;
+    color: var(--ink);
+  }
+  .table-controls input { min-width: 220px; }
+  .table-controls .count {
+    margin-left: auto;
+    font-family: 'JetBrains Mono', monospace; font-size: 12px;
+    color: var(--ink-mute);
+  }
+  .table-controls .count b { color: var(--ink); }
+
+  .data-wrap {
+    background: white; border: 1px solid var(--line); border-radius: 14px;
+    overflow: hidden;
+  }
+  .data-scroll {
+    max-height: 70vh; overflow: auto;
+  }
+  .data-table {
+    width: 100%; border-collapse: collapse; font-size: 12px;
+  }
+  .data-table thead th {
+    position: sticky; top: 0; background: var(--bg-2);
+    text-align: left; padding: 10px 12px;
+    font-weight: 600; color: var(--ink); font-size: 11px;
+    text-transform: uppercase; letter-spacing: 0.04em;
+    border-bottom: 1px solid var(--line-strong);
+    white-space: nowrap;
+    z-index: 1;
+  }
+  .data-table tbody td {
+    padding: 8px 12px; border-bottom: 1px solid var(--line);
+    white-space: nowrap;
+  }
+  .data-table tbody tr:hover { background: var(--bg-2); }
+  .pill {
+    display: inline-block; padding: 2px 8px; border-radius: 999px;
+    font-size: 11px; font-weight: 600;
+  }
+  .pill.aktif    { background: var(--mint); color: var(--mint-ink); }
+  .pill.ayrilmis { background: var(--rose); color: var(--rose-ink); }
+  .pill.r-Düşük       { background: var(--mint); color: var(--mint-ink); }
+  .pill.r-Orta-Düşük  { background: var(--butter); color: var(--butter-ink); }
+  .pill.r-Orta        { background: var(--peach); color: var(--peach-ink); }
+  .pill.r-Yüksek      { background: var(--rose); color: var(--rose-ink); }
+  .pill.r-empty       { background: var(--bg-2); color: var(--ink-mute); border: 1px solid var(--line); }
+
+  .foot {
+    margin-top: 48px; padding-top: 24px;
+    border-top: 1px solid var(--line);
+    display: flex; justify-content: space-between;
+    font-size: 11px; color: var(--ink-mute);
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  @media (max-width: 1100px) {
+    .kpis { grid-template-columns: repeat(2, 1fr); }
+    .findings, .grouped, .sig-grid, .methods { grid-template-columns: 1fr; }
+    .risk-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <header class="header">
+    <div class="brand">
+      <div class="brand-mark">B</div>
+      <div>
+        <div class="eyebrow">PensionSoft × BES Analitik</div>
+        <h1>BES Churn Analizi — Sunum</h1>
+      </div>
+    </div>
+    <div class="meta">
+      <span><b>1.500</b> müşteri</span>
+      <span>v2 · Mayıs 2026</span>
+      <span>Hazırlayan: <b>Mehmet Özgür Genç</b></span>
+    </div>
+  </header>
+
+  <div class="tabs" role="tablist">
+    <button class="tab active" data-target="p-summary">Özet</button>
+    <button class="tab" data-target="p-findings">Bulgular</button>
+    <button class="tab" data-target="p-model">Model</button>
+    <button class="tab" data-target="p-risk">Risk &amp; Yöntem</button>
+    <button class="tab" data-target="p-data">Müşteri Verisi (1.500)</button>
+  </div>
+
+  <!-- ============ TAB 1: ÖZET ============ -->
+  <section class="panel active" id="p-summary">
+    <div class="intro">
+      <h2>1.500 müşterinin <em>davranış izleri</em>, sistemden ayrılmayı %75 doğrulukla öngörüyor.</h2>
+      <p>Bu çalışmada BES portföyündeki 1.500 müşteri için 21 farklı değişken üzerinden churn (sistemden tam çıkış) analizi yapıldı. Tek değişkenli istatistiksel testler, lojistik regresyon ve Random Forest modelleri çapraz doğrulamayla birleştirildi; her aktif müşteri için 0–100 ölçeğinde bir risk skoru üretildi.</p>
+    </div>
+
+    <div class="kpis">
+      <div class="kpi k-rose">
+        <div class="label">Churn Oranı</div>
+        <div class="value">%21,4</div>
+        <div class="sub">321 müşteri ayrılmış</div>
+      </div>
+      <div class="kpi k-mint">
+        <div class="label">Model AUC</div>
+        <div class="value">0,747</div>
+        <div class="sub">Random Forest · 5-fold CV</div>
+      </div>
+      <div class="kpi k-sky">
+        <div class="label">Aktif Müşteri</div>
+        <div class="value">1.179</div>
+        <div class="sub">Risk skoru üretildi</div>
+      </div>
+      <div class="kpi k-lilac">
+        <div class="label">Yüksek Risk</div>
+        <div class="value">5</div>
+        <div class="sub">+ 62 Orta · + 327 Orta-Düşük</div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-bottom:24px">
+      <h3>Hikaye: ayrılan müşteriyi ne ele veriyor?</h3>
+      <p class="lead">İstatistiksel olarak en güçlü ayırt edici faktörler; demografi değil, ödeme davranışı ve müşteri-ürün etkileşimi.</p>
+      <div class="findings">
+        <div class="finding">
+          <div class="num">01</div>
+          <div>
+            <h4>Düzenli ödeme yapmayanlar 4× daha çok ayrılıyor</h4>
+            <p>Ödemesi sürekli aksayanlarda churn oranı <b>%59</b>; düzenli ödeyenlerde <b>%14,9</b>. Tek başına en güçlü sinyal.</p>
+            <span class="stat">Cramér's V = 0,304 · p &lt; 0,001</span>
+          </div>
+        </div>
+        <div class="finding">
+          <div class="num">02</div>
+          <div>
+            <h4>Ödeme yöntemi ayrılma riski belirliyor</h4>
+            <p>Manuel/Havale ödeyenlerde <b>%38,8</b>, Maaş Kesintisi ile ödeyenlerde sadece <b>%10,5</b>. Otomasyon, sadakatin kendisi.</p>
+            <span class="stat">Cramér's V = 0,218 · p &lt; 0,001</span>
+          </div>
+        </div>
+        <div class="finding">
+          <div class="num">03</div>
+          <div>
+            <h4>Erken yıllar kritik</h4>
+            <p>Aktif müşterilerin müşterilik süresi ortalama <b>67,7 ay</b>; ayrılanlarda <b>47,5 ay</b>. İlk 4 yıl en hassas dönem.</p>
+            <span class="stat">Mann-Whitney p &lt; 0,001</span>
+          </div>
+        </div>
+        <div class="finding">
+          <div class="num">04</div>
+          <div>
+            <h4>Şikayet sayısı erken uyarıdır</h4>
+            <p>Ayrılan müşteriler son 1 yılda ortalama <b>0,89</b> şikayet/talep girmiş; aktiflerde <b>0,62</b>. Her ek şikayet odds'u <b>1,55×</b> artırıyor.</p>
+            <span class="stat">Lojistik β = 0,438 · p &lt; 0,001</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="grouped">
+      <div class="group-block">
+        <h4>En riskli satış kanalları</h4>
+        <div class="baseline"><span class="dot"></span> Genel ortalama: %21,4</div>
+        <table class="bar-table">
+          <tbody>
+            <tr><td>Online</td><td class="bar-cell"><div class="bar-wrap"><div class="fill" style="width:79%"></div><span class="pct">%31,6</span></div></td><td>n=155</td></tr>
+            <tr><td>Çağrı Merkezi</td><td class="bar-cell"><div class="bar-wrap"><div class="fill" style="width:67%"></div><span class="pct">%26,6</span></div></td><td>n=143</td></tr>
+            <tr><td>Direkt Satış</td><td class="bar-cell"><div class="bar-wrap"><div class="fill" style="width:62%"></div><span class="pct">%24,8</span></div></td><td>n=206</td></tr>
+            <tr><td>Acente</td><td class="bar-cell"><div class="bar-wrap"><div class="fill" style="width:57%"></div><span class="pct">%22,9</span></div></td><td>n=245</td></tr>
+            <tr><td>Banka Şubesi</td><td class="bar-cell"><div class="bar-wrap"><div class="fill" style="width:55%"></div><span class="pct">%22,1</span></div></td><td>n=411</td></tr>
+            <tr><td>Kurumsal Satış</td><td class="bar-cell"><div class="bar-wrap"><div class="fill mint" style="width:27%"></div><span class="pct">%10,6</span></div></td><td>n=340</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="group-block">
+        <h4>Birikim Skalası — düşük birikim, yüksek risk</h4>
+        <div class="baseline"><span class="dot"></span> Beklendiği gibi: birikim arttıkça ayrılma azalıyor</div>
+        <table class="bar-table">
+          <tbody>
+            <tr><td>BS-05 (en üst)</td><td class="bar-cell"><div class="bar-wrap"><div class="fill" style="width:100%"></div><span class="pct">%50,0</span></div></td><td>n=2</td></tr>
+            <tr><td>BS-01 (en alt)</td><td class="bar-cell"><div class="bar-wrap"><div class="fill" style="width:77%"></div><span class="pct">%30,6</span></div></td><td>n=157</td></tr>
+            <tr><td>BS-02</td><td class="bar-cell"><div class="bar-wrap"><div class="fill" style="width:58%"></div><span class="pct">%23,1</span></div></td><td>n=957</td></tr>
+            <tr><td>BS-03</td><td class="bar-cell"><div class="bar-wrap"><div class="fill mint" style="width:35%"></div><span class="pct">%13,8</span></div></td><td>n=355</td></tr>
+            <tr><td>BS-04</td><td class="bar-cell"><div class="bar-wrap"><div class="fill mint" style="width:17%"></div><span class="pct">%6,9</span></div></td><td>n=29</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ TAB 2: BULGULAR ============ -->
+  <section class="panel" id="p-findings">
+    <div class="intro">
+      <h2>Hangi değişken anlamlı, <em>hangisi gürültü?</em></h2>
+      <p>20 değişken üzerinde tek değişkenli testler uygulandı. Sayısal değişkenler için Mann-Whitney U, kategoriler için Ki-kare testi (Cramér's V efekt boyutu ile). Aşağıda anlamlı (p&lt;0,05) ve anlamsız bulgular birbirinden ayrılmıştır.</p>
+    </div>
+
+    <div class="sig-grid">
+      <div>
+        <h3 style="font-family:'Instrument Serif',serif;font-weight:400;font-size:22px;margin:0 0 10px">Anlamlı değişkenler</h3>
+        <ul class="sig-list">
+          <li><span class="v">Düzenli Ödeme Durumu</span><span class="p">V=0,304 · p&lt;0,001</span><span class="tag tag-yes">Anlamlı</span></li>
+          <li><span class="v">Ödeme Şekli</span><span class="p">V=0,218 · p&lt;0,001</span><span class="tag tag-yes">Anlamlı</span></li>
+          <li><span class="v">Satış Kanalı</span><span class="p">V=0,158 · p&lt;0,001</span><span class="tag tag-yes">Anlamlı</span></li>
+          <li><span class="v">Birikim Skalası</span><span class="p">V=0,132 · p&lt;0,001</span><span class="tag tag-yes">Anlamlı</span></li>
+          <li><span class="v">Müşterilik Süresi (Ay)</span><span class="p">U=231.122 · p&lt;0,001</span><span class="tag tag-yes">Anlamlı</span></li>
+          <li><span class="v">Katkı Payı Tutarı</span><span class="p">U=217.957 · p&lt;0,001</span><span class="tag tag-yes">Anlamlı</span></li>
+          <li><span class="v">Şikayet/Talep Sayısı</span><span class="p">U=157.118 · p&lt;0,001</span><span class="tag tag-yes">Anlamlı</span></li>
+          <li><span class="v">BES Sistemindeki Süre</span><span class="p">p=0,0002</span><span class="tag tag-yes">Anlamlı</span></li>
+          <li><span class="v">Fon Değişiklik Trendi</span><span class="p">V=0,099 · p=0,0006</span><span class="tag tag-yes">Anlamlı</span></li>
+          <li><span class="v">Birikim Soru Sayısı</span><span class="p">p=0,0016</span><span class="tag tag-yes">Anlamlı</span></li>
+          <li><span class="v">Çocuk Sayısı</span><span class="p">p=0,0425</span><span class="tag tag-yes">Anlamlı</span></li>
+          <li><span class="v">Başka BES Varlığı</span><span class="p">V=0,051 · p=0,0495</span><span class="tag tag-yes">Anlamlı</span></li>
+        </ul>
+      </div>
+      <div>
+        <h3 style="font-family:'Instrument Serif',serif;font-weight:400;font-size:22px;margin:0 0 10px">Anlamsız (gürültü)</h3>
+        <ul class="sig-list">
+          <li><span class="v">Eğitim Düzeyi</span><span class="p">p=0,054</span><span class="tag tag-no">—</span></li>
+          <li><span class="v">Fon Değişiklik Sayısı</span><span class="p">p=0,102</span><span class="tag tag-no">—</span></li>
+          <li><span class="v">Medeni Durum</span><span class="p">p=0,294</span><span class="tag tag-no">—</span></li>
+          <li><span class="v">Müşteri Yaşı</span><span class="p">p=0,949</span><span class="tag tag-no">—</span></li>
+          <li><span class="v">Cinsiyet</span><span class="p">p=0,926</span><span class="tag tag-no">—</span></li>
+          <li><span class="v">Meslek Grubu</span><span class="p">p=0,961</span><span class="tag tag-no">—</span></li>
+          <li><span class="v">Ürün</span><span class="p">p=0,966</span><span class="tag tag-no">—</span></li>
+        </ul>
+        <div class="card" style="margin-top:18px;background:var(--bg-2);border-style:dashed">
+          <p style="margin:0;font-size:13px;color:var(--ink-soft)">
+            <b>Hikayenin özü:</b> Demografik değişkenler (yaş, cinsiyet, medeni durum, meslek, ürün) churn'ü açıklamıyor. Belirleyici olan, müşterinin <em>sisteme nasıl bağlı kaldığı</em>.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Ödeme &amp; Düzen — en güçlü iki sinyal</h3>
+      <p class="lead">Sürekli aksayan ödemeli müşteri, düzenli ödeyen müşteriden 4 kat daha fazla ayrılıyor.</p>
+      <div class="grouped">
+        <div class="group-block">
+          <h4>Düzenli Ödeme Durumu</h4>
+          <table class="bar-table">
+            <tbody>
+              <tr><td>Sürekli Aksıyor</td><td class="bar-cell"><div class="bar-wrap"><div class="fill" style="width:100%"></div><span class="pct">%59,0</span></div></td><td>n=83</td></tr>
+              <tr><td>Ara Ara Aksıyor</td><td class="bar-cell"><div class="bar-wrap"><div class="fill" style="width:63%"></div><span class="pct">%36,9</span></div></td><td>n=279</td></tr>
+              <tr><td>Düzenli</td><td class="bar-cell"><div class="bar-wrap"><div class="fill mint" style="width:25%"></div><span class="pct">%14,9</span></div></td><td>n=1.138</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="group-block">
+          <h4>Ödeme Şekli</h4>
+          <table class="bar-table">
+            <tbody>
+              <tr><td>Manuel/Havale</td><td class="bar-cell"><div class="bar-wrap"><div class="fill" style="width:100%"></div><span class="pct">%38,8</span></div></td><td>n=147</td></tr>
+              <tr><td>Kredi Kartı</td><td class="bar-cell"><div class="bar-wrap"><div class="fill" style="width:75%"></div><span class="pct">%29,3</span></div></td><td>n=341</td></tr>
+              <tr><td>Banka Talimatı</td><td class="bar-cell"><div class="bar-wrap"><div class="fill" style="width:54%"></div><span class="pct">%20,9</span></div></td><td>n=556</td></tr>
+              <tr><td>Maaş Kesintisi</td><td class="bar-cell"><div class="bar-wrap"><div class="fill mint" style="width:27%"></div><span class="pct">%10,5</span></div></td><td>n=456</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:24px">
+      <h3>Fon Davranışı — pasiflik mi, aktiflik mi tetikliyor?</h3>
+      <p class="lead">Fon değişiklik trendi <em>artıyorsa</em>, müşteri huzursuz ve risk altında. Sabit veya azalan trend, sistem içinde "yerleşmiş" davranış.</p>
+      <table class="bar-table">
+        <tbody>
+          <tr><td>Trend: Artıyor</td><td class="bar-cell"><div class="bar-wrap"><div class="fill" style="width:71%"></div><span class="pct">%28,1</span></div></td><td>n=399</td></tr>
+          <tr><td>Trend: Sabit</td><td class="bar-cell"><div class="bar-wrap"><div class="fill" style="width:50%"></div><span class="pct">%19,6</span></div></td><td>n=736</td></tr>
+          <tr><td>Trend: Azalıyor</td><td class="bar-cell"><div class="bar-wrap"><div class="fill mint" style="width:45%"></div><span class="pct">%17,8</span></div></td><td>n=365</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ============ TAB 3: MODEL ============ -->
+  <section class="panel" id="p-model">
+    <div class="intro">
+      <h2>Lojistik Regresyon yorumlar; Random Forest <em>sıralar</em>.</h2>
+      <p>İki ayrı model birlikte kullanıldı. Lojistik regresyon hangi değişkenin churn olasılığını ne kadar artırdığını açıklar (Odds Ratio); Random Forest ise non-lineer etkileşimleri yakalayıp her aktif müşteri için bir risk skoru üretir.</p>
+    </div>
+
+    <div class="grouped" style="grid-template-columns: 1.3fr 1fr">
+      <div class="card">
+        <h3>Lojistik Regresyon — Anlamlı Etkiler</h3>
+        <p class="lead">Odds Ratio &gt; 1 ise ayrılma riskini artırır, &lt; 1 ise azaltır. McFadden Pseudo R² = 0,18.</p>
+        <table class="coef-table">
+          <thead>
+            <tr><th>Değişken</th><th>β</th><th>p</th><th>Odds Ratio</th><th>Yön</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Düzenli Ödeme = Sürekli Aksıyor</td><td class="mono">+0,93</td><td class="mono">&lt;0,001</td><td class="mono">2,54</td><td><span class="ovr up">↑ %154</span></td></tr>
+            <tr><td>Şikayet/Talep Sayısı</td><td class="mono">+0,44</td><td class="mono">&lt;0,001</td><td class="mono">1,55</td><td><span class="ovr up">↑ %55</span></td></tr>
+            <tr><td>Birikim Skalası BS-05</td><td class="mono">+4,28</td><td class="mono">0,015</td><td class="mono">72,2</td><td><span class="ovr up">⚠ az gözlem</span></td></tr>
+            <tr><td>Başka BES Yok</td><td class="mono">+0,37</td><td class="mono">0,041</td><td class="mono">1,45</td><td><span class="ovr up">↑ %45</span></td></tr>
+            <tr><td>Birikim Soru Sayısı</td><td class="mono">+0,08</td><td class="mono">0,003</td><td class="mono">1,09</td><td><span class="ovr up">↑ %9</span></td></tr>
+            <tr><td>Düzenli Ödeme = Düzenli</td><td class="mono">−1,08</td><td class="mono">&lt;0,001</td><td class="mono">0,34</td><td><span class="ovr dn">↓ %66</span></td></tr>
+            <tr><td>log(Katkı Payı)</td><td class="mono">−0,38</td><td class="mono">&lt;0,001</td><td class="mono">0,68</td><td><span class="ovr dn">↓ %32</span></td></tr>
+            <tr><td>Trend = Sabit</td><td class="mono">−0,52</td><td class="mono">0,004</td><td class="mono">0,60</td><td><span class="ovr dn">↓ %40</span></td></tr>
+            <tr><td>Trend = Azalıyor</td><td class="mono">−0,53</td><td class="mono">0,014</td><td class="mono">0,59</td><td><span class="ovr dn">↓ %41</span></td></tr>
+            <tr><td>Ödeme = Maaş Kesintisi</td><td class="mono">−0,44</td><td class="mono">0,043</td><td class="mono">0,65</td><td><span class="ovr dn">↓ %35</span></td></tr>
+            <tr><td>Müşterilik Süresi (Ay)</td><td class="mono">−0,01</td><td class="mono">&lt;0,001</td><td class="mono">0,99</td><td><span class="ovr dn">↓ aylık %1</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="card">
+        <h3>Random Forest — Önem Sıralaması</h3>
+        <p class="lead">Modelin tahmin gücünde değişkenlerin payı.</p>
+        <table class="bar-table">
+          <tbody>
+            <tr><td>Düzenli Ödeme = Düzenli</td><td class="bar-cell"><div class="bar-wrap"><div class="fill" style="width:100%"></div><span class="pct">0,201</span></div></td></tr>
+            <tr><td>Müşterilik Süresi (Ay)</td><td class="bar-cell"><div class="bar-wrap"><div class="fill" style="width:61%"></div><span class="pct">0,122</span></div></td></tr>
+            <tr><td>log(Katkı Payı)</td><td class="bar-cell"><div class="bar-wrap"><div class="fill" style="width:45%"></div><span class="pct">0,091</span></div></td></tr>
+            <tr><td>Düzenli Ödeme = Sürekli Aksıyor</td><td class="bar-cell"><div class="bar-wrap"><div class="fill" style="width:38%"></div><span class="pct">0,075</span></div></td></tr>
+            <tr><td>Şikayet/Talep Sayısı</td><td class="bar-cell"><div class="bar-wrap"><div class="fill" style="width:30%"></div><span class="pct">0,061</span></div></td></tr>
+            <tr><td>Birikim Soru Sayısı</td><td class="bar-cell"><div class="bar-wrap"><div class="fill" style="width:28%"></div><span class="pct">0,056</span></div></td></tr>
+            <tr><td>BES Sistemindeki Süre</td><td class="bar-cell"><div class="bar-wrap"><div class="fill" style="width:27%"></div><span class="pct">0,055</span></div></td></tr>
+            <tr><td>Ödeme = Maaş Kesintisi</td><td class="bar-cell"><div class="bar-wrap"><div class="fill" style="width:24%"></div><span class="pct">0,047</span></div></td></tr>
+            <tr><td>Müşteri Yaşı</td><td class="bar-cell"><div class="bar-wrap"><div class="fill" style="width:23%"></div><span class="pct">0,045</span></div></td></tr>
+            <tr><td>Satış Kanalı = Kurumsal</td><td class="bar-cell"><div class="bar-wrap"><div class="fill" style="width:14%"></div><span class="pct">0,029</span></div></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:24px">
+      <h3>Model Performansı</h3>
+      <div class="kpis" style="margin:0 0 8px">
+        <div class="kpi"><div class="label">Lojistik AUC</div><div class="value">0,747</div><div class="sub">5-fold CV</div></div>
+        <div class="kpi"><div class="label">Random Forest AUC</div><div class="value">0,747</div><div class="sub">5-fold CV</div></div>
+        <div class="kpi"><div class="label">Brier (LR)</div><div class="value">0,143</div><div class="sub">Kalibrasyon</div></div>
+        <div class="kpi"><div class="label">McFadden R²</div><div class="value">0,181</div><div class="sub">LL = −638,02</div></div>
+      </div>
+      <p style="font-size:13px;color:var(--ink-soft);margin:14px 0 0">
+        İki model neredeyse aynı performansı gösterdi (AUC ≈ 0,747). Bu, doğrusal bir yapının (lojistik) bu problem için yeterli olduğuna işaret eder; Random Forest'ı yorum yerine sıralama (ranking) için kullanıyoruz.
+      </p>
+    </div>
+  </section>
+
+  <!-- ============ TAB 4: RİSK & YÖNTEM ============ -->
+  <section class="panel" id="p-risk">
+    <div class="intro">
+      <h2>Aktif portföyün risk fotoğrafı &amp; yöntem notları</h2>
+      <p>Aktif 1.179 müşteri için 0-100 ölçeğinde Risk Skoru üretildi ve 5 segmente bölündü. Düşük skor güvenli, yüksek skor öncelikli aksiyon adayı.</p>
+    </div>
+
+    <div class="card" style="margin-bottom:24px">
+      <h3>Risk Segment Dağılımı</h3>
+      <p class="lead">Toplam 1.179 aktif müşteri</p>
+      <div class="risk-grid">
+        <div class="risk-cell r-low">
+          <div>
+            <div class="risk-name">Düşük</div>
+            <div class="risk-num">785</div>
+            <div class="risk-pct">%66,6</div>
+          </div>
+          <div style="font-size:11px;opacity:0.85">skor &lt; 20</div>
+        </div>
+        <div class="risk-cell r-midlow">
+          <div>
+            <div class="risk-name">Orta-Düşük</div>
+            <div class="risk-num">327</div>
+            <div class="risk-pct">%27,7</div>
+          </div>
+          <div style="font-size:11px;opacity:0.85">20–40</div>
+        </div>
+        <div class="risk-cell r-mid">
+          <div>
+            <div class="risk-name">Orta</div>
+            <div class="risk-num">62</div>
+            <div class="risk-pct">%5,3</div>
+          </div>
+          <div style="font-size:11px;opacity:0.85">40–60</div>
+        </div>
+        <div class="risk-cell r-high">
+          <div>
+            <div class="risk-name">Yüksek</div>
+            <div class="risk-num">5</div>
+            <div class="risk-pct">%0,4</div>
+          </div>
+          <div style="font-size:11px;opacity:0.85">60–80</div>
+        </div>
+        <div class="risk-cell r-veryhigh">
+          <div>
+            <div class="risk-name">Çok Yüksek</div>
+            <div class="risk-num">0</div>
+            <div class="risk-pct">%0,0</div>
+          </div>
+          <div style="font-size:11px;opacity:0.85">≥ 80</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="grouped">
+      <div class="card">
+        <h3>Hata Matrisi (eşik = 0,50)</h3>
+        <p class="lead">1.500 müşterinin tahmin sınıflandırması</p>
+        <div class="confusion">
+          <div class="cm-cell cm-h"></div>
+          <div class="cm-cell cm-h">Tahmin: Aktif</div>
+          <div class="cm-cell cm-h">Tahmin: Ayrılmış</div>
+
+          <div class="cm-cell cm-h row-h">Gerçek: Aktif</div>
+          <div class="cm-cell tn"><div class="cm-num">1.154</div><div style="font-size:11px;margin-top:4px">Doğru Negatif</div></div>
+          <div class="cm-cell fp"><div class="cm-num">25</div><div style="font-size:11px;margin-top:4px">Yanlış Pozitif</div></div>
+
+          <div class="cm-cell cm-h row-h">Gerçek: Ayrılmış</div>
+          <div class="cm-cell fn"><div class="cm-num">260</div><div style="font-size:11px;margin-top:4px">Yanlış Negatif</div></div>
+          <div class="cm-cell tp"><div class="cm-num">61</div><div style="font-size:11px;margin-top:4px">Doğru Pozitif</div></div>
+        </div>
+        <p style="font-size:12px;color:var(--ink-soft);margin-top:14px">
+          Eşik 0,50'de model muhafazakâr davranıyor (yüksek precision, düşük recall). Aksiyon önceliği için <b>Çok Yüksek + Yüksek</b> segmentleri kullanılmalı; eşik iş kararıyla ayarlanabilir.
+        </p>
+      </div>
+
+      <div class="card">
+        <h3>Yöntem Özeti</h3>
+        <div class="methods">
+          <div class="method-card"><h4>Hedef</h4><p>Tam sistem çıkışı (aktarım hariç). "Ayrılmış" → 1.</p></div>
+          <div class="method-card"><h4>Örneklem</h4><p>1.500 müşteri (sentetik, v2).</p></div>
+          <div class="method-card"><h4>Tek değişkenli</h4><p>Mann-Whitney U (sayısal) + Ki-kare/Cramér's V (kategorik).</p></div>
+          <div class="method-card"><h4>Çok değişkenli</h4><p>Statsmodels lojistik regresyon (yorum) + sklearn LR &amp; RF (skor).</p></div>
+          <div class="method-card"><h4>Doğrulama</h4><p>StratifiedKFold(5) çapraz doğrulama.</p></div>
+          <div class="method-card"><h4>Skor</h4><p>(LR_OOF + RF_OOF + LR_in + RF_in) / 4 → 0–100.</p></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:24px">
+      <h3>Uyarılar &amp; Sınırlamalar</h3>
+      <div class="warns">
+        <div class="warn"><div class="wn">1</div><p><b>Sentetik veri.</b> Korelasyonlar literatür ve sezgiyle kuruldu; gerçek müşteri davranışı farklı olabilir.</p></div>
+        <div class="warn"><div class="wn">2</div><p><b>Sağ-sansürleme</b> (right-censoring) yok sayıldı. Üretim modelinde sağkalım analizi (survival) tercih edilmeli.</p></div>
+        <div class="warn"><div class="wn">3</div><p><b>Target leakage riski:</b> Soru sayısı, fon değişikliği ve şikayet sayısı için zaman damgası belirsiz.</p></div>
+        <div class="warn"><div class="wn">4</div><p><b>Skorlar kalibre değil:</b> mutlak olasılık değil, sıralama (ranking) skoru olarak kullanılmalı.</p></div>
+        <div class="warn"><div class="wn">5</div><p><b>Çoklu doğrusallık:</b> Katkı ↔ BS, Ödeme Şekli ↔ Düzenli Ödeme arasında muhtemel.</p></div>
+        <div class="warn"><div class="wn">6</div><p><b>Eşik iş kararı:</b> 0,50 sabit değil. Çok Yüksek + Yüksek segmentlerle aksiyon önceliği verilebilir.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ TAB 5: VERİ ============ -->
+  <section class="panel" id="p-data">
+    <div class="intro">
+      <h2>1.500 müşterilik tam veri seti</h2>
+      <p>Risk skoru ve segment kolonları eklenmiş. İsim ile ara, ayrılma durumu veya risk segmentine göre filtrele. Tablo başlıklarına tıklayarak sıralayabilirsin.</p>
+    </div>
+
+    <div class="table-controls">
+      <input id="q" type="text" placeholder="Müşteri ara (ad, meslek, kanal…)" />
+      <select id="f-status">
+        <option value="">Tüm durumlar</option>
+        <option value="Aktif">Aktif</option>
+        <option value="Ayrılmış">Ayrılmış</option>
+      </select>
+      <select id="f-segment">
+        <option value="">Tüm segmentler</option>
+        <option value="Düşük">Düşük</option>
+        <option value="Orta-Düşük">Orta-Düşük</option>
+        <option value="Orta">Orta</option>
+        <option value="Yüksek">Yüksek</option>
+      </select>
+      <select id="f-payment">
+        <option value="">Tüm ödeme şekilleri</option>
+        <option value="Maaş Kesintisi">Maaş Kesintisi</option>
+        <option value="Banka Talimatı">Banka Talimatı</option>
+        <option value="Kredi Kartı">Kredi Kartı</option>
+        <option value="Manuel/Havale">Manuel/Havale</option>
+      </select>
+      <span class="count">Görünen: <b id="vis-count">0</b> / <b id="tot-count">1500</b></span>
+    </div>
+
+    <div class="data-wrap">
+      <div class="data-scroll">
+        <table class="data-table" id="data-table">
+          <thead><tr id="data-head"></tr></thead>
+          <tbody id="data-body"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <footer class="foot">
+    <span>BES CHURN ANALİZİ · v2 · 1.500 MÜŞTERİ</span>
+    <span>PensionSoft · Mayıs 2026</span>
+  </footer>
+</div>
+
+<script>
+  // Tab switching
+  const tabs = document.querySelectorAll('.tab');
+  const panels = document.querySelectorAll('.panel');
+  tabs.forEach(t => {
+    t.addEventListener('click', () => {
+      tabs.forEach(x => x.classList.remove('active'));
+      panels.forEach(p => p.classList.remove('active'));
+      t.classList.add('active');
+      document.getElementById(t.dataset.target).classList.add('active');
+    });
+  });
+</script>
+
+<script>
+  // Load and render data
+  let DATA = null;
+  let SORT_KEY = null, SORT_DIR = 1;
+
+  function fmtCell(val, key) {
+    if (val === null || val === undefined || val === '') return '';
+    if (key === 'Ayrılma Durumu') {
+      const cls = val === 'Aktif' ? 'aktif' : 'ayrilmis';
+      return `<span class="pill ${cls}">${val}</span>`;
+    }
+    if (key === 'Churn Risk Segmenti') {
+      if (!val) return `<span class="pill r-empty">—</span>`;
+      return `<span class="pill r-${val}">${val}</span>`;
+    }
+    if (key === 'Katkı Payı Tutarı (TL/ay)' && typeof val === 'number') {
+      return val.toLocaleString('tr-TR');
+    }
+    return String(val);
+  }
+
+  function render() {
+    const q = document.getElementById('q').value.trim().toLowerCase();
+    const fs = document.getElementById('f-status').value;
+    const fseg = document.getElementById('f-segment').value;
+    const fpay = document.getElementById('f-payment').value;
+
+    const head = DATA.header;
+    const idxStatus = head.indexOf('Ayrılma Durumu');
+    const idxSeg = head.indexOf('Churn Risk Segmenti');
+    const idxPay = head.indexOf('Ödeme Şekli');
+
+    let rows = DATA.rows.filter(r => {
+      if (fs && r[idxStatus] !== fs) return false;
+      if (fseg && r[idxSeg] !== fseg) return false;
+      if (fpay && r[idxPay] !== fpay) return false;
+      if (q) {
+        const blob = r.join(' ').toLowerCase();
+        if (!blob.includes(q)) return false;
+      }
+      return true;
+    });
+
+    if (SORT_KEY != null) {
+      const ix = head.indexOf(SORT_KEY);
+      rows = rows.slice().sort((a,b) => {
+        const va = a[ix], vb = b[ix];
+        if (va === vb) return 0;
+        if (va === '' || va == null) return 1;
+        if (vb === '' || vb == null) return -1;
+        if (typeof va === 'number' && typeof vb === 'number') return (va - vb) * SORT_DIR;
+        return String(va).localeCompare(String(vb), 'tr') * SORT_DIR;
+      });
+    }
+
+    document.getElementById('vis-count').textContent = rows.length;
+    document.getElementById('tot-count').textContent = DATA.rows.length;
+
+    // Render only first 500 visible rows for perf; user can filter further
+    const body = document.getElementById('data-body');
+    const visible = rows.slice(0, 500);
+    body.innerHTML = visible.map(r => {
+      return '<tr>' + head.map((h, i) => `<td>${fmtCell(r[i], h)}</td>`).join('') + '</tr>';
+    }).join('');
+    if (rows.length > 500) {
+      body.innerHTML += `<tr><td colspan="${head.length}" style="text-align:center;color:var(--ink-mute);padding:14px;font-style:italic">İlk 500 kayıt gösteriliyor — daha fazla filtrele</td></tr>`;
+    }
+  }
+
+  function setupHead() {
+    const headRow = document.getElementById('data-head');
+    headRow.innerHTML = DATA.header.map(h => `<th data-key="${h}" style="cursor:pointer">${h} <span style="opacity:0.4">↕</span></th>`).join('');
+    headRow.querySelectorAll('th').forEach(th => {
+      th.addEventListener('click', () => {
+        const k = th.dataset.key;
+        if (SORT_KEY === k) SORT_DIR = -SORT_DIR;
+        else { SORT_KEY = k; SORT_DIR = 1; }
+        render();
+      });
+    });
+  }
+
+  fetch('data/musteri.json')
+    .then(r => r.json())
+    .then(d => {
+      DATA = d;
+      setupHead();
+      render();
+      ['q','f-status','f-segment','f-payment'].forEach(id => {
+        document.getElementById(id).addEventListener('input', render);
+        document.getElementById(id).addEventListener('change', render);
+      });
+    });
+</script>
+</body>
+</html>
