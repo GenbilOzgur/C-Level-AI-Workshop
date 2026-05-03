@@ -1,0 +1,985 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NEXUS — Otonom Agent Komuta Merkezi</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Space+Grotesk:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg-0:#020617;
+  --bg-1:#0a1024;
+  --bg-2:#0f172a;
+  --panel:rgba(15,23,42,0.55);
+  --panel-border:rgba(34,211,238,0.18);
+  --cyan:#22d3ee;
+  --cyan-dim:#0891b2;
+  --cyan-glow:rgba(34,211,238,.55);
+  --purple:#a855f7;
+  --purple-glow:rgba(168,85,247,.45);
+  --green:#22c55e;
+  --amber:#f59e0b;
+  --red:#ef4444;
+  --text:#e2e8f0;
+  --text-dim:#94a3b8;
+  --text-faint:#64748b;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden}
+body{
+  font-family:'Space Grotesk',sans-serif;
+  background:radial-gradient(ellipse at top, #1a1f4d 0%, var(--bg-1) 35%, var(--bg-0) 75%);
+  color:var(--text);
+  min-height:100vh;
+  position:relative;
+}
+
+/* ===== Yıldız Alanı ===== */
+.stars,.stars2,.stars3{
+  position:fixed;inset:0;pointer-events:none;z-index:0;
+}
+.stars{
+  background-image:
+    radial-gradient(1px 1px at 20% 30%,#fff 50%,transparent 100%),
+    radial-gradient(1px 1px at 70% 80%,#fff 50%,transparent 100%),
+    radial-gradient(1px 1px at 40% 70%,#fff 50%,transparent 100%),
+    radial-gradient(1px 1px at 90% 20%,#fff 50%,transparent 100%),
+    radial-gradient(1px 1px at 10% 90%,#fff 50%,transparent 100%),
+    radial-gradient(1px 1px at 55% 15%,#fff 50%,transparent 100%),
+    radial-gradient(1px 1px at 80% 50%,#fff 50%,transparent 100%),
+    radial-gradient(1px 1px at 35% 50%,#fff 50%,transparent 100%);
+  background-size:600px 600px;
+  animation:drift 120s linear infinite;
+  opacity:.65;
+}
+.stars2{
+  background-image:
+    radial-gradient(2px 2px at 30% 60%,#a5f3fc 60%,transparent 100%),
+    radial-gradient(2px 2px at 75% 25%,#c7d2fe 60%,transparent 100%),
+    radial-gradient(2px 2px at 15% 80%,#f9a8d4 60%,transparent 100%),
+    radial-gradient(1.5px 1.5px at 60% 90%,#fbbf24 60%,transparent 100%);
+  background-size:900px 900px;
+  animation:drift 200s linear infinite reverse;
+  opacity:.55;
+}
+.stars3{
+  background:
+    radial-gradient(circle at 25% 30%, rgba(168,85,247,.18), transparent 35%),
+    radial-gradient(circle at 80% 70%, rgba(34,211,238,.15), transparent 40%),
+    radial-gradient(circle at 60% 20%, rgba(244,114,182,.10), transparent 30%);
+  filter:blur(20px);
+}
+@keyframes drift{from{background-position:0 0}to{background-position:1000px 1000px}}
+
+/* ===== Layout ===== */
+.app{position:relative;z-index:2;height:100vh;display:flex;flex-direction:column;padding:18px 22px;gap:14px}
+
+/* Header */
+.topbar{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:12px 22px;border-radius:14px;
+  background:linear-gradient(90deg,rgba(15,23,42,.7),rgba(30,41,59,.4),rgba(15,23,42,.7));
+  border:1px solid var(--panel-border);
+  backdrop-filter:blur(12px);
+  box-shadow:0 0 30px rgba(34,211,238,.08), inset 0 1px 0 rgba(255,255,255,.05);
+}
+.brand{display:flex;align-items:center;gap:14px}
+.brand-mark{
+  width:42px;height:42px;border-radius:10px;
+  background:radial-gradient(circle, #22d3ee 0%, #0891b2 60%, transparent 100%);
+  position:relative;display:grid;place-items:center;
+  box-shadow:0 0 20px var(--cyan-glow);
+}
+.brand-mark::after{
+  content:'';position:absolute;inset:6px;border-radius:6px;
+  border:1.5px solid rgba(255,255,255,.85);
+  background:linear-gradient(135deg,rgba(255,255,255,.2),transparent);
+}
+.brand-text h1{
+  font-family:'Orbitron',sans-serif;font-weight:900;font-size:18px;letter-spacing:3px;
+  background:linear-gradient(90deg,#22d3ee,#a855f7);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+}
+.brand-text p{font-size:11px;color:var(--text-faint);letter-spacing:2px;text-transform:uppercase;font-family:'JetBrains Mono',monospace}
+
+.topbar-meta{display:flex;align-items:center;gap:24px}
+.status{
+  display:flex;align-items:center;gap:8px;font-size:12px;font-family:'JetBrains Mono',monospace;
+  color:var(--text-dim);text-transform:uppercase;letter-spacing:1.5px;
+}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 10px var(--green);animation:pulse 1.6s infinite}
+.dot.cy{background:var(--cyan);box-shadow:0 0 10px var(--cyan)}
+.dot.pu{background:var(--purple);box-shadow:0 0 10px var(--purple)}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.clock{font-family:'Orbitron',sans-serif;font-size:18px;font-weight:500;color:var(--cyan);letter-spacing:3px;text-shadow:0 0 12px var(--cyan-glow)}
+
+/* Main grid */
+.grid{
+  flex:1;display:grid;
+  grid-template-columns: 320px 1fr 320px;
+  grid-template-rows: 1fr auto;
+  gap:14px;min-height:0;
+}
+.col{display:flex;flex-direction:column;gap:14px;min-height:0}
+
+/* Card */
+.card{
+  background:var(--panel);
+  border:1px solid var(--panel-border);
+  border-radius:14px;
+  backdrop-filter:blur(14px);
+  padding:16px 18px;
+  position:relative;overflow:hidden;
+  box-shadow:0 0 30px rgba(0,0,0,.4), inset 0 1px 0 rgba(255,255,255,.04);
+}
+.card::before{
+  content:'';position:absolute;left:0;right:0;top:0;height:1px;
+  background:linear-gradient(90deg,transparent,var(--cyan),transparent);
+  opacity:.7;
+}
+.card-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.card-title{
+  font-family:'Orbitron',sans-serif;font-size:11px;letter-spacing:3px;
+  color:var(--text-dim);text-transform:uppercase;font-weight:500;
+}
+.card-badge{
+  font-family:'JetBrains Mono',monospace;font-size:10px;
+  padding:2px 8px;border-radius:4px;background:rgba(34,211,238,.1);
+  color:var(--cyan);border:1px solid rgba(34,211,238,.3);
+}
+
+/* Email & Tickets stat blocks */
+.stat-row{display:flex;gap:10px;margin-bottom:12px}
+.stat{
+  flex:1;background:rgba(2,6,23,.5);border-radius:8px;padding:10px 12px;
+  border:1px solid rgba(148,163,184,.08);
+}
+.stat-num{font-family:'Orbitron',sans-serif;font-size:24px;font-weight:700;color:var(--cyan);text-shadow:0 0 10px var(--cyan-glow);transition:all .35s}
+.stat-num.amber{color:var(--amber);text-shadow:0 0 10px rgba(245,158,11,.4)}
+.stat-num.green{color:var(--green);text-shadow:0 0 10px rgba(34,197,94,.4)}
+.stat-num.red{color:var(--red);text-shadow:0 0 10px rgba(239,68,68,.4)}
+.stat-num.purple{color:var(--purple);text-shadow:0 0 10px var(--purple-glow)}
+.stat-num.flash{transform:scale(1.18)}
+.stat-lbl{font-size:10px;color:var(--text-faint);text-transform:uppercase;letter-spacing:1.2px;margin-top:2px;font-family:'JetBrains Mono',monospace}
+
+/* Email list */
+.email-list{display:flex;flex-direction:column;gap:7px;overflow-y:auto;flex:1;padding-right:4px}
+.email-item{
+  background:rgba(2,6,23,.4);border:1px solid rgba(148,163,184,.06);
+  border-radius:8px;padding:9px 11px;font-size:12px;
+  display:flex;flex-direction:column;gap:3px;
+  animation:slideIn .4s ease;
+  transition:all .3s;
+  position:relative;
+}
+.email-item.processing{
+  border-color:var(--cyan);
+  box-shadow:0 0 18px rgba(34,211,238,.35);
+  background:rgba(34,211,238,.08);
+}
+.email-item.done{opacity:.4;filter:grayscale(.5)}
+@keyframes slideIn{from{opacity:0;transform:translateX(-12px)}to{opacity:1;transform:translateX(0)}}
+.email-from{font-size:11px;color:var(--cyan);font-family:'JetBrains Mono',monospace;letter-spacing:.5px}
+.email-subject{color:var(--text);font-weight:500}
+.email-preview{font-size:11px;color:var(--text-faint);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* Customer cards */
+.customers-card{flex:1;min-height:0;display:flex;flex-direction:column}
+.customer-grid{
+  display:grid;grid-template-columns:repeat(2,1fr);gap:8px;
+  overflow-y:auto;padding-right:4px;flex:1;
+}
+.cust-card{
+  background:rgba(2,6,23,.45);border:1px solid rgba(148,163,184,.1);
+  border-radius:8px;padding:9px 10px;cursor:pointer;
+  transition:all .25s;display:flex;align-items:center;gap:9px;
+}
+.cust-card:hover{
+  border-color:var(--cyan);
+  background:rgba(34,211,238,.08);
+  transform:translateY(-1px);
+  box-shadow:0 4px 14px rgba(34,211,238,.18);
+}
+.cust-avatar{
+  width:32px;height:32px;border-radius:50%;
+  background:linear-gradient(135deg,var(--purple),var(--cyan));
+  display:grid;place-items:center;font-weight:700;font-size:13px;color:#fff;flex-shrink:0;
+  font-family:'Orbitron',sans-serif;
+}
+.cust-info{min-width:0;flex:1}
+.cust-name{font-size:12px;font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cust-id{font-size:10px;color:var(--text-faint);font-family:'JetBrains Mono',monospace}
+
+/* ===== Center stage / Robot ===== */
+.stage{
+  position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  min-height:0;overflow:hidden;
+  background:radial-gradient(ellipse at center, rgba(168,85,247,.10) 0%, rgba(34,211,238,.05) 30%, transparent 70%);
+}
+.stage::before,.stage::after{
+  content:'';position:absolute;border-radius:50%;
+  border:1px dashed rgba(34,211,238,.2);
+}
+.stage::before{width:75%;aspect-ratio:1;animation:rotate 60s linear infinite}
+.stage::after{width:55%;aspect-ratio:1;animation:rotate 40s linear infinite reverse;border-color:rgba(168,85,247,.18)}
+@keyframes rotate{to{transform:rotate(360deg)}}
+
+.robot-zone{position:relative;width:280px;height:280px;display:grid;place-items:center}
+.robot-svg{width:100%;height:100%;filter:drop-shadow(0 0 20px var(--cyan-glow))}
+.robot-zone.thinking .robot-svg{filter:drop-shadow(0 0 28px var(--purple-glow))}
+.robot-float{animation:float 4s ease-in-out infinite}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+
+.ring{
+  position:absolute;border-radius:50%;border:1.5px solid var(--cyan);
+  opacity:.35;animation:ringRot 12s linear infinite;
+}
+.ring.r1{inset:5%;border-color:rgba(34,211,238,.4)}
+.ring.r2{inset:15%;animation-duration:18s;animation-direction:reverse;border-color:rgba(168,85,247,.45)}
+.ring.r3{inset:-8%;border-style:dashed;border-color:rgba(244,114,182,.3);animation-duration:24s}
+@keyframes ringRot{to{transform:rotate(360deg)}}
+
+.energy-pulse{
+  position:absolute;width:100%;height:100%;border-radius:50%;
+  border:2px solid var(--cyan);opacity:0;
+  animation:energyPulse 3s ease-out infinite;
+  pointer-events:none;
+}
+.energy-pulse:nth-child(2){animation-delay:1s}
+.energy-pulse:nth-child(3){animation-delay:2s}
+@keyframes energyPulse{
+  0%{transform:scale(.6);opacity:.7;border-width:3px}
+  100%{transform:scale(1.4);opacity:0;border-width:0}
+}
+
+.agent-name{
+  position:absolute;top:18px;left:50%;transform:translateX(-50%);
+  font-family:'Orbitron',sans-serif;font-size:14px;letter-spacing:6px;color:var(--cyan);
+  text-shadow:0 0 12px var(--cyan-glow);
+  background:rgba(2,6,23,.6);padding:6px 18px;border-radius:20px;
+  border:1px solid rgba(34,211,238,.3);
+}
+
+.agent-state{
+  position:absolute;bottom:14px;left:50%;transform:translateX(-50%);
+  display:flex;align-items:center;gap:10px;
+  font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:2px;
+  color:var(--text-dim);background:rgba(2,6,23,.7);
+  padding:8px 16px;border-radius:20px;border:1px solid var(--panel-border);
+  text-transform:uppercase;
+  min-width:280px;justify-content:center;text-align:center;
+}
+.agent-state .pip{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green);animation:pulse 1.4s infinite}
+.agent-state.busy .pip{background:var(--amber);box-shadow:0 0 8px var(--amber)}
+
+/* Process card */
+.process{
+  position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) translateY(180px);
+  width:min(560px,80%);background:rgba(2,6,23,.8);border:1px solid var(--panel-border);
+  border-radius:12px;padding:14px 18px;
+  font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--text);
+  backdrop-filter:blur(8px);box-shadow:0 0 30px rgba(34,211,238,.2);
+  display:flex;flex-direction:column;gap:6px;opacity:0;transition:opacity .4s;
+}
+.process.show{opacity:1}
+.process .step{display:flex;align-items:flex-start;gap:9px;padding:3px 0;animation:slideIn .3s ease}
+.process .step .ic{width:14px;height:14px;border-radius:50%;flex-shrink:0;margin-top:2px;
+  background:rgba(34,211,238,.15);border:1.5px solid var(--cyan);position:relative}
+.process .step .ic.done{background:var(--green);border-color:var(--green)}
+.process .step .ic.done::after{content:'';position:absolute;left:3px;top:0px;width:4px;height:8px;border:solid #fff;border-width:0 2px 2px 0;transform:rotate(45deg)}
+.process .step .ic.active{animation:pulse 1.2s infinite}
+.process .step .text{font-size:11.5px;color:var(--text);letter-spacing:.2px}
+.process .step .text strong{color:var(--cyan)}
+
+/* Email envelope flying */
+.env-fly{
+  position:absolute;width:34px;height:24px;background:linear-gradient(135deg,#fbbf24,#f59e0b);
+  border-radius:3px;display:grid;place-items:center;font-size:14px;
+  box-shadow:0 0 18px rgba(245,158,11,.6);z-index:5;
+  pointer-events:none;
+}
+.env-fly::before{content:'✉';color:#451a03;font-weight:bold;font-size:14px}
+
+/* Activity log */
+.log-card{flex-shrink:0;height:170px}
+.log{
+  height:118px;overflow-y:auto;font-family:'JetBrains Mono',monospace;font-size:11.5px;
+  background:rgba(2,6,23,.5);border-radius:8px;padding:10px 12px;
+  border:1px solid rgba(148,163,184,.06);
+}
+.log-line{padding:2px 0;color:var(--text-dim);animation:slideIn .25s ease;line-height:1.5}
+.log-line .ts{color:var(--text-faint);margin-right:8px}
+.log-line.success .msg{color:var(--green)}
+.log-line.warn .msg{color:var(--amber)}
+.log-line.info .msg{color:var(--cyan)}
+.log-line.action .msg{color:var(--purple)}
+
+/* MCP block */
+.mcp-list{display:flex;flex-direction:column;gap:6px;max-height:180px;overflow-y:auto}
+.mcp-item{
+  background:rgba(2,6,23,.4);border:1px solid rgba(148,163,184,.08);
+  border-radius:8px;padding:8px 11px;display:flex;align-items:center;gap:10px;font-size:11.5px;
+  transition:all .3s;
+}
+.mcp-item.active{
+  border-color:var(--green);background:rgba(34,197,94,.08);
+  box-shadow:0 0 14px rgba(34,197,94,.25);
+}
+.mcp-icon{width:26px;height:26px;border-radius:6px;background:linear-gradient(135deg,var(--purple),var(--cyan));display:grid;place-items:center;font-weight:700;font-size:11px;font-family:'Orbitron',sans-serif;color:#fff;flex-shrink:0}
+.mcp-name{font-weight:500;color:var(--text);flex:1}
+.mcp-status{font-size:10px;color:var(--text-faint);font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:1px}
+.mcp-item.active .mcp-status{color:var(--green)}
+
+/* Modal */
+.modal-bg{
+  position:fixed;inset:0;background:rgba(2,6,23,.85);backdrop-filter:blur(8px);
+  display:none;align-items:center;justify-content:center;z-index:50;
+}
+.modal-bg.show{display:flex;animation:fadeIn .25s}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.modal{
+  background:linear-gradient(180deg,rgba(15,23,42,.95),rgba(2,6,23,.95));
+  border:1px solid var(--cyan);border-radius:18px;padding:32px;
+  max-width:560px;width:92%;
+  box-shadow:0 0 60px rgba(34,211,238,.35);
+  position:relative;
+  animation:modalIn .35s cubic-bezier(.2,.9,.3,1.2);
+}
+@keyframes modalIn{from{opacity:0;transform:scale(.92)}to{opacity:1;transform:scale(1)}}
+.modal-close{
+  position:absolute;top:14px;right:16px;background:rgba(239,68,68,.15);
+  color:var(--red);border:1px solid rgba(239,68,68,.3);
+  width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:16px;
+  transition:all .2s;
+}
+.modal-close:hover{background:rgba(239,68,68,.3)}
+.modal-head{display:flex;align-items:center;gap:18px;margin-bottom:24px;padding-bottom:18px;border-bottom:1px solid rgba(34,211,238,.18)}
+.modal-avatar{
+  width:64px;height:64px;border-radius:50%;
+  background:linear-gradient(135deg,var(--purple),var(--cyan));
+  display:grid;place-items:center;font-weight:700;font-size:24px;color:#fff;
+  font-family:'Orbitron',sans-serif;flex-shrink:0;
+  box-shadow:0 0 25px rgba(34,211,238,.45);
+}
+.modal-title h2{font-family:'Orbitron',sans-serif;font-size:20px;font-weight:700;color:var(--text);margin-bottom:4px}
+.modal-title p{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--cyan);letter-spacing:1px}
+.modal-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.modal-field{
+  background:rgba(2,6,23,.5);border:1px solid rgba(148,163,184,.1);
+  border-radius:8px;padding:10px 12px;
+}
+.modal-field.full{grid-column:1/-1}
+.modal-field-label{font-size:10px;color:var(--text-faint);text-transform:uppercase;letter-spacing:1.5px;font-family:'JetBrains Mono',monospace;margin-bottom:4px}
+.modal-field-value{font-size:14px;color:var(--text);font-weight:500}
+.modal-field.highlight{border-color:rgba(34,211,238,.3);background:rgba(34,211,238,.05)}
+
+/* Scrollbars */
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:rgba(2,6,23,.3);border-radius:3px}
+::-webkit-scrollbar-thumb{background:rgba(34,211,238,.3);border-radius:3px}
+::-webkit-scrollbar-thumb:hover{background:rgba(34,211,238,.5)}
+
+/* Ticket list */
+.tickets-list{display:flex;flex-direction:column;gap:6px;max-height:170px;overflow-y:auto}
+.ticket-item{
+  background:rgba(2,6,23,.4);border:1px solid rgba(148,163,184,.08);
+  border-radius:8px;padding:8px 11px;font-size:11.5px;display:flex;flex-direction:column;gap:3px;
+  animation:slideIn .35s ease;
+}
+.ticket-item .row1{display:flex;justify-content:space-between;align-items:center;gap:6px}
+.ticket-id{font-family:'JetBrains Mono',monospace;color:var(--cyan);font-size:10.5px;letter-spacing:.5px}
+.ticket-cat{
+  font-size:9.5px;padding:2px 7px;border-radius:4px;
+  background:rgba(168,85,247,.15);color:var(--purple);border:1px solid rgba(168,85,247,.3);
+  text-transform:uppercase;letter-spacing:1px;font-family:'JetBrains Mono',monospace;
+}
+.ticket-cat.high{background:rgba(239,68,68,.15);color:var(--red);border-color:rgba(239,68,68,.3)}
+.ticket-cat.crit{background:rgba(239,68,68,.25);color:#fca5a5;border-color:rgba(239,68,68,.5)}
+.ticket-cat.med{background:rgba(245,158,11,.15);color:var(--amber);border-color:rgba(245,158,11,.3)}
+.ticket-cat.low{background:rgba(34,197,94,.15);color:var(--green);border-color:rgba(34,197,94,.3)}
+.ticket-subject{color:var(--text);font-weight:500;line-height:1.3}
+.ticket-cust{font-size:10.5px;color:var(--text-faint)}
+
+@media (max-width:1180px){
+  .grid{grid-template-columns:280px 1fr 280px}
+}
+</style>
+</head>
+<body>
+
+<div class="stars3"></div>
+<div class="stars"></div>
+<div class="stars2"></div>
+
+<div class="app">
+  <!-- TOP BAR -->
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-mark"></div>
+      <div class="brand-text">
+        <h1>NEXUS COMMAND CENTER</h1>
+        <p>Autonomous Agent Operations · v3.7</p>
+      </div>
+    </div>
+    <div class="topbar-meta">
+      <div class="status"><span class="dot"></span>AGENT ONLINE</div>
+      <div class="status"><span class="dot cy"></span>MCP CONNECTED</div>
+      <div class="status"><span class="dot pu"></span>LLM ACTIVE</div>
+      <div class="clock" id="clock">00:00:00</div>
+    </div>
+  </header>
+
+  <!-- MAIN GRID -->
+  <div class="grid">
+    <!-- LEFT COLUMN -->
+    <div class="col">
+      <div class="card" style="flex-shrink:0">
+        <div class="card-head">
+          <div class="card-title">📨 Müşteri E-Postaları</div>
+          <div class="card-badge">CANLI</div>
+        </div>
+        <div class="stat-row">
+          <div class="stat">
+            <div class="stat-num amber" id="emailUnread">0</div>
+            <div class="stat-lbl">Bekleyen</div>
+          </div>
+          <div class="stat">
+            <div class="stat-num green" id="emailDone">0</div>
+            <div class="stat-lbl">İşlendi</div>
+          </div>
+        </div>
+        <div class="email-list" id="emailList"></div>
+      </div>
+
+      <div class="card customers-card">
+        <div class="card-head">
+          <div class="card-title">👥 Müşteri Veritabanı</div>
+          <div class="card-badge" id="custCount">0</div>
+        </div>
+        <div class="customer-grid" id="customerGrid"></div>
+      </div>
+    </div>
+
+    <!-- CENTER STAGE -->
+    <div class="card stage">
+      <div class="agent-name">⬢ AGENT NEXUS-7 ⬢</div>
+      <div class="robot-zone" id="robotZone">
+        <div class="ring r3"></div>
+        <div class="ring r2"></div>
+        <div class="ring r1"></div>
+
+        <div class="energy-pulse"></div>
+        <div class="energy-pulse"></div>
+        <div class="energy-pulse"></div>
+
+        <svg class="robot-svg robot-float" viewBox="0 0 200 200">
+          <defs>
+            <radialGradient id="core" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stop-color="#fff"/>
+              <stop offset="30%" stop-color="#22d3ee"/>
+              <stop offset="100%" stop-color="#0e7490"/>
+            </radialGradient>
+            <linearGradient id="body" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#475569"/>
+              <stop offset="50%" stop-color="#1e293b"/>
+              <stop offset="100%" stop-color="#0f172a"/>
+            </linearGradient>
+            <linearGradient id="visor" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#22d3ee"/>
+              <stop offset="100%" stop-color="#a855f7"/>
+            </linearGradient>
+            <filter id="glow"><feGaussianBlur stdDeviation="2.5"/></filter>
+          </defs>
+
+          <!-- Outer halo -->
+          <circle cx="100" cy="100" r="78" fill="none" stroke="url(#visor)" stroke-width="0.5" opacity="0.4"/>
+          <circle cx="100" cy="100" r="68" fill="none" stroke="#22d3ee" stroke-width="0.4" opacity="0.3" stroke-dasharray="4 6"/>
+
+          <!-- Antennas -->
+          <line x1="80" y1="40" x2="76" y2="22" stroke="#94a3b8" stroke-width="1.4"/>
+          <circle cx="76" cy="22" r="3.5" fill="#22d3ee" filter="url(#glow)"/>
+          <line x1="120" y1="40" x2="124" y2="22" stroke="#94a3b8" stroke-width="1.4"/>
+          <circle cx="124" cy="22" r="3.5" fill="#a855f7" filter="url(#glow)"/>
+
+          <!-- Head -->
+          <rect x="62" y="40" width="76" height="62" rx="14" fill="url(#body)" stroke="#334155" stroke-width="1"/>
+          <rect x="62" y="40" width="76" height="3" fill="#22d3ee" opacity="0.5"/>
+
+          <!-- Visor -->
+          <rect x="70" y="56" width="60" height="28" rx="6" fill="#020617" stroke="#22d3ee" stroke-width="1"/>
+          <rect x="72" y="58" width="56" height="24" rx="4" fill="url(#visor)" opacity="0.92"/>
+          <!-- Eyes -->
+          <circle cx="86" cy="70" r="5.5" fill="#fff" id="eyeL"/>
+          <circle cx="86" cy="70" r="2.5" fill="#0f172a"/>
+          <circle cx="114" cy="70" r="5.5" fill="#fff" id="eyeR"/>
+          <circle cx="114" cy="70" r="2.5" fill="#0f172a"/>
+
+          <!-- Mouth grille -->
+          <rect x="84" y="89" width="32" height="6" rx="2" fill="#020617" stroke="#475569" stroke-width="0.6"/>
+          <line x1="88" y1="89" x2="88" y2="95" stroke="#22d3ee" stroke-width="0.5" opacity=".7"/>
+          <line x1="94" y1="89" x2="94" y2="95" stroke="#22d3ee" stroke-width="0.5" opacity=".7"/>
+          <line x1="100" y1="89" x2="100" y2="95" stroke="#22d3ee" stroke-width="0.5" opacity=".7"/>
+          <line x1="106" y1="89" x2="106" y2="95" stroke="#22d3ee" stroke-width="0.5" opacity=".7"/>
+          <line x1="112" y1="89" x2="112" y2="95" stroke="#22d3ee" stroke-width="0.5" opacity=".7"/>
+
+          <!-- Neck -->
+          <rect x="92" y="102" width="16" height="6" fill="#334155"/>
+
+          <!-- Chest -->
+          <path d="M 50 110 Q 100 100 150 110 L 150 158 Q 100 168 50 158 Z" fill="url(#body)" stroke="#334155" stroke-width="1"/>
+
+          <!-- Arc reactor (core) -->
+          <circle cx="100" cy="135" r="15" fill="url(#core)" filter="url(#glow)" id="coreCircle">
+            <animate attributeName="r" values="14;16;14" dur="1.6s" repeatCount="indefinite"/>
+          </circle>
+          <circle cx="100" cy="135" r="20" fill="none" stroke="#22d3ee" stroke-width="1" opacity=".7"/>
+          <circle cx="100" cy="135" r="24" fill="none" stroke="#22d3ee" stroke-width="0.4" opacity=".4" stroke-dasharray="2 3"/>
+
+          <!-- Shoulder pads -->
+          <circle cx="50" cy="118" r="8" fill="#334155" stroke="#22d3ee" stroke-width="0.6"/>
+          <circle cx="50" cy="118" r="3" fill="#22d3ee" filter="url(#glow)"/>
+          <circle cx="150" cy="118" r="8" fill="#334155" stroke="#a855f7" stroke-width="0.6"/>
+          <circle cx="150" cy="118" r="3" fill="#a855f7" filter="url(#glow)"/>
+
+          <!-- Side vents -->
+          <rect x="55" y="135" width="3" height="14" rx="1" fill="#22d3ee" opacity=".7"/>
+          <rect x="142" y="135" width="3" height="14" rx="1" fill="#a855f7" opacity=".7"/>
+
+          <!-- Lower hover trail (replacing legs) -->
+          <ellipse cx="100" cy="172" rx="40" ry="6" fill="url(#core)" opacity=".5">
+            <animate attributeName="rx" values="38;44;38" dur="2.4s" repeatCount="indefinite"/>
+            <animate attributeName="opacity" values=".3;.6;.3" dur="2.4s" repeatCount="indefinite"/>
+          </ellipse>
+          <ellipse cx="100" cy="178" rx="28" ry="3" fill="#22d3ee" opacity=".4"/>
+        </svg>
+      </div>
+      <div class="agent-state" id="agentState"><span class="pip"></span><span id="agentStateText">SİSTEM HAZIR · BEKLEMEDE</span></div>
+      <div class="process" id="process"></div>
+    </div>
+
+    <!-- RIGHT COLUMN -->
+    <div class="col">
+      <div class="card" style="flex-shrink:0">
+        <div class="card-head">
+          <div class="card-title">🎫 Ticket Yönetimi</div>
+          <div class="card-badge">CRM</div>
+        </div>
+        <div class="stat-row">
+          <div class="stat"><div class="stat-num purple" id="tkTotal">0</div><div class="stat-lbl">Toplam</div></div>
+          <div class="stat"><div class="stat-num amber" id="tkOpen">0</div><div class="stat-lbl">Açık</div></div>
+          <div class="stat"><div class="stat-num green" id="tkClosed">0</div><div class="stat-lbl">Kapalı</div></div>
+        </div>
+        <div class="tickets-list" id="ticketsList"></div>
+      </div>
+
+      <div class="card" style="flex-shrink:0">
+        <div class="card-head">
+          <div class="card-title">⚙ Devam Eden Operasyonlar</div>
+          <div class="card-badge" id="opsBadge">0</div>
+        </div>
+        <div class="stat-row">
+          <div class="stat"><div class="stat-num" id="opsActive">0</div><div class="stat-lbl">Aktif</div></div>
+          <div class="stat"><div class="stat-num green" id="opsDone">0</div><div class="stat-lbl">Tamamlanan</div></div>
+        </div>
+      </div>
+
+      <div class="card" style="flex:1;min-height:0">
+        <div class="card-head">
+          <div class="card-title">🔌 MCP Bağlantıları</div>
+          <div class="card-badge">7 / 7</div>
+        </div>
+        <div class="mcp-list" id="mcpList"></div>
+      </div>
+    </div>
+
+    <!-- BOTTOM ROW: ACTIVITY LOG -->
+    <div class="card log-card" style="grid-column:1 / -1">
+      <div class="card-head">
+        <div class="card-title">📡 Canlı Aktivite Akışı</div>
+        <div class="card-badge">REAL-TIME</div>
+      </div>
+      <div class="log" id="log"></div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL -->
+<div class="modal-bg" id="modal">
+  <div class="modal" id="modalContent"></div>
+</div>
+
+<script>
+// ============== CUSTOMERS ==============
+const customers = [
+  {id:'CUS-001',name:'Mehmet Yılmaz',joined:'2019-03-14',gender:'Erkek',email:'mehmet.yilmaz@example.com',phone:'+90 532 145 78 23',address:'Atatürk Cad. No:42 Daire:8, Beşiktaş / İstanbul',segment:'Gold',totalSpend:'₺ 124.500'},
+  {id:'CUS-002',name:'Ayşe Demir',joined:'2021-07-08',gender:'Kadın',email:'ayse.demir@example.com',phone:'+90 533 887 41 90',address:'İnönü Mah. Çiçek Sok. No:15, Çankaya / Ankara',segment:'Platinum',totalSpend:'₺ 287.300'},
+  {id:'CUS-003',name:'Hasan Kaya',joined:'2020-11-22',gender:'Erkek',email:'hasan.kaya@example.com',phone:'+90 535 224 19 56',address:'Cumhuriyet Bulv. No:108 Kat:3, Konak / İzmir',segment:'Silver',totalSpend:'₺ 48.200'},
+  {id:'CUS-004',name:'Zeynep Şahin',joined:'2018-05-03',gender:'Kadın',email:'zeynep.sahin@example.com',phone:'+90 542 901 33 78',address:'Bahçelievler Mah. Lale Sok. No:7, Bahçelievler / İstanbul',segment:'Gold',totalSpend:'₺ 156.700'},
+  {id:'CUS-005',name:'Burak Öztürk',joined:'2022-02-17',gender:'Erkek',email:'burak.ozturk@example.com',phone:'+90 538 619 24 11',address:'Karşıyaka Mah. Deniz Cad. No:88, Karşıyaka / İzmir',segment:'Silver',totalSpend:'₺ 32.100'},
+  {id:'CUS-006',name:'Selin Yıldız',joined:'2020-09-30',gender:'Kadın',email:'selin.yildiz@example.com',phone:'+90 537 482 60 35',address:'Maslak Mah. Endüstri Sok. No:5 D:12, Sarıyer / İstanbul',segment:'Platinum',totalSpend:'₺ 312.450'},
+  {id:'CUS-007',name:'Cem Aydın',joined:'2017-12-11',gender:'Erkek',email:'cem.aydin@example.com',phone:'+90 533 712 88 02',address:'Yenimahalle Mh. Anafartalar Cd. No:33, Yenimahalle / Ankara',segment:'Gold',totalSpend:'₺ 198.900'},
+  {id:'CUS-008',name:'Elif Çelik',joined:'2023-04-26',gender:'Kadın',email:'elif.celik@example.com',phone:'+90 541 304 71 19',address:'Bornova Mh. Üniversite Cd. No:12, Bornova / İzmir',segment:'Bronze',totalSpend:'₺ 18.600'},
+  {id:'CUS-009',name:'Onur Kara',joined:'2019-08-15',gender:'Erkek',email:'onur.kara@example.com',phone:'+90 534 998 12 47',address:'Etiler Mh. Nispetiye Cd. No:64, Beşiktaş / İstanbul',segment:'Gold',totalSpend:'₺ 142.700'},
+  {id:'CUS-010',name:'Pınar Doğan',joined:'2021-01-09',gender:'Kadın',email:'pinar.dogan@example.com',phone:'+90 532 067 53 84',address:'Çankaya Mh. Tunalı Hilmi Cd. No:91, Çankaya / Ankara',segment:'Silver',totalSpend:'₺ 56.400'},
+  {id:'CUS-011',name:'Tolga Arslan',joined:'2018-10-04',gender:'Erkek',email:'tolga.arslan@example.com',phone:'+90 535 451 99 26',address:'Kadıköy Mh. Bağdat Cd. No:172, Kadıköy / İstanbul',segment:'Platinum',totalSpend:'₺ 401.200'},
+  {id:'CUS-012',name:'Merve Güneş',joined:'2022-06-21',gender:'Kadın',email:'merve.gunes@example.com',phone:'+90 537 218 65 09',address:'Alsancak Mh. Kıbrıs Şehitleri Cd. No:25, Konak / İzmir',segment:'Silver',totalSpend:'₺ 67.800'}
+];
+
+// ============== EMAIL TEMPLATES ==============
+const emailTemplates = [
+  {subj:'Adres bilgilerimi güncellemek istiyorum',body:'Yeni taşındım, sistemdeki adres bilgilerimi güncellemek istiyorum.',action:'mcp',mcp:'CRM-Update',category:null,priority:null,desc:'Adres güncellendi'},
+  {subj:'Şifremi unuttum, sıfırlamam gerekiyor',body:'Hesabıma giriş yapamıyorum, şifre sıfırlama bağlantısı gönderebilir misiniz?',action:'mcp',mcp:'Auth-Service',category:null,priority:null,desc:'Şifre sıfırlama maili gönderildi'},
+  {subj:'Sipariş #4823 nerede?',body:'10 gün önce sipariş verdim, henüz elime ulaşmadı. Durumu öğrenebilir miyim?',action:'mcp',mcp:'Order-Tracker',category:null,priority:null,desc:'Kargo bilgisi paylaşıldı'},
+  {subj:'Faturamın PDF kopyasını rica ediyorum',body:'Haziran ayı faturamın PDF dökümünü mail olarak gönderebilir misiniz?',action:'mcp',mcp:'Billing-API',category:null,priority:null,desc:'Fatura PDF maili gönderildi'},
+  {subj:'Premium üyelik özellikleri hakkında bilgi',body:'Premium üyeliğin avantajlarını öğrenmek istiyorum.',action:'mcp',mcp:'Sales-Catalog',category:null,priority:null,desc:'Bilgilendirme maili gönderildi'},
+  {subj:'Geçen haftaki ürünü iade etmek istiyorum',body:'Aldığım ürün beklediğim gibi değil, iade etmek istiyorum.',action:'ticket',mcp:null,category:'İade Talebi',priority:'med',desc:'İade talebi ticket\'ı oluşturuldu'},
+  {subj:'Ürünüm 2 haftadır gelmedi, çok kızgınım!',body:'Bu kabul edilemez, hemen müdahale edin yoksa şikayet edeceğim.',action:'ticket',mcp:null,category:'Şikayet',priority:'high',desc:'Yüksek öncelikli şikayet ticket\'ı oluşturuldu'},
+  {subj:'Ödeme yöntemini değiştirmek istiyorum',body:'Otomatik ödeme yöntemimi banka hesabımdan kredi kartına çevirmek istiyorum.',action:'ticket',mcp:null,category:'Hesap İşlemleri',priority:'med',desc:'Hesap işlemleri ticket\'ı oluşturuldu'},
+  {subj:'Üyeliğimi tamamen iptal etmek istiyorum',body:'Sistemden tamamen ayrılmak istiyorum, lütfen yardımcı olun.',action:'ticket',mcp:null,category:'Üyelik İşlemleri',priority:'low',desc:'Üyelik iptali ticket\'ı oluşturuldu'},
+  {subj:'Kampanya kuponum sepete eklenmiyor',body:'WELCOME20 kuponunu deniyorum ama hata veriyor.',action:'ticket',mcp:null,category:'Teknik Destek',priority:'med',desc:'Teknik destek ticket\'ı oluşturuldu'},
+  {subj:'Hesabımda izinsiz işlem var!',body:'Bu sabah hesabımdan benim yapmadığım bir işlem görüyorum, derhal müdahale edin.',action:'ticket',mcp:null,category:'Güvenlik',priority:'crit',desc:'Kritik öncelikli güvenlik ticket\'ı oluşturuldu'},
+  {subj:'Aboneliğimi yıllığa çevirmek istiyorum',body:'Aylık aboneliği yıllık plana çevirip indirimden yararlanmak istiyorum.',action:'mcp',mcp:'Subscription-API',category:null,priority:null,desc:'Abonelik planı güncellendi'}
+];
+
+// ============== STATE ==============
+const state = {
+  emails:{queue:[],unread:0,done:0},
+  ops:{active:0,done:0},
+  tickets:{total:0,open:0,closed:0,list:[]},
+  agentBusy:false
+};
+const ticketCounter = ()=>String(10240+state.tickets.total).padStart(5,'0');
+
+const mcpServices = [
+  {code:'CRM',name:'CRM-Update',desc:'Müşteri Verisi'},
+  {code:'AUT',name:'Auth-Service',desc:'Kimlik Doğrulama'},
+  {code:'ORD',name:'Order-Tracker',desc:'Sipariş Takip'},
+  {code:'BIL',name:'Billing-API',desc:'Fatura'},
+  {code:'SAL',name:'Sales-Catalog',desc:'Satış / Katalog'},
+  {code:'SUB',name:'Subscription-API',desc:'Abonelik'},
+  {code:'NOT',name:'Notification-Hub',desc:'Bildirim'}
+];
+
+// ============== INIT ==============
+function initCustomerGrid(){
+  const grid = document.getElementById('customerGrid');
+  customers.forEach(c=>{
+    const initials = c.name.split(' ').map(s=>s[0]).join('').slice(0,2);
+    const el = document.createElement('div');
+    el.className='cust-card';
+    el.innerHTML = `<div class="cust-avatar">${initials}</div>
+      <div class="cust-info">
+        <div class="cust-name">${c.name}</div>
+        <div class="cust-id">${c.id} · ${c.segment}</div>
+      </div>`;
+    el.onclick = ()=>openCustomer(c);
+    grid.appendChild(el);
+  });
+  document.getElementById('custCount').textContent = customers.length;
+}
+function initMCP(){
+  const list = document.getElementById('mcpList');
+  mcpServices.forEach(s=>{
+    const el=document.createElement('div');
+    el.className='mcp-item';
+    el.dataset.name = s.name;
+    el.innerHTML = `<div class="mcp-icon">${s.code}</div>
+      <div class="mcp-name">${s.name}<div style="font-size:10px;color:var(--text-faint);font-weight:400">${s.desc}</div></div>
+      <div class="mcp-status">HAZIR</div>`;
+    list.appendChild(el);
+  });
+}
+
+// ============== MODAL ==============
+function openCustomer(c){
+  const m = document.getElementById('modal');
+  const initials = c.name.split(' ').map(s=>s[0]).join('').slice(0,2);
+  document.getElementById('modalContent').innerHTML = `
+    <button class="modal-close" onclick="closeModal()">×</button>
+    <div class="modal-head">
+      <div class="modal-avatar">${initials}</div>
+      <div class="modal-title"><h2>${c.name}</h2><p>${c.id} · ${c.segment} Segment</p></div>
+    </div>
+    <div class="modal-grid">
+      <div class="modal-field"><div class="modal-field-label">Müşteri Olma Tarihi</div><div class="modal-field-value">${c.joined}</div></div>
+      <div class="modal-field"><div class="modal-field-label">Cinsiyet</div><div class="modal-field-value">${c.gender}</div></div>
+      <div class="modal-field"><div class="modal-field-label">E-posta</div><div class="modal-field-value">${c.email}</div></div>
+      <div class="modal-field"><div class="modal-field-label">Cep Telefonu</div><div class="modal-field-value">${c.phone}</div></div>
+      <div class="modal-field full"><div class="modal-field-label">Adres</div><div class="modal-field-value">${c.address}</div></div>
+      <div class="modal-field highlight"><div class="modal-field-label">Toplam Harcama</div><div class="modal-field-value">${c.totalSpend}</div></div>
+      <div class="modal-field highlight"><div class="modal-field-label">Segment</div><div class="modal-field-value">${c.segment}</div></div>
+    </div>`;
+  m.classList.add('show');
+}
+function closeModal(){document.getElementById('modal').classList.remove('show')}
+document.getElementById('modal').onclick = e=>{if(e.target.id==='modal')closeModal()};
+
+// ============== UI HELPERS ==============
+function flash(elId){
+  const el=document.getElementById(elId);
+  el.classList.add('flash');setTimeout(()=>el.classList.remove('flash'),350);
+}
+function updateStats(){
+  const setN = (id,v)=>{const el=document.getElementById(id);if(el.textContent!=String(v)){el.textContent=v;flash(id);}};
+  setN('emailUnread',state.emails.unread);
+  setN('emailDone',state.emails.done);
+  setN('tkTotal',state.tickets.total);
+  setN('tkOpen',state.tickets.open);
+  setN('tkClosed',state.tickets.closed);
+  setN('opsActive',state.ops.active);
+  setN('opsDone',state.ops.done);
+  document.getElementById('opsBadge').textContent = state.ops.active;
+}
+
+function logLine(msg, type=''){
+  const log = document.getElementById('log');
+  const ts = new Date().toLocaleTimeString('tr-TR');
+  const el = document.createElement('div');
+  el.className = 'log-line '+type;
+  el.innerHTML = `<span class="ts">[${ts}]</span><span class="msg">${msg}</span>`;
+  log.insertBefore(el, log.firstChild);
+  while(log.children.length>40) log.removeChild(log.lastChild);
+}
+
+// ============== EMAIL FLOW ==============
+let emailCounter = 0;
+function pickRandomCustomer(){return customers[Math.floor(Math.random()*customers.length)]}
+function pickRandomTemplate(){return emailTemplates[Math.floor(Math.random()*emailTemplates.length)]}
+
+function generateEmail(){
+  if(state.emails.queue.length>=8) return;
+  const c = pickRandomCustomer();
+  const t = pickRandomTemplate();
+  const e = {
+    id:'EML-'+(++emailCounter).toString().padStart(4,'0'),
+    customer:c, subj:t.subj, body:t.body, tpl:t,
+    status:'unread'
+  };
+  state.emails.queue.push(e);
+  state.emails.unread++;
+  renderEmails();
+  updateStats();
+  logLine(`📥 Yeni e-posta · <b>${c.name}</b> · "${t.subj}"`, 'info');
+}
+
+function renderEmails(){
+  const list = document.getElementById('emailList');
+  list.innerHTML = '';
+  state.emails.queue.slice().reverse().forEach(e=>{
+    const el = document.createElement('div');
+    el.className = 'email-item' + (e.status==='processing' ? ' processing' : '') + (e.status==='done' ? ' done' : '');
+    el.id = 'em-'+e.id;
+    el.innerHTML = `<div class="email-from">${e.customer.name} · ${e.id}</div>
+      <div class="email-subject">${e.subj}</div>
+      <div class="email-preview">${e.body}</div>`;
+    list.appendChild(el);
+  });
+}
+
+// ============== AGENT PROCESS ==============
+function setAgentState(text, busy=false){
+  document.getElementById('agentStateText').textContent = text;
+  const s = document.getElementById('agentState');
+  s.className = 'agent-state' + (busy?' busy':'');
+}
+function showProcess(steps){
+  const p = document.getElementById('process');
+  p.innerHTML = '';
+  steps.forEach((s)=>{
+    const d = document.createElement('div');
+    d.className='step';
+    d.innerHTML = `<div class="ic"></div><div class="text">${s}</div>`;
+    p.appendChild(d);
+  });
+  p.classList.add('show');
+}
+function markStep(i, active=true){
+  const p = document.getElementById('process');
+  const steps = p.querySelectorAll('.step .ic');
+  steps.forEach((ic, idx)=>{
+    ic.classList.remove('active');
+    if(idx<i) ic.classList.add('done');
+    else if(idx===i && active) ic.classList.add('active');
+  });
+}
+function hideProcess(){document.getElementById('process').classList.remove('show')}
+
+function flyEmail(emailEl, robotEl){
+  if(!emailEl) return;
+  const r1 = emailEl.getBoundingClientRect();
+  const r2 = robotEl.getBoundingClientRect();
+  const env = document.createElement('div');
+  env.className = 'env-fly';
+  env.style.left = r1.left+'px';
+  env.style.top = (r1.top+10)+'px';
+  document.body.appendChild(env);
+  env.animate([
+    {left:r1.left+'px', top:(r1.top+10)+'px', transform:'rotate(-12deg) scale(1)'},
+    {left:(r2.left+r2.width/2-17)+'px', top:(r2.top+r2.height/2-12)+'px', transform:'rotate(180deg) scale(.6)', opacity:0}
+  ],{duration:1400, easing:'cubic-bezier(.5,0,.5,1)'});
+  setTimeout(()=>env.remove(),1400);
+}
+function flyTicket(robotEl){
+  const tkPanel = document.querySelector('.tickets-list');
+  if(!tkPanel) return;
+  const r1 = robotEl.getBoundingClientRect();
+  const r2 = tkPanel.getBoundingClientRect();
+  const env = document.createElement('div');
+  env.className = 'env-fly';
+  env.style.background = 'linear-gradient(135deg,#a855f7,#7c3aed)';
+  env.style.boxShadow = '0 0 18px rgba(168,85,247,.7)';
+  env.innerHTML = '🎫';
+  env.style.left = (r1.left+r1.width/2-17)+'px';
+  env.style.top = (r1.top+r1.height/2-12)+'px';
+  document.body.appendChild(env);
+  env.animate([
+    {left:(r1.left+r1.width/2-17)+'px', top:(r1.top+r1.height/2-12)+'px', transform:'scale(.6) rotate(0)'},
+    {left:r2.left+'px', top:r2.top+'px', transform:'scale(1) rotate(360deg)', opacity:0}
+  ],{duration:1300, easing:'cubic-bezier(.4,0,.4,1)'});
+  setTimeout(()=>env.remove(),1300);
+}
+
+function activateMCP(name){
+  const el = document.querySelector(`.mcp-item[data-name="${name}"]`);
+  if(!el) return;
+  el.classList.add('active');
+  el.querySelector('.mcp-status').textContent = '⬢ AKTİF';
+  setTimeout(()=>{
+    el.classList.remove('active');
+    el.querySelector('.mcp-status').textContent = 'HAZIR';
+  }, 2500);
+}
+
+const sleep = ms => new Promise(r=>setTimeout(r,ms));
+
+async function processEmail(){
+  if(state.agentBusy) return;
+  if(state.emails.queue.length===0) return;
+  state.agentBusy = true;
+  document.getElementById('robotZone').classList.add('thinking');
+
+  const e = state.emails.queue.shift();
+  e.status = 'processing';
+  state.emails.unread--;
+  state.ops.active++;
+  renderEmails();
+  updateStats();
+
+  // Fly the email to the robot
+  const emailEl = document.getElementById('em-'+e.id);
+  const robotEl = document.getElementById('robotZone');
+  flyEmail(emailEl, robotEl);
+
+  setAgentState(`E-POSTA ALINDI · ${e.id}`, true);
+  showProcess([
+    `Mesaj alındı: <strong>${e.id}</strong> · gönderen <strong>${e.customer.name}</strong>`,
+    `LLM analiz ediliyor: niyet, kategori, müşteri eşleştirmesi`,
+    e.tpl.action==='mcp'
+      ? `MCP çağrısı: <strong>${e.tpl.mcp}</strong>`
+      : `Ticket oluşturuluyor · kategori: <strong>${e.tpl.category}</strong>`,
+    `Yanıt müşteriye iletiliyor`
+  ]);
+
+  await sleep(1400);
+  markStep(0); markStep(1, true);
+  logLine(`🤖 NEXUS-7 e-postayı analiz ediyor · ${e.id}`, 'action');
+
+  await sleep(1500);
+  markStep(2, true);
+
+  if(e.tpl.action === 'mcp'){
+    activateMCP(e.tpl.mcp);
+    logLine(`🔌 MCP çağrısı: <b>${e.tpl.mcp}</b> · ${e.tpl.desc}`, 'action');
+    await sleep(1600);
+    markStep(3, true);
+    await sleep(900);
+    state.ops.active--;
+    state.ops.done++;
+    state.emails.done++;
+    e.status = 'done';
+    logLine(`✅ Otomatik işlem tamamlandı · ${e.customer.name} · ${e.tpl.desc}`, 'success');
+    setAgentState(`✓ İŞLEM TAMAMLANDI · ${e.id}`, false);
+  } else {
+    const tk = {
+      id:'TKT-'+ticketCounter(),
+      cust:e.customer.name,
+      subj:e.subj,
+      cat:e.tpl.category,
+      pri:e.tpl.priority
+    };
+    state.tickets.list.unshift(tk);
+    state.tickets.total++;
+    state.tickets.open++;
+    flyTicket(robotEl);
+    renderTickets();
+    logLine(`🎫 Ticket oluşturuldu: <b>${tk.id}</b> · ${e.tpl.category} · öncelik: ${e.tpl.priority.toUpperCase()}`, 'warn');
+    await sleep(1500);
+    markStep(3, true);
+    await sleep(800);
+    state.ops.active--;
+    state.ops.done++;
+    state.emails.done++;
+    e.status = 'done';
+    setAgentState(`⬢ TICKET ATAMALI · ${tk.id}`, false);
+    // Bazı ticketları otomatik kapat (simülasyon)
+    if(Math.random()<0.35){
+      setTimeout(()=>{
+        if(state.tickets.open>0){
+          state.tickets.open--;
+          state.tickets.closed++;
+          logLine(`✓ Ticket çözüldü: <b>${tk.id}</b> · ilgili ekip kapattı`, 'success');
+          updateStats();
+        }
+      }, 6000+Math.random()*8000);
+    }
+  }
+  markStep(4);
+  updateStats();
+  renderEmails();
+
+  await sleep(1800);
+  hideProcess();
+  setAgentState('SİSTEM HAZIR · BEKLEMEDE', false);
+  document.getElementById('robotZone').classList.remove('thinking');
+  state.agentBusy = false;
+}
+
+function renderTickets(){
+  const list = document.getElementById('ticketsList');
+  list.innerHTML = '';
+  state.tickets.list.slice(0,10).forEach(t=>{
+    const el = document.createElement('div');
+    el.className='ticket-item';
+    el.innerHTML = `<div class="row1">
+      <span class="ticket-id">${t.id}</span>
+      <span class="ticket-cat ${t.pri}">${t.cat}</span>
+    </div>
+    <div class="ticket-subject">${t.subj}</div>
+    <div class="ticket-cust">${t.cust}</div>`;
+    list.appendChild(el);
+  });
+}
+
+// ============== CLOCK ==============
+function tickClock(){
+  const d = new Date();
+  document.getElementById('clock').textContent = d.toLocaleTimeString('tr-TR',{hour12:false});
+}
+setInterval(tickClock,1000); tickClock();
+
+// ============== BOOT ==============
+initCustomerGrid();
+initMCP();
+logLine('⬢ NEXUS-7 başlatıldı · MCP servisleri yüklendi · LLM ısınıyor', 'info');
+setTimeout(()=>logLine('✓ Tüm sistemler aktif · agent dinleme moduna geçti', 'success'), 1200);
+
+// İlk emailler ve döngü
+setTimeout(()=>{ generateEmail(); generateEmail(); }, 2000);
+setInterval(generateEmail, 5500);
+setInterval(processEmail, 1500);
+
+</script>
+</body>
+</html>
