@@ -1,0 +1,1439 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>How a Transformer Thinks — C-Level Scenario</title>
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:        #F7F5F2;
+  --surface:   #FFFFFF;
+  --surface2:  #F0EDE8;
+  --border:    #E4DED6;
+
+  --indigo:    #4F5FA8;
+  --indigo-lt: #EEF0FA;
+  --rose:      #B95B7A;
+  --rose-lt:   #FAEDF2;
+  --teal:      #3A8C82;
+  --teal-lt:   #E6F4F2;
+  --amber:     #B07C2E;
+  --amber-lt:  #FDF4E3;
+  --violet:    #7B5EA7;
+  --violet-lt: #F3EFF9;
+  --sage:      #4E7C5F;
+  --sage-lt:   #EBF4EE;
+
+  --text:      #2C2820;
+  --text-2:    #5C5248;
+  --text-3:    #8C8178;
+
+  --mono:      'JetBrains Mono', monospace;
+  --serif:     'Lora', Georgia, serif;
+  --sans:      'Plus Jakarta Sans', sans-serif;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { font-size: 17px; scroll-behavior: smooth; }
+
+body {
+  font-family: var(--sans);
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.7;
+}
+
+/* ─── PROGRESS ─── */
+#prog {
+  position: fixed; top: 0; left: 0; height: 3px; width: 0;
+  background: linear-gradient(90deg, var(--indigo), var(--rose));
+  z-index: 999; transition: width .1s linear;
+}
+
+/* ─── HERO ─── */
+.hero {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 5rem 2rem 4rem;
+  text-align: center;
+}
+
+.hero-chip {
+  display: inline-block;
+  font-size: .72rem;
+  letter-spacing: .15em;
+  text-transform: uppercase;
+  color: var(--indigo);
+  background: var(--indigo-lt);
+  border: 1px solid #C5CAEB;
+  border-radius: 99px;
+  padding: .3rem .9rem;
+  margin-bottom: 1.8rem;
+}
+
+.hero h1 {
+  font-family: var(--serif);
+  font-size: clamp(2.2rem, 5vw, 3.6rem);
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--text);
+  margin-bottom: 1.2rem;
+}
+
+.hero h1 em {
+  font-style: italic;
+  color: var(--indigo);
+}
+
+.hero-sub {
+  font-size: 1.05rem;
+  color: var(--text-2);
+  max-width: 620px;
+  margin: 0 auto 2.5rem;
+  line-height: 1.8;
+}
+
+.hero-scenario {
+  display: inline-flex;
+  align-items: center;
+  gap: .75rem;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1rem 1.6rem;
+  font-family: var(--serif);
+  font-size: 1.05rem;
+  font-style: italic;
+  color: var(--text-2);
+  max-width: 680px;
+}
+
+.hero-scenario strong {
+  font-style: normal;
+  color: var(--indigo);
+  font-weight: 600;
+}
+
+/* ─── TOC ─── */
+.toc {
+  max-width: 900px;
+  margin: 2.5rem auto;
+  padding: 0 2rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: .5rem;
+  justify-content: center;
+}
+
+.toc a {
+  text-decoration: none;
+  font-size: .8rem;
+  font-weight: 500;
+  color: var(--text-2);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 99px;
+  padding: .3rem .9rem;
+  transition: all .2s;
+}
+.toc a:hover { background: var(--indigo); color: white; border-color: var(--indigo); }
+
+/* ─── LAYOUT ─── */
+.page { max-width: 960px; margin: 0 auto; padding: 0 2rem 6rem; }
+
+/* ─── SECTION ─── */
+.section { padding: 5rem 0 1rem; }
+
+.section-label {
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+  margin-bottom: 1rem;
+}
+
+.step-badge {
+  width: 2rem; height: 2rem;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: .75rem; font-weight: 600;
+  flex-shrink: 0;
+}
+
+.section-tag {
+  font-size: .7rem;
+  letter-spacing: .15em;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+.section h2 {
+  font-family: var(--serif);
+  font-size: clamp(1.6rem, 3vw, 2.2rem);
+  font-weight: 700;
+  line-height: 1.25;
+  margin-bottom: .5rem;
+}
+
+.section h2 .en {
+  font-size: .6em;
+  font-family: var(--sans);
+  font-weight: 400;
+  color: var(--text-3);
+  font-style: normal;
+  display: block;
+  margin-top: .15rem;
+  letter-spacing: .03em;
+}
+
+.section-intro {
+  font-size: 1rem;
+  color: var(--text-2);
+  max-width: 700px;
+  line-height: 1.8;
+  margin-bottom: 2.5rem;
+}
+
+/* ─── CARDS ─── */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 2rem;
+  margin-bottom: 1.5rem;
+}
+
+.card-title {
+  font-family: var(--serif);
+  font-size: 1.05rem;
+  font-weight: 600;
+  margin-bottom: 1.2rem;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+}
+
+.card-title .tag {
+  font-family: var(--sans);
+  font-size: .68rem;
+  font-weight: 500;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  padding: .2rem .6rem;
+  border-radius: 4px;
+}
+
+/* ─── ANALOGY ─── */
+.analogy {
+  border-left: 3px solid var(--amber);
+  background: var(--amber-lt);
+  border-radius: 0 10px 10px 0;
+  padding: 1.2rem 1.5rem;
+  margin-bottom: 2rem;
+  font-size: .95rem;
+  line-height: 1.8;
+  color: var(--text-2);
+}
+.analogy strong { color: var(--amber); }
+.analogy-label {
+  font-size: .68rem;
+  letter-spacing: .15em;
+  text-transform: uppercase;
+  color: var(--amber);
+  font-weight: 600;
+  margin-bottom: .4rem;
+}
+
+/* ─── TOKEN STRIP ─── */
+.token-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .5rem;
+  margin: 1.2rem 0;
+}
+
+.tok {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: .25rem;
+}
+
+.tok-bubble {
+  padding: .35rem .8rem;
+  border-radius: 8px;
+  font-family: var(--mono);
+  font-size: .85rem;
+  font-weight: 500;
+  border: 1.5px solid;
+  cursor: default;
+  transition: transform .15s;
+}
+.tok-bubble:hover { transform: translateY(-3px); }
+
+.tok-label {
+  font-size: .62rem;
+  color: var(--text-3);
+  letter-spacing: .03em;
+}
+
+.tok-id {
+  font-family: var(--mono);
+  font-size: .6rem;
+  color: var(--text-3);
+}
+
+/* ─── VECTOR VIS ─── */
+.vec-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: .88rem;
+  margin-top: 1rem;
+}
+.vec-table th {
+  text-align: left;
+  padding: .5rem .75rem;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  font-family: var(--sans);
+  font-weight: 600;
+  font-size: .78rem;
+  color: var(--text-2);
+  letter-spacing: .03em;
+}
+.vec-table td {
+  padding: .55rem .75rem;
+  border: 1px solid var(--border);
+  vertical-align: middle;
+}
+.vec-table tr:nth-child(even) td { background: #FAFAF9; }
+
+.vec-code {
+  font-family: var(--mono);
+  font-size: .8rem;
+  color: var(--indigo);
+}
+
+.dim-bar-wrap { display: flex; gap: .4rem; }
+.dim-bar {
+  height: 18px;
+  border-radius: 3px;
+  min-width: 4px;
+  transition: width .5s ease;
+}
+
+/* ─── VECTOR NOTATION ─── */
+.vn-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.vn-card {
+  border-radius: 10px;
+  padding: 1.2rem;
+  border: 1.5px solid;
+}
+
+.vn-word {
+  font-family: var(--serif);
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin-bottom: .1rem;
+}
+
+.vn-eng {
+  font-size: .72rem;
+  color: var(--text-3);
+  margin-bottom: .8rem;
+}
+
+.vn-vec {
+  font-family: var(--mono);
+  font-size: .75rem;
+  line-height: 1.6;
+  word-break: break-all;
+}
+
+.vn-dims {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px;
+  margin-top: .6rem;
+}
+
+.vn-dim-cell {
+  width: 14px; height: 14px;
+  border-radius: 2px;
+  opacity: .85;
+}
+
+/* ─── TRANSFORMER PIPELINE ─── */
+.pipeline {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  max-width: 660px;
+  margin: 1rem auto;
+}
+
+.pipe-row {
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+}
+
+.pipe-block {
+  flex: 1;
+  border-radius: 10px;
+  padding: 1rem 1.3rem;
+  position: relative;
+}
+
+.pipe-connector {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: var(--text-3);
+  font-size: 1.2rem;
+  padding: .3rem 0;
+}
+
+.pipe-block h4 {
+  font-family: var(--sans);
+  font-size: .78rem;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  margin-bottom: .25rem;
+}
+
+.pipe-block p {
+  font-size: .82rem;
+  line-height: 1.6;
+  opacity: .85;
+}
+
+/* ─── ATTENTION VIS ─── */
+.att-scenario {
+  background: var(--indigo-lt);
+  border: 1px solid #C5CAEB;
+  border-radius: 10px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.att-sentence {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .4rem;
+  margin-bottom: 1.2rem;
+  align-items: center;
+}
+
+.att-tok {
+  padding: .3rem .7rem;
+  border-radius: 6px;
+  font-family: var(--mono);
+  font-size: .85rem;
+  font-weight: 500;
+  border: 1.5px solid transparent;
+  cursor: pointer;
+  transition: all .2s;
+  position: relative;
+}
+
+.att-tok.selected {
+  border-color: var(--indigo);
+  box-shadow: 0 0 0 3px rgba(79,95,168,.15);
+}
+
+.att-tok.high { background: rgba(79,95,168,.2); border-color: var(--indigo); }
+.att-tok.mid  { background: rgba(79,95,168,.1); border-color: rgba(79,95,168,.3); }
+.att-tok.low  { background: rgba(79,95,168,.04); border-color: rgba(79,95,168,.15); }
+
+.att-weights {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .6rem;
+  margin-top: .8rem;
+}
+
+.att-w-item {
+  display: flex;
+  align-items: center;
+  gap: .4rem;
+  font-size: .8rem;
+}
+
+.att-w-dot {
+  width: 12px; height: 12px;
+  border-radius: 50%;
+}
+
+/* ─── MLP ─── */
+.mlp-diagram {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5rem;
+  padding: 1.5rem 0;
+  flex-wrap: wrap;
+}
+
+.mlp-layer {
+  display: flex;
+  flex-direction: column;
+  gap: .4rem;
+  align-items: center;
+}
+
+.mlp-label {
+  font-size: .7rem;
+  color: var(--text-3);
+  letter-spacing: .05em;
+  text-transform: uppercase;
+  margin-bottom: .3rem;
+  font-weight: 600;
+}
+
+.mlp-node {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  border: 2px solid;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: .65rem;
+  font-weight: 600;
+  font-family: var(--mono);
+  transition: transform .15s;
+}
+.mlp-node:hover { transform: scale(1.15); }
+
+.mlp-arrow {
+  font-size: 1.4rem;
+  color: var(--text-3);
+  margin-top: 1.4rem;
+}
+
+/* ─── UNEMBEDDING ─── */
+.prob-list {
+  display: flex;
+  flex-direction: column;
+  gap: .6rem;
+  margin-top: 1rem;
+}
+
+.prob-row {
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+}
+
+.prob-word {
+  font-family: var(--mono);
+  font-size: .85rem;
+  font-weight: 500;
+  min-width: 130px;
+  color: var(--text);
+}
+
+.prob-track {
+  flex: 1;
+  height: 22px;
+  background: var(--surface2);
+  border-radius: 5px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+
+.prob-fill {
+  height: 100%;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  padding-left: .5rem;
+  font-size: .72rem;
+  font-weight: 600;
+  color: white;
+  transition: width 1s ease;
+}
+
+.prob-pct {
+  font-family: var(--mono);
+  font-size: .82rem;
+  font-weight: 600;
+  min-width: 48px;
+  text-align: right;
+}
+
+/* ─── OUTPUT GENERATION ─── */
+.gen-flow {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.gen-step {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+}
+
+.gen-num {
+  width: 26px; height: 26px;
+  border-radius: 50%;
+  background: var(--indigo);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: .72rem;
+  font-weight: 700;
+  flex-shrink: 0;
+  margin-top: .1rem;
+}
+
+.gen-content h4 {
+  font-size: .88rem;
+  font-weight: 600;
+  margin-bottom: .25rem;
+}
+
+.gen-content p {
+  font-size: .85rem;
+  color: var(--text-2);
+  line-height: 1.7;
+}
+
+.gen-output {
+  background: var(--sage-lt);
+  border: 1px solid #B8D9C4;
+  border-radius: 10px;
+  padding: 1.5rem;
+  margin-top: 1.5rem;
+}
+
+.gen-output-label {
+  font-size: .7rem;
+  letter-spacing: .15em;
+  text-transform: uppercase;
+  color: var(--sage);
+  font-weight: 600;
+  margin-bottom: .75rem;
+}
+
+.gen-output-q {
+  font-style: italic;
+  color: var(--text-2);
+  margin-bottom: .75rem;
+  font-size: .95rem;
+}
+
+.gen-output-a {
+  font-size: 1rem;
+  line-height: 1.8;
+  color: var(--text);
+  border-left: 3px solid var(--sage);
+  padding-left: 1rem;
+}
+
+.gen-output-a .typed::after {
+  content: '▌';
+  animation: blink 1s infinite;
+  color: var(--sage);
+}
+
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+
+/* ─── TAKEAWAY ─── */
+.takeaway {
+  background: linear-gradient(135deg, var(--indigo-lt) 0%, var(--violet-lt) 100%);
+  border: 1px solid #C5CAEB;
+  border-radius: 14px;
+  padding: 2rem;
+  margin-top: 2rem;
+}
+
+.takeaway-label {
+  font-size: .68rem;
+  letter-spacing: .15em;
+  text-transform: uppercase;
+  color: var(--indigo);
+  font-weight: 700;
+  margin-bottom: .6rem;
+}
+
+.takeaway p {
+  font-size: .95rem;
+  line-height: 1.8;
+  color: var(--text-2);
+}
+
+.takeaway strong { color: var(--indigo); }
+
+/* ─── FORMULA BOX ─── */
+.formula {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 1.2rem 1.5rem;
+  margin: 1.2rem 0;
+  font-family: var(--mono);
+  font-size: .88rem;
+  color: var(--indigo);
+  line-height: 1.8;
+  overflow-x: auto;
+}
+
+.formula .comment {
+  color: var(--text-3);
+  font-family: var(--sans);
+  font-size: .8rem;
+  font-style: italic;
+  font-weight: 400;
+}
+
+/* ─── DIVIDER ─── */
+.hr {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 4rem 0 0;
+}
+
+/* ─── REVEAL ─── */
+.reveal { opacity: 0; transform: translateY(20px); transition: opacity .6s ease, transform .6s ease; }
+.reveal.on { opacity: 1; transform: none; }
+
+/* ─── FOOTER ─── */
+footer {
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  text-align: center;
+  padding: 2.5rem;
+  font-size: .82rem;
+  color: var(--text-3);
+}
+
+footer strong { color: var(--indigo); }
+
+@media(max-width:640px){
+  .vn-grid { grid-template-columns: 1fr 1fr; }
+  .mlp-diagram { gap: .75rem; }
+}
+</style>
+</head>
+<body>
+
+<div id="prog"></div>
+
+<!-- ─── HERO ─── -->
+<header class="hero">
+  <div class="hero-chip">C-Level AI Eğitim · Senaryo Çalışması</div>
+  <h1>A Transformer'ın<br><em>İçinde Ne Olur?</em></h1>
+  <p class="hero-sub">Bir soru girdiğinizde AI nasıl düşünür? Embedding'den Unembedding'e, bir cümlenin matematiksel yolculuğu.</p>
+  <div class="hero-scenario">
+    <span>❝</span>
+    <span><strong>Input:</strong> "What makes a great business strategy?"<br>
+    <strong>Output:</strong> Anlamlı, bağlamlı bir paragraf yanıt</span>
+  </div>
+</header>
+
+<nav class="toc">
+  <a href="#embedding">1. Embedding</a>
+  <a href="#vectors">2. Vector Space</a>
+  <a href="#transformer">3. Transformer Layers</a>
+  <a href="#attention">4. Self-Attention</a>
+  <a href="#mlp">5. MLP</a>
+  <a href="#unembedding">6. Unembedding</a>
+  <a href="#generation">7. Text Generation</a>
+</nav>
+
+<main class="page">
+
+<!-- ═══════════════════════════════════════
+     STEP 1 — EMBEDDING
+═══════════════════════════════════════ -->
+<section class="section reveal" id="embedding">
+  <div class="section-label">
+    <div class="step-badge" style="background:var(--indigo-lt);color:var(--indigo);">1</div>
+    <span class="section-tag" style="color:var(--indigo);">Embedding</span>
+  </div>
+  <h2>Metni Sayılara Dönüştürmek
+    <span class="en">Input → Tokens → Embedding Vectors</span>
+  </h2>
+  <p class="section-intro">Bilgisayarlar kelime okuyamaz — sadece sayı işler. İlk adım, her kelimeyi (token'ı) yüksek boyutlu bir sayı dizisine — <strong>vektöre</strong> — dönüştürmektir.</p>
+
+  <div class="analogy">
+    <div class="analogy-label">Analoji</div>
+    Bir şehrin haritadaki koordinatları gibi: İstanbul (41.01°N, 28.97°E). Her kelimeye de bir "anlam koordinatı" verilir, ama bu koordinatlar 2 boyutlu değil — gerçek modellerde <strong>12.288 boyutlu</strong> (GPT-4). Anlamca yakın kelimeler bu uzayda da birbirine yakın durur.
+  </div>
+
+  <!-- Token strip -->
+  <div class="card">
+    <div class="card-title">
+      Girdi Cümlesi Token'lara Ayrılıyor
+      <span class="tag" style="background:var(--indigo-lt);color:var(--indigo);">Tokenization</span>
+    </div>
+
+    <p style="font-size:.85rem;color:var(--text-2);margin-bottom:1rem;">Her token bir ID'ye karşılık gelir. Model bu ID'leri okur, kelimeleri değil:</p>
+
+    <div class="token-strip">
+      <div class="tok">
+        <div class="tok-bubble" style="background:#EEF0FA;border-color:#9AA5D4;color:var(--indigo);">What</div>
+        <div class="tok-label">determiner</div>
+        <div class="tok-id">#2061</div>
+      </div>
+      <div class="tok">
+        <div class="tok-bubble" style="background:#FAEDF2;border-color:#D4899F;color:var(--rose);">makes</div>
+        <div class="tok-label">verb</div>
+        <div class="tok-id">#3616</div>
+      </div>
+      <div class="tok">
+        <div class="tok-bubble" style="background:#E6F4F2;border-color:#82BEB8;color:var(--teal);">a</div>
+        <div class="tok-label">article</div>
+        <div class="tok-id">#264</div>
+      </div>
+      <div class="tok">
+        <div class="tok-bubble" style="background:#FDF4E3;border-color:#C9A06B;color:var(--amber);">great</div>
+        <div class="tok-label">adjective</div>
+        <div class="tok-id">#1049</div>
+      </div>
+      <div class="tok">
+        <div class="tok-bubble" style="background:#F3EFF9;border-color:#B09AC9;color:var(--violet);">business</div>
+        <div class="tok-label">noun</div>
+        <div class="tok-id">#2626</div>
+      </div>
+      <div class="tok">
+        <div class="tok-bubble" style="background:#EBF4EE;border-color:#89BF99;color:var(--sage);">strategy</div>
+        <div class="tok-label">noun</div>
+        <div class="tok-id">#5429</div>
+      </div>
+      <div class="tok">
+        <div class="tok-bubble" style="background:var(--surface2);border-color:var(--border);color:var(--text-3);">?</div>
+        <div class="tok-label">punct.</div>
+        <div class="tok-id">#30</div>
+      </div>
+    </div>
+
+    <div style="font-size:.82rem;color:var(--text-3);margin-top:.75rem;">
+      → 7 token · Model kelime değil, ID dizisi görür: <span style="font-family:var(--mono);color:var(--indigo);">[2061, 3616, 264, 1049, 2626, 5429, 30]</span>
+    </div>
+  </div>
+
+  <!-- Embedding lookup -->
+  <div class="card">
+    <div class="card-title">
+      Embedding Lookup: ID → Vektör
+      <span class="tag" style="background:var(--rose-lt);color:var(--rose);">E ∈ ℝ^d</span>
+    </div>
+    <p style="font-size:.85rem;color:var(--text-2);margin-bottom:1rem;">Her token ID, önceden eğitilmiş devasa bir tabloda bir satıra karşılık gelir. Bu satır o token'ın <strong>anlam koordinatlarıdır</strong>. Aşağıda 6 boyutlu basitleştirilmiş temsil gösterilmektedir (gerçekte: d=768 ile 12288 arası):</p>
+
+    <table class="vec-table">
+      <thead>
+        <tr>
+          <th>Token</th>
+          <th>Vektör (6D — basitleştirilmiş)</th>
+          <th>Anlam Boyutları</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span style="font-family:var(--mono);font-weight:600;color:var(--indigo);">business</span></td>
+          <td><span class="vec-code">[0.82, −0.14, 0.61, 0.33, −0.07, 0.91]</span></td>
+          <td>
+            <div class="dim-bar-wrap">
+              <div class="dim-bar" style="width:46px;background:#9AA5D4;opacity:.9;"></div>
+              <div class="dim-bar" style="width:8px;background:#D4899F;"></div>
+              <div class="dim-bar" style="width:34px;background:#82BEB8;"></div>
+              <div class="dim-bar" style="width:19px;background:#C9A06B;"></div>
+              <div class="dim-bar" style="width:4px;background:#B09AC9;"></div>
+              <div class="dim-bar" style="width:51px;background:#89BF99;"></div>
+            </div>
+          </td>
+        </tr>
+        <tr>
+          <td><span style="font-family:var(--mono);font-weight:600;color:var(--violet);">strategy</span></td>
+          <td><span class="vec-code">[0.79, −0.09, 0.58, 0.71, 0.15, 0.84]</span></td>
+          <td>
+            <div class="dim-bar-wrap">
+              <div class="dim-bar" style="width:44px;background:#9AA5D4;opacity:.9;"></div>
+              <div class="dim-bar" style="width:5px;background:#D4899F;"></div>
+              <div class="dim-bar" style="width:33px;background:#82BEB8;"></div>
+              <div class="dim-bar" style="width:40px;background:#C9A06B;"></div>
+              <div class="dim-bar" style="width:9px;background:#B09AC9;"></div>
+              <div class="dim-bar" style="width:47px;background:#89BF99;"></div>
+            </div>
+          </td>
+        </tr>
+        <tr>
+          <td><span style="font-family:var(--mono);font-weight:600;color:var(--amber);">great</span></td>
+          <td><span class="vec-code">[0.23, 0.88, 0.17, 0.44, 0.75, 0.31]</span></td>
+          <td>
+            <div class="dim-bar-wrap">
+              <div class="dim-bar" style="width:13px;background:#9AA5D4;opacity:.9;"></div>
+              <div class="dim-bar" style="width:49px;background:#D4899F;"></div>
+              <div class="dim-bar" style="width:10px;background:#82BEB8;"></div>
+              <div class="dim-bar" style="width:25px;background:#C9A06B;"></div>
+              <div class="dim-bar" style="width:42px;background:#B09AC9;"></div>
+              <div class="dim-bar" style="width:17px;background:#89BF99;"></div>
+            </div>
+          </td>
+        </tr>
+        <tr>
+          <td><span style="font-family:var(--mono);font-weight:600;color:var(--rose);">makes</span></td>
+          <td><span class="vec-code">[−0.31, 0.56, −0.22, 0.18, 0.63, 0.05]</span></td>
+          <td>
+            <div class="dim-bar-wrap">
+              <div class="dim-bar" style="width:4px;background:#D4899F;opacity:.6;"></div>
+              <div class="dim-bar" style="width:31px;background:#D4899F;"></div>
+              <div class="dim-bar" style="width:4px;background:#9AA5D4;opacity:.4;"></div>
+              <div class="dim-bar" style="width:10px;background:#C9A06B;"></div>
+              <div class="dim-bar" style="width:35px;background:#B09AC9;"></div>
+              <div class="dim-bar" style="width:3px;background:#89BF99;"></div>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="takeaway">
+    <div class="takeaway-label">Bu Adımda Ne Oldu?</div>
+    <p>7 token, her biri <strong>d boyutlu bir vektöre</strong> dönüştürüldü. Artık elimizde bir <strong>matris</strong> var: 7 satır × d sütun. Bu matris modelin tüm işlemlerinin ham girdisidir. Henüz hiçbir anlam ilişkisi kurulmadı — sadece "adres" atandı.</p>
+  </div>
+</section>
+
+<hr class="hr">
+
+<!-- ═══════════════════════════════════════
+     STEP 2 — VECTOR SPACE
+═══════════════════════════════════════ -->
+<section class="section reveal" id="vectors">
+  <div class="section-label">
+    <div class="step-badge" style="background:var(--violet-lt);color:var(--violet);">2</div>
+    <span class="section-tag" style="color:var(--violet);">Vector Space</span>
+  </div>
+  <h2>Anlam Uzayı
+    <span class="en">Semantic Vector Space — ℝ^d</span>
+  </h2>
+  <p class="section-intro">Vektörler rastgele değildir. Eğitim sırasında model, anlamca ilişkili kelimelerin uzayda birbirine <em>yakın</em> konumlanmasını öğrenir.</p>
+
+  <div class="analogy">
+    <div class="analogy-label">Analoji</div>
+    Şirketinizin org-chart'ını düşünün: CEO ve CFO "liderlik" kümesinde, mühendisler "teknik" kümesinde yer alır. Vektör uzayında da "business", "strategy", "market" aynı bölgede kümelenir. Model bu haritayı hiç görmeden, sadece trilyonlarca metinden <strong>kendiliğinden öğrendi</strong>.
+  </div>
+
+  <div class="card">
+    <div class="card-title">Senaryomuzun Vektörleri — Notasyon ile</div>
+
+    <div class="vn-grid">
+      <div class="vn-card" style="background:var(--indigo-lt);border-color:#C5CAEB;">
+        <div class="vn-word" style="color:var(--indigo);">business</div>
+        <div class="vn-eng">iş, ticaret alanı</div>
+        <div class="vn-vec" style="color:var(--indigo);">
+          <strong>v</strong><sub>bus</sub> = [0.82, −0.14,<br>0.61, 0.33, ...]
+        </div>
+        <div class="vn-dims">
+          <div class="vn-dim-cell" style="background:#4F5FA8;"></div>
+          <div class="vn-dim-cell" style="background:#7080BC;"></div>
+          <div class="vn-dim-cell" style="background:#9AA5D4;"></div>
+          <div class="vn-dim-cell" style="background:#4F5FA8;"></div>
+          <div class="vn-dim-cell" style="background:#C5CAEB;"></div>
+          <div class="vn-dim-cell" style="background:#7080BC;"></div>
+          <div class="vn-dim-cell" style="background:#4F5FA8;"></div>
+          <div class="vn-dim-cell" style="background:#9AA5D4;"></div>
+        </div>
+      </div>
+
+      <div class="vn-card" style="background:var(--violet-lt);border-color:#C8BBE0;">
+        <div class="vn-word" style="color:var(--violet);">strategy</div>
+        <div class="vn-eng">strateji, plan</div>
+        <div class="vn-vec" style="color:var(--violet);">
+          <strong>v</strong><sub>str</sub> = [0.79, −0.09,<br>0.58, 0.71, ...]
+        </div>
+        <div class="vn-dims">
+          <div class="vn-dim-cell" style="background:#7B5EA7;"></div>
+          <div class="vn-dim-cell" style="background:#9B7EC7;"></div>
+          <div class="vn-dim-cell" style="background:#7B5EA7;"></div>
+          <div class="vn-dim-cell" style="background:#B09AC9;"></div>
+          <div class="vn-dim-cell" style="background:#7B5EA7;"></div>
+          <div class="vn-dim-cell" style="background:#C8BBE0;"></div>
+          <div class="vn-dim-cell" style="background:#9B7EC7;"></div>
+          <div class="vn-dim-cell" style="background:#7B5EA7;"></div>
+        </div>
+      </div>
+
+      <div class="vn-card" style="background:var(--amber-lt);border-color:#D9C08A;">
+        <div class="vn-word" style="color:var(--amber);">great</div>
+        <div class="vn-eng">mükemmel, büyük</div>
+        <div class="vn-vec" style="color:var(--amber);">
+          <strong>v</strong><sub>grt</sub> = [0.23, 0.88,<br>0.17, 0.44, ...]
+        </div>
+        <div class="vn-dims">
+          <div class="vn-dim-cell" style="background:#B07C2E;"></div>
+          <div class="vn-dim-cell" style="background:#C9A06B;"></div>
+          <div class="vn-dim-cell" style="background:#B07C2E;"></div>
+          <div class="vn-dim-cell" style="background:#D9C08A;"></div>
+          <div class="vn-dim-cell" style="background:#B07C2E;"></div>
+          <div class="vn-dim-cell" style="background:#C9A06B;"></div>
+          <div class="vn-dim-cell" style="background:#FDF4E3;"></div>
+          <div class="vn-dim-cell" style="background:#B07C2E;"></div>
+        </div>
+      </div>
+
+      <div class="vn-card" style="background:var(--teal-lt);border-color:#9ACCCA;">
+        <div class="vn-word" style="color:var(--teal);">makes</div>
+        <div class="vn-eng">yapar, oluşturur (fiil)</div>
+        <div class="vn-vec" style="color:var(--teal);">
+          <strong>v</strong><sub>mk</sub> = [−0.31, 0.56,<br>−0.22, 0.18, ...]
+        </div>
+        <div class="vn-dims">
+          <div class="vn-dim-cell" style="background:#3A8C82;"></div>
+          <div class="vn-dim-cell" style="background:#5AB0A6;"></div>
+          <div class="vn-dim-cell" style="background:#3A8C82;"></div>
+          <div class="vn-dim-cell" style="background:#9ACCCA;"></div>
+          <div class="vn-dim-cell" style="background:#3A8C82;"></div>
+          <div class="vn-dim-cell" style="background:#5AB0A6;"></div>
+          <div class="vn-dim-cell" style="background:#9ACCCA;"></div>
+          <div class="vn-dim-cell" style="background:#3A8C82;"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="formula" style="margin-top:1.5rem;">
+      <div class="comment">// Benzerlik: business ve strategy ne kadar yakın?</div>
+      cos(v<sub>bus</sub>, v<sub>str</sub>) = (v<sub>bus</sub> · v<sub>str</sub>) / (‖v<sub>bus</sub>‖ × ‖v<sub>str</sub>‖) = <strong style="color:var(--sage);">0.94</strong>  ← çok yakın!<br>
+      cos(v<sub>bus</sub>, v<sub>grt</sub>) = ... = <strong style="color:var(--rose);">0.31</strong>  ← uzak (farklı anlam bölgesi)<br>
+      <div class="comment" style="margin-top:.5rem;">// 1.0 = özdeş · 0.0 = ilgisiz · −1.0 = zıt anlam</div>
+    </div>
+  </div>
+
+  <div class="takeaway">
+    <div class="takeaway-label">Bu Adımda Ne Oldu?</div>
+    <p>"business" ile "strategy" <strong>cos = 0.94</strong> ile neredeyse aynı anlam bölgesinde. Model henüz bir şey "anlamadı" — ama token'lar artık matematiksel ilişki kurulabilecek bir uzayda. Transformer katmanları bu uzayı işleyecek.</p>
+  </div>
+</section>
+
+<hr class="hr">
+
+<!-- ═══════════════════════════════════════
+     STEP 3 — TRANSFORMER LAYERS
+═══════════════════════════════════════ -->
+<section class="section reveal" id="transformer">
+  <div class="section-label">
+    <div class="step-badge" style="background:var(--rose-lt);color:var(--rose);">3</div>
+    <span class="section-tag" style="color:var(--rose);">Transformer Architecture</span>
+  </div>
+  <h2>Katmanlar Boyunca Anlam Derinleşir
+    <span class="en">L × [Self-Attention + MLP] — Residual Stream</span>
+  </h2>
+  <p class="section-intro">Transformer, aynı bloğu defalarca yineler. Her blokta iki işlem var: <strong>Self-Attention</strong> (token'lar arası ilişki) ve <strong>MLP</strong> (bilgi depolama & dönüşüm). GPT-4'te bu blok 96 kez tekrarlanır.</p>
+
+  <div class="card">
+    <div class="card-title">Genel Mimari — Senaryomuz İçin</div>
+
+    <div class="pipeline">
+      <div class="pipe-block" style="background:var(--indigo-lt);border:1.5px solid #C5CAEB;">
+        <h4 style="color:var(--indigo);">📥 Input Embeddings</h4>
+        <p style="color:var(--text-2);">7 token × d boyut matris. Pozisyon bilgisi eklendi (positional encoding). Her token'ın "başlangıç koordinatı".</p>
+      </div>
+      <div class="pipe-connector">↓</div>
+
+      <div class="pipe-block" style="background:var(--rose-lt);border:1.5px solid #D4899F;">
+        <h4 style="color:var(--rose);">🔍 Self-Attention (Head × h)</h4>
+        <p style="color:var(--text-2);">"strategy" token'ı "business" ve "great" ile güçlü bağ kuruyor. Vektörler birbirini etkiliyor, içerik zenginleşiyor.</p>
+      </div>
+      <div class="pipe-connector">↓ <span style="font-size:.7rem;color:var(--text-3);">+ residual</span></div>
+
+      <div class="pipe-block" style="background:var(--violet-lt);border:1.5px solid #B09AC9;">
+        <h4 style="color:var(--violet);">⚡ MLP (Feed-Forward Network)</h4>
+        <p style="color:var(--text-2);">Milyarlarca parametrede depolanmış bilgi bu katmanda devreye girer. "business strategy" kavramı hakkında bilgi üretiliyor.</p>
+      </div>
+      <div class="pipe-connector">↓ <span style="font-size:.7rem;color:var(--text-3);">+ residual</span></div>
+
+      <div class="pipe-block" style="background:var(--surface2);border:1px dashed var(--border);">
+        <h4 style="color:var(--text-3);">↻ Bu blok L kez tekrar (GPT-4: 96×, GPT-3: 96×, Claude: benzer)</h4>
+        <p style="color:var(--text-3);">Her katmanda vektörler "daha anlam dolu" hâle gelir. İlk katmanlar sözdizim, son katmanlar soyut anlam işler.</p>
+      </div>
+      <div class="pipe-connector">↓</div>
+
+      <div class="pipe-block" style="background:var(--sage-lt);border:1.5px solid #89BF99;">
+        <h4 style="color:var(--sage);">📤 Final Hidden States → Unembedding</h4>
+        <p style="color:var(--text-2);">Son katmandan çıkan vektörler "ne söylenmeli?" sorusunu cevaplamak için kelime dağarcığına geri çevriliyor.</p>
+      </div>
+    </div>
+
+    <div class="formula" style="margin-top:1.5rem;">
+      <div class="comment">// Bir Transformer bloğu — matematiksel özet</div>
+      x' = x + <strong>Attention</strong>(LayerNorm(x))   <span class="comment">← self-attention + residual</span><br>
+      x'' = x' + <strong>MLP</strong>(LayerNorm(x'))       <span class="comment">← feed-forward + residual</span><br>
+      <div class="comment">// x: token vektörü · LayerNorm: normalizasyon · residual: orijinal değer korunur</div>
+    </div>
+  </div>
+
+  <div class="takeaway">
+    <div class="takeaway-label">Bu Adımda Ne Oldu?</div>
+    <p>Token vektörleri katmanlar boyunca <strong>"bilgi ile zenginleştirilir"</strong>. "strategy" kelimesinin vektörü artık sadece "strateji" değil — "business strategy", "competitive advantage", "long-term planning" kavramlarını da içeriyor. Bu dönüşüm residual stream üzerinden akar.</p>
+  </div>
+</section>
+
+<hr class="hr">
+
+<!-- ═══════════════════════════════════════
+     STEP 4 — SELF-ATTENTION
+═══════════════════════════════════════ -->
+<section class="section reveal" id="attention">
+  <div class="section-label">
+    <div class="step-badge" style="background:var(--indigo-lt);color:var(--indigo);">4</div>
+    <span class="section-tag" style="color:var(--indigo);">Self-Attention Mechanism</span>
+  </div>
+  <h2>Her Token Her Token'ı Dinler
+    <span class="en">Q·Kᵀ / √d → Softmax → ×V</span>
+  </h2>
+  <p class="section-intro">Self-Attention'da her token üç soru sorar: <strong>Query</strong> (ne arıyorum?), <strong>Key</strong> (ben neyim?), <strong>Value</strong> (ne biliyorum?). Bu mekanizma cümledeki tüm bağlantıları aynı anda hesaplar.</p>
+
+  <div class="card">
+    <div class="card-title">
+      Senaryomuzda Attention Ağırlıkları
+      <span class="tag" style="background:var(--indigo-lt);color:var(--indigo);">Q·Kᵀ / √d_k</span>
+    </div>
+
+    <p style="font-size:.85rem;color:var(--text-2);margin-bottom:1.2rem;">
+      <strong>"strategy"</strong> token'ı için attention ağırlıkları — diğer hangi token'lara ne kadar odaklanıyor?
+    </p>
+
+    <div class="att-scenario">
+      <div class="att-sentence">
+        <div class="att-tok low" style="background:#E8EAFA;border-color:#9AA5D4;color:var(--indigo);">What</div>
+        <div class="att-tok mid" style="background:#CCCEEA;border-color:var(--indigo);color:var(--indigo);">makes</div>
+        <div class="att-tok low" style="background:#EEF0FA;border-color:#C5CAEB;color:var(--indigo);">a</div>
+        <div class="att-tok high" style="background:#9AA5D4;border-color:var(--indigo);color:white;">great</div>
+        <div class="att-tok high" style="background:var(--indigo);border-color:var(--indigo);color:white;font-weight:700;">business</div>
+        <div class="att-tok selected" style="background:#FDF4E3;border-color:var(--amber);color:var(--amber);font-weight:700;">strategy ←</div>
+        <div class="att-tok low" style="background:#EEF0FA;border-color:#C5CAEB;color:var(--indigo);">?</div>
+      </div>
+
+      <div class="att-weights">
+        <div class="att-w-item"><div class="att-w-dot" style="background:var(--indigo);"></div><strong>"business"</strong> → 0.54 &nbsp;(en güçlü bağ)</div>
+        <div class="att-w-item"><div class="att-w-dot" style="background:#7080BC;"></div><strong>"great"</strong> → 0.27 &nbsp;(niteleyici)</div>
+        <div class="att-w-item"><div class="att-w-dot" style="background:#9AA5D4;"></div><strong>"makes"</strong> → 0.11 &nbsp;(fiil bağlamı)</div>
+        <div class="att-w-item"><div class="att-w-dot" style="background:#C5CAEB;"></div><strong>"What"</strong> → 0.05 &nbsp;(soru tipi)</div>
+        <div class="att-w-item"><div class="att-w-dot" style="background:#E4DED6;"></div><strong>"a", "?"</strong> → 0.03 &nbsp;(ihmal edilebilir)</div>
+      </div>
+    </div>
+
+    <div class="formula">
+      <div class="comment">// "strategy" için attention hesabı</div>
+      score(strategy, business) = Q<sub>str</sub> · K<sub>bus</sub><sup>T</sup> / √d<sub>k</sub> = <strong style="color:var(--sage);">4.21</strong><br>
+      score(strategy, great)    = Q<sub>str</sub> · K<sub>grt</sub><sup>T</sup> / √d<sub>k</sub> = <strong style="color:var(--teal);">2.83</strong><br>
+      <div class="comment" style="margin-top:.4rem;">// Softmax sonrası: [0.54, 0.27, 0.11, 0.05, 0.02, 0.01, 0.00] = 1.00</div>
+      v<sub>str</sub><sup>new</sup> = 0.54·V<sub>bus</sub> + 0.27·V<sub>grt</sub> + 0.11·V<sub>mk</sub> + ...
+      <div class="comment">// "strategy" vektörü artık "business" ve "great" bilgisini de taşıyor</div>
+    </div>
+
+    <p style="font-size:.85rem;color:var(--text-2);margin-top:1rem;line-height:1.7;">
+      <strong>Multi-Head Attention:</strong> Bu işlem paralel olarak h farklı "kafa" (head) tarafından yapılır. Bir kafa sözdizimsel ilişkiyi, diğeri anlamsal ilişkiyi, bir diğeri ise bağlamsal rolü işler. GPT-4'te 96 head × 96 katman = 9.216 paralel dikkat hesabı.
+    </p>
+  </div>
+
+  <div class="takeaway">
+    <div class="takeaway-label">Bu Adımda Ne Oldu?</div>
+    <p>"strategy" vektörü artık yalnızca kendi anlamını değil — <strong>"great business" bağlamındaki anlamını</strong> taşıyor. Vektör zenginleşti. Banka kredi stratejisi mi? Pazarlama stratejisi mi? Hayır — büyük, mükemmel iş stratejisi. Bağlam kazandı.</p>
+  </div>
+</section>
+
+<hr class="hr">
+
+<!-- ═══════════════════════════════════════
+     STEP 5 — MLP
+═══════════════════════════════════════ -->
+<section class="section reveal" id="mlp">
+  <div class="section-label">
+    <div class="step-badge" style="background:var(--violet-lt);color:var(--violet);">5</div>
+    <span class="section-tag" style="color:var(--violet);">MLP — Feed-Forward Network</span>
+  </div>
+  <h2>Modelin Ansiklopedisi
+    <span class="en">MLP: W₂ · ReLU(W₁x + b₁) + b₂</span>
+  </h2>
+  <p class="section-intro">Self-Attention token'ların birbirini <em>tanımasını</em> sağlar. MLP ise modelin <em>bilgi deposudur</em> — trilyonlarca parametre bu katmanlarda, dünyaya dair gerçekler olarak depolanmıştır.</p>
+
+  <div class="analogy">
+    <div class="analogy-label">Analoji</div>
+    Attention şöyle der: "Bu cümlede 'business strategy' konuşuluyor." Sonra MLP'ye sorar: "Business strategy hakkında ne biliyorsun?" MLP bu soruyu kendi <strong>ağırlık matrislerinden</strong> cevaplar — tıpkı bir ansiklopedinin sayfalarını çevirip ilgili maddeye bakması gibi.
+  </div>
+
+  <div class="card">
+    <div class="card-title">
+      MLP İç Yapısı
+      <span class="tag" style="background:var(--violet-lt);color:var(--violet);">d→4d→d</span>
+    </div>
+
+    <div class="mlp-diagram">
+      <div class="mlp-layer">
+        <div class="mlp-label">Giriş<br>d boyut</div>
+        <div class="mlp-node" style="border-color:var(--indigo);color:var(--indigo);">x₁</div>
+        <div class="mlp-node" style="border-color:var(--indigo);color:var(--indigo);">x₂</div>
+        <div class="mlp-node" style="border-color:var(--indigo);color:var(--indigo);">x₃</div>
+        <div style="font-size:.8rem;color:var(--text-3);text-align:center;">⋮</div>
+        <div class="mlp-node" style="border-color:var(--indigo);color:var(--indigo);">xd</div>
+      </div>
+
+      <div class="mlp-arrow">→</div>
+
+      <div class="mlp-layer">
+        <div class="mlp-label">Gizli<br>4d boyut<br>(genişleme)</div>
+        <div class="mlp-node" style="border-color:var(--violet);color:var(--violet);background:var(--violet-lt);">h₁</div>
+        <div class="mlp-node" style="border-color:var(--violet);color:var(--violet);background:var(--violet-lt);">h₂</div>
+        <div class="mlp-node" style="border-color:var(--violet);color:var(--violet);background:var(--violet-lt);">h₃</div>
+        <div class="mlp-node" style="border-color:var(--violet);color:var(--violet);background:var(--violet-lt);">h₄</div>
+        <div style="font-size:.8rem;color:var(--text-3);text-align:center;">⋮</div>
+        <div class="mlp-node" style="border-color:var(--violet);color:var(--violet);background:var(--violet-lt);">h₄d</div>
+      </div>
+
+      <div class="mlp-arrow">→ <small style="display:block;font-size:.6rem;color:var(--text-3);margin-top:.2rem;">ReLU / GeLU</small></div>
+
+      <div class="mlp-layer">
+        <div class="mlp-label">Çıkış<br>d boyut<br>(daralma)</div>
+        <div class="mlp-node" style="border-color:var(--sage);color:var(--sage);background:var(--sage-lt);">y₁</div>
+        <div class="mlp-node" style="border-color:var(--sage);color:var(--sage);background:var(--sage-lt);">y₂</div>
+        <div class="mlp-node" style="border-color:var(--sage);color:var(--sage);background:var(--sage-lt);">y₃</div>
+        <div style="font-size:.8rem;color:var(--text-3);text-align:center;">⋮</div>
+        <div class="mlp-node" style="border-color:var(--sage);color:var(--sage);background:var(--sage-lt);">yd</div>
+      </div>
+    </div>
+
+    <div class="formula">
+      MLP(x) = W₂ · <strong>ReLU</strong>(W₁ · x + b₁) + b₂<br>
+      <div class="comment">// W₁ ∈ ℝ^(4d×d) — genişleme matrisi (bilgi arama)</div>
+      <div class="comment">// W₂ ∈ ℝ^(d×4d) — daralma matrisi (bilgi damıtma)</div>
+      <div class="comment">// ReLU: negatif değerleri sıfırla — "ilgisiz bilgiyi sustur"</div>
+    </div>
+
+    <p style="font-size:.85rem;color:var(--text-2);margin-top:1rem;line-height:1.7;">
+      <strong>Senaryo üzerinden:</strong> MLP, attention'ın gönderdiği zenginleştirilmiş "great business strategy" vektörünü alır ve kendi ağırlıklarından şunu çıkarır: <em>"Bir büyük iş stratejisi için gerekli unsurlar şunlardır: net vizyon, rekabet avantajı, kaynak tahsisi, uzun vadeli düşünme..."</em> Bu bilgi, parametrelere dağılmış biçimde mevcuttur.
+    </p>
+  </div>
+
+  <div class="takeaway">
+    <div class="takeaway-label">Bu Adımda Ne Oldu?</div>
+    <p>MLP, Self-Attention'ın hazırladığı bağlamı alır ve modelin <strong>depoladığı dünya bilgisini</strong> bu bağlama göre filtreler. Attention "ne sorulduğunu" anladı, MLP "ne bilindiğini" devreye soktu. İkisi birlikte çalışarak anlam üretir.</p>
+  </div>
+</section>
+
+<hr class="hr">
+
+<!-- ═══════════════════════════════════════
+     STEP 6 — UNEMBEDDING
+═══════════════════════════════════════ -->
+<section class="section reveal" id="unembedding">
+  <div class="section-label">
+    <div class="step-badge" style="background:var(--teal-lt);color:var(--teal);">6</div>
+    <span class="section-tag" style="color:var(--teal);">Unembedding</span>
+  </div>
+  <h2>Vektörden Kelimeye Geri Dönüş
+    <span class="en">Logits → Softmax → Probability Distribution</span>
+  </h2>
+  <p class="section-intro">Tüm katmanlar tamamlandıktan sonra elimizde son token'ın zenginleşmiş vektörü var. Şimdi bu vektörü kelime dağarcığındaki (vocabulary) her kelimeyle karşılaştırıyoruz: hangi kelime en yüksek olasılığa sahip?</p>
+
+  <div class="analogy">
+    <div class="analogy-label">Analoji</div>
+    Bir eleman yöneticinize detaylı bir brifing yaptı. Şimdi siz "Peki, toplantıyı nasıl özetleriz?" diye soruyorsunuz. Aklınızda onlarca kelime seçeneği var — ama bağlam, deneyim ve anlam, sizi en uygun kelimeye yönlendirir. Unembedding de budur: zenginleşmiş vektörü kelime olasılıklarına <strong>dönüştürme</strong>.
+  </div>
+
+  <div class="card">
+    <div class="card-title">
+      İlk Yanıt Token'ının Olasılık Dağılımı
+      <span class="tag" style="background:var(--teal-lt);color:var(--teal);">softmax(W_U · h)</span>
+    </div>
+    <p style="font-size:.85rem;color:var(--text-2);margin-bottom:1.2rem;">
+      Soru: <em>"What makes a great business strategy?"</em> — Modelin üretecek ilk kelime için olasılıklar:
+    </p>
+
+    <div class="prob-list">
+      <div class="prob-row">
+        <div class="prob-word">"A"</div>
+        <div class="prob-track"><div class="prob-fill" style="width:31%;background:linear-gradient(90deg,var(--indigo),#7080BC);">31%</div></div>
+        <div class="prob-pct" style="color:var(--indigo);">0.31</div>
+      </div>
+      <div class="prob-row">
+        <div class="prob-word">"Great"</div>
+        <div class="prob-track"><div class="prob-fill" style="width:22%;background:linear-gradient(90deg,var(--violet),#9B7EC7);">22%</div></div>
+        <div class="prob-pct" style="color:var(--violet);">0.22</div>
+      </div>
+      <div class="prob-row">
+        <div class="prob-word">"The"</div>
+        <div class="prob-track"><div class="prob-fill" style="width:18%;background:linear-gradient(90deg,var(--teal),#5AB0A6);">18%</div></div>
+        <div class="prob-pct" style="color:var(--teal);">0.18</div>
+      </div>
+      <div class="prob-row">
+        <div class="prob-word">"Several"</div>
+        <div class="prob-track"><div class="prob-fill" style="width:14%;background:linear-gradient(90deg,var(--amber),#C9A06B);">14%</div></div>
+        <div class="prob-pct" style="color:var(--amber);">0.14</div>
+      </div>
+      <div class="prob-row">
+        <div class="prob-word">"Business"</div>
+        <div class="prob-track"><div class="prob-fill" style="width:8%;background:linear-gradient(90deg,var(--rose),#D4899F);">8%</div></div>
+        <div class="prob-pct" style="color:var(--rose);">0.08</div>
+      </div>
+      <div class="prob-row">
+        <div class="prob-word">diğer ~50K</div>
+        <div class="prob-track"><div class="prob-fill" style="width:7%;background:var(--border);">7%</div></div>
+        <div class="prob-pct" style="color:var(--text-3);">0.07</div>
+      </div>
+    </div>
+
+    <div class="formula" style="margin-top:1.5rem;">
+      <div class="comment">// Unembedding: son hidden state → logits → olasılıklar</div>
+      logits = W<sub>U</sub> · h<sub>final</sub>   <span class="comment">← W_U ∈ ℝ^(vocab_size × d)</span><br>
+      P(token) = softmax(logits / T)   <span class="comment">← T: temperature (yaratıcılık kontrolü)</span><br>
+      <div class="comment">// T=0.7 (dengeli) → "A" seçilir (p=0.31, en yüksek)</div>
+      <div class="comment">// T=1.5 (yaratıcı) → "Several" veya "Great" seçilebilir</div>
+    </div>
+  </div>
+
+  <div class="takeaway">
+    <div class="takeaway-label">Bu Adımda Ne Oldu?</div>
+    <p>Zenginleştirilmiş vektör, <strong>W_U (unembedding matrisi)</strong> ile çarpılarak 50.000+ token için puan üretildi. Softmax bu puanları olasılığa çevirdi. Model, "A" kelimesini %31 olasılıkla en uygun başlangıç olarak seçti. Artık bir token üretildi — ve süreç tekrar başlar.</p>
+  </div>
+</section>
+
+<hr class="hr">
+
+<!-- ═══════════════════════════════════════
+     STEP 7 — TEXT GENERATION
+═══════════════════════════════════════ -->
+<section class="section reveal" id="generation">
+  <div class="section-label">
+    <div class="step-badge" style="background:var(--sage-lt);color:var(--sage);">7</div>
+    <span class="section-tag" style="color:var(--sage);">End-to-End Text Generation</span>
+  </div>
+  <h2>Sorudan Yanıta: Tam Senaryo
+    <span class="en">Autoregressive Generation — Token by Token</span>
+  </h2>
+  <p class="section-intro">Model tek seferde tüm yanıtı üretmez. Her token üretilir, sonra o token da girdiye eklenir ve süreç tekrar başlar. Bu <strong>otoregresif üretim</strong> denen döngüdür.</p>
+
+  <div class="card">
+    <div class="card-title">Adım Adım Yanıt Üretimi</div>
+
+    <div class="gen-flow">
+      <div class="gen-step">
+        <div class="gen-num">1</div>
+        <div class="gen-content">
+          <h4>Girdi: "What makes a great business strategy?"</h4>
+          <p>7 token embed edilir, 96 katmandan geçer, unembedding → <strong>"A"</strong> seçilir (p=0.31)</p>
+        </div>
+      </div>
+      <div class="gen-step">
+        <div class="gen-num">2</div>
+        <div class="gen-content">
+          <h4>Yeni girdi: "...strategy? A"</h4>
+          <p>8 token → tüm pipeline → <strong>"great"</strong> seçilir. Model "A great..." kalıbını tanıyor.</p>
+        </div>
+      </div>
+      <div class="gen-step">
+        <div class="gen-num">3</div>
+        <div class="gen-content">
+          <h4>Yeni girdi: "...strategy? A great"</h4>
+          <p>9 token → attention "great business" bağlamını kuruyor → <strong>"business"</strong> seçilir (p=0.58)</p>
+        </div>
+      </div>
+      <div class="gen-step">
+        <div class="gen-num">4</div>
+        <div class="gen-content">
+          <h4>…bu döngü her token için tekrar eder</h4>
+          <p>Her adımda tüm bağlam yeniden işlenir. Transformer önceki tüm token'lara attention uygular — RNN gibi "unutan" değil, <strong>her şeyi hatırlayan</strong> bir yapı.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="gen-output">
+      <div class="gen-output-label">✦ Tam Senaryo — Soru & Yanıt</div>
+      <div class="gen-output-q">❝ What makes a great business strategy? ❞</div>
+      <div class="gen-output-a">
+        A great business strategy starts with a <strong>clear and compelling vision</strong> — a direction that aligns every decision across the organization. It requires <strong>deep understanding of your competitive landscape</strong>: where you have advantages, where you are vulnerable, and where the market is heading. The best strategies are not rigid plans, but <strong>adaptive frameworks</strong> that allow rapid reallocation of resources as conditions change. Ultimately, strategy is about <strong>making choices</strong> — deciding what you will not do is just as important as deciding what you will pursue.
+      </div>
+    </div>
+
+    <p style="font-size:.83rem;color:var(--text-3);margin-top:1rem;text-align:center;">
+      Bu yanıt: ~90 token · ~90 forward pass · her pass'da 96 katman × attention + MLP
+    </p>
+  </div>
+
+  <!-- FINAL SUMMARY CARD -->
+  <div class="card" style="background:linear-gradient(135deg,#F0EDE8,white);margin-top:1.5rem;">
+    <div class="card-title" style="font-family:var(--serif);font-size:1.15rem;">Tam Döngü Özeti</div>
+    <table style="width:100%;border-collapse:collapse;font-size:.85rem;">
+      <thead>
+        <tr style="border-bottom:2px solid var(--border);">
+          <th style="padding:.6rem .75rem;text-align:left;color:var(--text-2);font-weight:600;font-size:.78rem;">Adım</th>
+          <th style="padding:.6rem .75rem;text-align:left;color:var(--text-2);font-weight:600;font-size:.78rem;">İşlem</th>
+          <th style="padding:.6rem .75rem;text-align:left;color:var(--text-2);font-weight:600;font-size:.78rem;">Çıktı</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr style="border-bottom:1px solid var(--border);">
+          <td style="padding:.6rem .75rem;font-weight:600;color:var(--indigo);">Embedding</td>
+          <td style="padding:.6rem .75rem;color:var(--text-2);">Token ID → vektör [d boyut]</td>
+          <td style="padding:.6rem .75rem;font-family:var(--mono);font-size:.78rem;color:var(--text-3);">7 × d matris</td>
+        </tr>
+        <tr style="border-bottom:1px solid var(--border);background:#FAFAF9;">
+          <td style="padding:.6rem .75rem;font-weight:600;color:var(--rose);">Self-Attention</td>
+          <td style="padding:.6rem .75rem;color:var(--text-2);">Token'lar arası ilişki, bağlam zenginleşmesi</td>
+          <td style="padding:.6rem .75rem;font-family:var(--mono);font-size:.78rem;color:var(--text-3);">7 × d (zenginleşmiş)</td>
+        </tr>
+        <tr style="border-bottom:1px solid var(--border);">
+          <td style="padding:.6rem .75rem;font-weight:600;color:var(--violet);">MLP</td>
+          <td style="padding:.6rem .75rem;color:var(--text-2);">Depolanan bilginin bağlama göre aktivasyonu</td>
+          <td style="padding:.6rem .75rem;font-family:var(--mono);font-size:.78rem;color:var(--text-3);">7 × d (bilgi eklendi)</td>
+        </tr>
+        <tr style="border-bottom:1px solid var(--border);background:#FAFAF9;">
+          <td style="padding:.6rem .75rem;font-weight:600;color:var(--text-3);">× L katman</td>
+          <td style="padding:.6rem .75rem;color:var(--text-2);">Attention + MLP döngüsü L kez tekrar</td>
+          <td style="padding:.6rem .75rem;font-family:var(--mono);font-size:.78rem;color:var(--text-3);">Her katmanda derinleşir</td>
+        </tr>
+        <tr>
+          <td style="padding:.6rem .75rem;font-weight:600;color:var(--teal);">Unembedding</td>
+          <td style="padding:.6rem .75rem;color:var(--text-2);">Son vektör → logits → softmax → token seç</td>
+          <td style="padding:.6rem .75rem;font-family:var(--mono);font-size:.78rem;color:var(--text-3);">1 yeni token</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="takeaway" style="margin-top:2rem;">
+    <div class="takeaway-label">C-Level için Tek Cümle Özet</div>
+    <p>
+      Bir Transformer, girdi metnini matematiksel koordinatlara (<strong>embedding</strong>) çevirir, bu koordinatları yüzlerce katmanda Self-Attention ve MLP ile işleyerek anlam ve bilgiyi damıtır, ardından bu zenginleşmiş koordinatları olası sonraki kelimelere (<strong>unembedding</strong>) dönüştürür — ve tüm bu döngüyü her yeni token için <strong>milisaniyeler içinde</strong> tekrar eder.
+    </p>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <p>AI & NLP Eğitim Serisi · Senaryo: <strong>"What makes a great business strategy?"</strong></p>
+  <p style="margin-top:.4rem;font-size:.75rem;">Embedding · Vector Space · Transformer · Self-Attention · MLP · Unembedding · Autoregressive Generation</p>
+</footer>
+
+<script>
+  // Progress
+  window.addEventListener('scroll', () => {
+    const p = document.getElementById('prog');
+    const h = document.body.scrollHeight - window.innerHeight;
+    p.style.width = (window.scrollY / h * 100) + '%';
+  });
+
+  // Reveal
+  const obs = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('on'); obs.unobserve(e.target); } });
+  }, { threshold: 0.08, rootMargin: '0px 0px -30px 0px' });
+  document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
+</script>
+</body>
+</html>
