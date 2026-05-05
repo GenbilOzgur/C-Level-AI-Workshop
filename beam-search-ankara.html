@@ -328,6 +328,143 @@ input[type=range]::-webkit-slider-thumb {
   font-size: 12px; color: #7a6020; margin-top: 13px; line-height: 1.7;
 }
 
+/* ── Tab sistemi ── */
+.tab-bar {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 20px;
+  background: #fff;
+  border: 1px solid #e4e8f0;
+  border-radius: 12px;
+  padding: 6px;
+}
+.tab-btn {
+  flex: 1;
+  padding: 9px 14px;
+  border-radius: 8px;
+  border: none;
+  background: transparent;
+  font-size: 12px;
+  font-weight: 600;
+  font-family: 'JetBrains Mono', monospace;
+  color: #9aa0b4;
+  cursor: pointer;
+  transition: all 0.18s;
+  letter-spacing: 0.04em;
+}
+.tab-btn:hover { background: #f4f5f8; color: #1a1d27; }
+.tab-btn.active { background: #1a56db; color: #fff; }
+
+.tab-panel { display: none; }
+.tab-panel.active { display: block; }
+
+/* ── Decision Tree ── */
+.tree-wrap {
+  overflow-x: auto;
+  padding: 8px 0 16px;
+}
+.tree-svg-container {
+  min-width: 860px;
+}
+.dt-node {
+  cursor: default;
+  transition: filter 0.2s;
+}
+.dt-node:hover { filter: brightness(0.93); }
+
+/* node labels */
+.dt-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  font-weight: 600;
+  text-anchor: middle;
+  dominant-baseline: central;
+}
+.dt-prob {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9.5px;
+  text-anchor: middle;
+  dominant-baseline: central;
+  fill: #7a80a0;
+}
+.dt-logp {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  text-anchor: middle;
+  fill: #b0b6c8;
+}
+.dt-edge {
+  stroke: #d0d4e4;
+  stroke-width: 1.5;
+  fill: none;
+}
+.dt-edge.greedy { stroke: #dc2626; stroke-width: 2.5; stroke-dasharray: none; }
+.dt-edge.beam   { stroke: #0f766e; stroke-width: 2.5; stroke-dasharray: none; }
+.dt-edge.pruned { stroke: #e2e5ed; stroke-width: 1; stroke-dasharray: 4 3; opacity: 0.5; }
+
+.dt-badge {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  font-weight: 700;
+  text-anchor: middle;
+  dominant-baseline: central;
+}
+
+.legend-item {
+  display: flex; align-items: center; gap: 7px;
+  font-size: 11px; color: #5a6080;
+  font-family: 'JetBrains Mono', monospace;
+}
+.legend-line {
+  width: 28px; height: 3px; border-radius: 2px; flex-shrink: 0;
+}
+
+.tree-explain {
+  background: #fff;
+  border: 1px solid #e4e8f0;
+  border-radius: 12px;
+  padding: 18px 20px;
+  margin-bottom: 14px;
+}
+.tree-explain h3 {
+  font-size: 13px; font-weight: 700; margin-bottom: 8px; color: #1a1d27;
+}
+.tree-explain p {
+  font-size: 12.5px; color: #5a6080; line-height: 1.7; margin-bottom: 6px;
+}
+.tree-explain p:last-child { margin-bottom: 0; }
+
+.score-compare {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 10px; margin-top: 14px;
+}
+.score-box {
+  border-radius: 9px; padding: 13px 14px;
+  border: 1.5px solid #e2e5ed;
+  background: #f8f9fb;
+}
+.score-box.winner { background: #e8f7ef; border-color: #0f766e; }
+.score-box.loser  { background: #fef2f2; border-color: #dc2626; }
+.score-box-label {
+  font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .07em;
+  font-family: 'JetBrains Mono', monospace; margin-bottom: 5px;
+}
+.score-box.winner .score-box-label { color: #0f766e; }
+.score-box.loser  .score-box-label { color: #dc2626; }
+.score-box-seq {
+  font-family: 'JetBrains Mono', monospace; font-size: 12px;
+  color: #2a3050; line-height: 1.6; margin-bottom: 4px;
+}
+.score-box-val {
+  font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 700;
+}
+.score-box.winner .score-box-val { color: #0f766e; }
+.score-box.loser  .score-box-val { color: #dc2626; }
+.score-breakdown {
+  font-family: 'JetBrains Mono', monospace; font-size: 10px;
+  color: #9aa0b4; margin-top: 3px; line-height: 1.6;
+}
+
 /* Typing animasyonu */
 .typing::after {
   content: '▋';
@@ -355,6 +492,13 @@ input[type=range]::-webkit-slider-thumb {
 
 <h1>LLM Beam Search Simülatörü</h1>
 <p class="subtitle">// token-by-token üretim · kümülatif olasılık optimizasyonu · gerçek zamanlı</p>
+
+<div class="tab-bar">
+  <button class="tab-btn active" id="tab-sim" onclick="switchTab('sim')">▶ Simülatör</button>
+  <button class="tab-btn" id="tab-tree" onclick="switchTab('tree')">⬡ Greedy vs Beam — Karar Ağacı</button>
+</div>
+
+<div id="panel-sim" class="tab-panel active">
 
 <div class="input-card">
   <div class="input-row">
@@ -419,6 +563,291 @@ input[type=range]::-webkit-slider-thumb {
 <div class="progress-bar"><div class="progress-fill" id="prog"></div></div>
 <div id="steps-out"></div>
 <div id="result-out"></div>
+</div><!-- /panel-sim -->
+
+<!-- ═══ PANEL: KARAR AĞACI ═══ -->
+<div id="panel-tree" class="tab-panel">
+
+  <div class="tree-explain">
+    <h3>Neden Greedy Her Zaman Kazanmaz?</h3>
+    <p>
+      Greedy Search her adımda <strong>en yüksek olasılıklı token</strong>ı seçer. Ama bu lokal optimum bazen global bir tuzaktır:
+      yüksek başlangıç tokeni, sonraki adımlarda düşük olasılıklı yollara sürükleyebilir.
+    </p>
+    <p>
+      Aşağıdaki ağaç bunu somutlaştırır. İlk adımda <strong style="color:#dc2626">"good"</strong> (p=0.72) büyük farkla önde.
+      Ama 5 adım sonrası kümülatif log-p'ye bakıldığında, <strong style="color:#0f766e">"clear"</strong> (p=0.18) üzerinden
+      giden Beam Search yolu kazanıyor. Çünkü "clear" → "vision" → "drives" → "long-term" → "success" zinciri
+      tutarlı; "good" → "idea" → "but" → "hard" → "to" zinciri ise olasılık erir.
+    </p>
+    <div style="display:flex;gap:16px;flex-wrap:wrap;margin-top:10px;">
+      <div class="legend-item"><div class="legend-line" style="background:#dc2626"></div> Greedy yolu (lokal max)</div>
+      <div class="legend-item"><div class="legend-line" style="background:#0f766e"></div> Beam Search kazanan yolu</div>
+      <div class="legend-item"><div class="legend-line" style="background:#d0d4e4;border-top:2px dashed #aaa;height:0"></div> Budanan / alternatif</div>
+    </div>
+  </div>
+
+  <div class="tree-explain" style="padding:14px 20px;">
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+      <span style="font-size:11px;font-weight:700;font-family:'JetBrains Mono',monospace;color:#7a80a0;text-transform:uppercase;letter-spacing:.06em;">Prompt</span>
+    </div>
+    <div style="font-family:'JetBrains Mono',monospace;font-size:14px;color:#1a1d27;font-weight:600;">
+      "A great business strategy requires…"
+    </div>
+  </div>
+
+  <div class="input-card tree-wrap" style="padding:16px;">
+    <div class="tree-svg-container">
+      <svg id="tree-svg" viewBox="0 0 860 540" width="860" height="540" xmlns="http://www.w3.org/2000/svg">
+        <!-- ─── LAYER HEADERS ─── -->
+        <text x="56"  y="18" font-family="JetBrains Mono,monospace" font-size="9" fill="#b0b6c8" text-anchor="middle" font-weight="600">START</text>
+        <text x="192" y="18" font-family="JetBrains Mono,monospace" font-size="9" fill="#b0b6c8" text-anchor="middle" font-weight="600">T1</text>
+        <text x="346" y="18" font-family="JetBrains Mono,monospace" font-size="9" fill="#b0b6c8" text-anchor="middle" font-weight="600">T2</text>
+        <text x="488" y="18" font-family="JetBrains Mono,monospace" font-size="9" fill="#b0b6c8" text-anchor="middle" font-weight="600">T3</text>
+        <text x="624" y="18" font-family="JetBrains Mono,monospace" font-size="9" fill="#b0b6c8" text-anchor="middle" font-weight="600">T4</text>
+        <text x="776" y="18" font-family="JetBrains Mono,monospace" font-size="9" fill="#b0b6c8" text-anchor="middle" font-weight="600">T5 · FINAL</text>
+
+        <!-- Column separator lines -->
+        <line x1="130" y1="24" x2="130" y2="530" stroke="#f0f0f5" stroke-width="1"/>
+        <line x1="270" y1="24" x2="270" y2="530" stroke="#f0f0f5" stroke-width="1"/>
+        <line x1="418" y1="24" x2="418" y2="530" stroke="#f0f0f5" stroke-width="1"/>
+        <line x1="558" y1="24" x2="558" y2="530" stroke="#f0f0f5" stroke-width="1"/>
+        <line x1="700" y1="24" x2="700" y2="530" stroke="#f0f0f5" stroke-width="1"/>
+
+        <!-- ─────────────────────────────────────────────
+             EDGES  (draw first so nodes appear on top)
+        ───────────────────────────────────────────── -->
+
+        <!-- START → T1 -->
+        <!-- → good  (GREEDY path, red) -->
+        <path class="dt-edge greedy" d="M96,270 C140,270 148,160 176,160"/>
+        <!-- → clear (BEAM path, green) -->
+        <path class="dt-edge beam"   d="M96,270 C140,270 148,310 176,310"/>
+        <!-- → solid (pruned) -->
+        <path class="dt-edge pruned" d="M96,270 C140,270 148,420 176,420"/>
+
+        <!-- T1:good → T2 children (GREEDY continues red) -->
+        <!-- → idea  (greedy picks this) -->
+        <path class="dt-edge greedy" d="M222,160 C262,160 270,120 330,120"/>
+        <!-- → plan  (alt, pruned) -->
+        <path class="dt-edge pruned" d="M222,160 C262,160 270,180 330,195"/>
+
+        <!-- T1:clear → T2 children (BEAM continues green) -->
+        <!-- → vision (beam picks this) -->
+        <path class="dt-edge beam"   d="M222,310 C262,310 270,285 330,290"/>
+        <!-- → goals (alt, pruned) -->
+        <path class="dt-edge pruned" d="M222,310 C262,310 270,360 330,380"/>
+
+        <!-- T1:solid → pruned branch -->
+        <path class="dt-edge pruned" d="M222,420 C262,420 270,460 330,470"/>
+
+        <!-- T2:idea → T3 (greedy) -->
+        <!-- → but  (greedy picks) -->
+        <path class="dt-edge greedy" d="M368,120 C408,120 414,115 472,115"/>
+        <!-- → that (alt pruned) -->
+        <path class="dt-edge pruned" d="M368,120 C408,120 414,148 472,155"/>
+
+        <!-- T2:vision → T3 (beam) -->
+        <!-- → drives (beam picks) -->
+        <path class="dt-edge beam"   d="M368,290 C408,290 414,270 472,265"/>
+        <!-- → helps (alt pruned) -->
+        <path class="dt-edge pruned" d="M368,290 C408,290 414,320 472,335"/>
+
+        <!-- T2:plan → pruned -->
+        <path class="dt-edge pruned" d="M368,195 C408,195 414,200 472,205"/>
+        <!-- T2:goals → pruned -->
+        <path class="dt-edge pruned" d="M368,380 C408,380 414,390 472,400"/>
+
+        <!-- T3:but → T4 (greedy sinking) -->
+        <!-- → hard (greedy picks) -->
+        <path class="dt-edge greedy" d="M510,115 C550,115 554,130 608,135"/>
+        <!-- → also (alt pruned) -->
+        <path class="dt-edge pruned" d="M510,115 C550,115 554,155 608,165"/>
+
+        <!-- T3:drives → T4 (beam rising) -->
+        <!-- → long-term (beam picks) -->
+        <path class="dt-edge beam"   d="M510,265 C550,265 554,250 608,248"/>
+        <!-- → strong (alt pruned) -->
+        <path class="dt-edge pruned" d="M510,265 C550,265 554,290 608,300"/>
+
+        <!-- T3:that → pruned -->
+        <path class="dt-edge pruned" d="M510,155 C550,155 554,160 608,168"/>
+        <!-- T3:helps → pruned -->
+        <path class="dt-edge pruned" d="M510,335 C550,335 554,340 608,350"/>
+
+        <!-- T4:hard → T5 (greedy final) -->
+        <path class="dt-edge greedy" d="M648,135 C688,135 694,148 754,152"/>
+
+        <!-- T4:long-term → T5 (beam final) -->
+        <path class="dt-edge beam"   d="M648,248 C688,248 694,262 754,268"/>
+
+        <!-- T4:also → pruned -->
+        <path class="dt-edge pruned" d="M648,165 C688,165 694,170 754,175"/>
+        <!-- T4:strong → pruned -->
+        <path class="dt-edge pruned" d="M648,300 C688,300 694,310 754,318"/>
+
+        <!-- ─────────────────────────────────────────────
+             NODES
+        ───────────────────────────────────────────── -->
+
+        <!-- START node -->
+        <rect class="dt-node" x="20" y="248" width="72" height="44" rx="8" fill="#f4f5f8" stroke="#c8cfe0" stroke-width="1.5"/>
+        <text class="dt-label" x="56" y="264" fill="#5a6080" font-size="10">requires</text>
+        <text class="dt-prob"  x="56" y="280" fill="#9aa0b4" font-size="9">context</text>
+
+        <!-- ── T1 nodes ── -->
+        <!-- "good" — GREEDY picks -->
+        <rect class="dt-node" x="154" y="138" width="68" height="44" rx="8" fill="#fef2f2" stroke="#dc2626" stroke-width="2"/>
+        <text class="dt-label" x="188" y="153" fill="#dc2626">"good"</text>
+        <text class="dt-prob"  x="188" y="166" fill="#dc2626" font-size="9.5">p=0.72</text>
+        <text class="dt-logp"  x="188" y="178" fill="#dc2626" font-size="8.5">log=−0.33</text>
+
+        <!-- greedy badge -->
+        <rect x="155" y="125" width="42" height="13" rx="4" fill="#dc2626"/>
+        <text class="dt-badge" x="176" y="131.5" fill="#fff">GREEDY</text>
+
+        <!-- "clear" — BEAM picks -->
+        <rect class="dt-node" x="154" y="288" width="68" height="44" rx="8" fill="#e8f7ef" stroke="#0f766e" stroke-width="2"/>
+        <text class="dt-label" x="188" y="303" fill="#0f766e">"clear"</text>
+        <text class="dt-prob"  x="188" y="316" fill="#0f766e" font-size="9.5">p=0.18</text>
+        <text class="dt-logp"  x="188" y="328" fill="#0f766e" font-size="8.5">log=−1.71</text>
+
+        <!-- "solid" — pruned -->
+        <rect class="dt-node" x="154" y="398" width="68" height="38" rx="8" fill="#f8f9fb" stroke="#e2e5ed" stroke-width="1" opacity="0.5"/>
+        <text class="dt-label" x="188" y="413" fill="#b0b6c8" font-size="10">"solid"</text>
+        <text class="dt-prob"  x="188" y="428" fill="#c8cfe0" font-size="9">p=0.10</text>
+
+        <!-- ── T2 nodes ── -->
+        <!-- "idea" (greedy branch) -->
+        <rect class="dt-node" x="306" y="98" width="68" height="44" rx="8" fill="#fef2f2" stroke="#dc2626" stroke-width="2"/>
+        <text class="dt-label" x="340" y="113" fill="#dc2626">"idea"</text>
+        <text class="dt-prob"  x="340" y="126" fill="#dc2626" font-size="9.5">p=0.61</text>
+        <text class="dt-logp"  x="340" y="138" fill="#dc2626" font-size="8.5">Σlog=−0.82</text>
+
+        <!-- "plan" (greedy alt, pruned) -->
+        <rect class="dt-node" x="306" y="173" width="68" height="38" rx="8" fill="#f8f9fb" stroke="#e2e5ed" stroke-width="1" opacity="0.4"/>
+        <text class="dt-label" x="340" y="188" fill="#b0b6c8" font-size="10">"plan"</text>
+        <text class="dt-prob"  x="340" y="203" fill="#c8cfe0" font-size="9">p=0.39</text>
+
+        <!-- "vision" (beam branch) -->
+        <rect class="dt-node" x="306" y="268" width="68" height="44" rx="8" fill="#e8f7ef" stroke="#0f766e" stroke-width="2"/>
+        <text class="dt-label" x="340" y="283" fill="#0f766e">"vision"</text>
+        <text class="dt-prob"  x="340" y="296" fill="#0f766e" font-size="9.5">p=0.78</text>
+        <text class="dt-logp"  x="340" y="308" fill="#0f766e" font-size="8.5">Σlog=−1.95</text>
+
+        <!-- "goals" (beam alt, pruned) -->
+        <rect class="dt-node" x="306" y="358" width="68" height="38" rx="8" fill="#f8f9fb" stroke="#e2e5ed" stroke-width="1" opacity="0.4"/>
+        <text class="dt-label" x="340" y="373" fill="#b0b6c8" font-size="10">"goals"</text>
+        <text class="dt-prob"  x="340" y="388" fill="#c8cfe0" font-size="9">p=0.22</text>
+
+        <!-- ── T3 nodes ── -->
+        <!-- "but" (greedy — bad token, p drops) -->
+        <rect class="dt-node" x="448" y="93" width="68" height="44" rx="8" fill="#fef2f2" stroke="#dc2626" stroke-width="2"/>
+        <text class="dt-label" x="482" y="108" fill="#dc2626">"but"</text>
+        <text class="dt-prob"  x="482" y="121" fill="#dc2626" font-size="9.5">p=0.35</text>
+        <text class="dt-logp"  x="482" y="133" fill="#dc2626" font-size="8.5">Σlog=−1.87</text>
+
+        <!-- "that" alt -->
+        <rect class="dt-node" x="448" y="133" width="68" height="36" rx="8" fill="#f8f9fb" stroke="#e2e5ed" stroke-width="1" opacity="0.4"/>
+        <text class="dt-label" x="482" y="148" fill="#b0b6c8" font-size="10">"that"</text>
+        <text class="dt-prob"  x="482" y="162" fill="#c8cfe0" font-size="9">p=0.65</text>
+
+        <!-- "drives" (beam — strong p) -->
+        <rect class="dt-node" x="448" y="243" width="68" height="44" rx="8" fill="#e8f7ef" stroke="#0f766e" stroke-width="2"/>
+        <text class="dt-label" x="482" y="258" fill="#0f766e">"drives"</text>
+        <text class="dt-prob"  x="482" y="271" fill="#0f766e" font-size="9.5">p=0.69</text>
+        <text class="dt-logp"  x="482" y="283" fill="#0f766e" font-size="8.5">Σlog=−2.32</text>
+
+        <!-- "helps" alt -->
+        <rect class="dt-node" x="448" y="313" width="68" height="36" rx="8" fill="#f8f9fb" stroke="#e2e5ed" stroke-width="1" opacity="0.4"/>
+        <text class="dt-label" x="482" y="328" fill="#b0b6c8" font-size="10">"helps"</text>
+        <text class="dt-prob"  x="482" y="343" fill="#c8cfe0" font-size="9">p=0.31</text>
+
+        <!-- ── T4 nodes ── -->
+        <!-- "hard" (greedy — p eroding fast) -->
+        <rect class="dt-node" x="584" y="113" width="68" height="44" rx="8" fill="#fef2f2" stroke="#dc2626" stroke-width="2"/>
+        <text class="dt-label" x="618" y="128" fill="#dc2626">"hard"</text>
+        <text class="dt-prob"  x="618" y="141" fill="#dc2626" font-size="9.5">p=0.28</text>
+        <text class="dt-logp"  x="618" y="153" fill="#dc2626" font-size="8.5">Σlog=−3.14</text>
+
+        <!-- "also" alt -->
+        <rect class="dt-node" x="584" y="143" width="68" height="36" rx="8" fill="#f8f9fb" stroke="#e2e5ed" stroke-width="1" opacity="0.4"/>
+        <text class="dt-label" x="618" y="158" fill="#b0b6c8" font-size="10">"also"</text>
+        <text class="dt-prob"  x="618" y="173" fill="#c8cfe0" font-size="9">p=0.72</text>
+
+        <!-- "long-term" (beam — high p recovery) -->
+        <rect class="dt-node" x="580" y="226" width="76" height="44" rx="8" fill="#e8f7ef" stroke="#0f766e" stroke-width="2"/>
+        <text class="dt-label" x="618" y="241" fill="#0f766e">"long-</text>
+        <text class="dt-label" x="618" y="254" fill="#0f766e">term"</text>
+        <text class="dt-logp"  x="618" y="266" fill="#0f766e" font-size="8.5">Σlog=−2.69</text>
+
+        <!-- "strong" alt -->
+        <rect class="dt-node" x="584" y="278" width="68" height="36" rx="8" fill="#f8f9fb" stroke="#e2e5ed" stroke-width="1" opacity="0.4"/>
+        <text class="dt-label" x="618" y="293" fill="#b0b6c8" font-size="10">"strong"</text>
+        <text class="dt-prob"  x="618" y="308" fill="#c8cfe0" font-size="9">p=0.31</text>
+
+        <!-- ── T5 FINAL nodes ── -->
+        <!-- GREEDY final — "to" (very low p, total bad) -->
+        <rect class="dt-node" x="730" y="130" width="110" height="44" rx="8" fill="#fef2f2" stroke="#dc2626" stroke-width="2.5"/>
+        <text class="dt-label" x="785" y="145" fill="#dc2626" font-size="10.5">"to"  p=0.19</text>
+        <text class="dt-logp"  x="785" y="158" fill="#b04040" font-size="8.5">Σlog = −4.81</text>
+        <text class="dt-logp"  x="785" y="170" fill="#b04040" font-size="8">[greedy total]</text>
+
+        <!-- BEAM final — "success" (high p, wins) -->
+        <rect class="dt-node" x="730" y="246" width="110" height="44" rx="8" fill="#e8f7ef" stroke="#0f766e" stroke-width="2.5"/>
+        <text class="dt-label" x="785" y="261" fill="#0f766e" font-size="10.5">"success"</text>
+        <text class="dt-logp"  x="785" y="274" fill="#0f766e" font-size="8.5">Σlog = −3.12</text>
+        <text class="dt-logp"  x="785" y="286" fill="#0f766e" font-size="8">[beam total ✓]</text>
+
+        <!-- WINNER crown -->
+        <text x="843" y="243" font-size="14" text-anchor="middle">🏆</text>
+
+        <!-- Probability drop annotation (greedy) -->
+        <path d="M490,93 Q530,60 582,78" stroke="#dc2626" stroke-width="1" fill="none" stroke-dasharray="3 2" opacity="0.5"/>
+        <text x="530" y="56" font-family="JetBrains Mono,monospace" font-size="8.5" fill="#dc2626" text-anchor="middle" opacity="0.75">p her adımda</text>
+        <text x="530" y="66" font-family="JetBrains Mono,monospace" font-size="8.5" fill="#dc2626" text-anchor="middle" opacity="0.75">düşüyor →</text>
+
+        <!-- Recovery annotation (beam) -->
+        <path d="M490,287 Q530,380 582,318" stroke="#0f766e" stroke-width="1" fill="none" stroke-dasharray="3 2" opacity="0.5"/>
+        <text x="534" y="380" font-family="JetBrains Mono,monospace" font-size="8.5" fill="#0f766e" text-anchor="middle" opacity="0.75">↑ p yükseliyor</text>
+        <text x="534" y="390" font-family="JetBrains Mono,monospace" font-size="8.5" fill="#0f766e" text-anchor="middle" opacity="0.75">zincir tutarlı</text>
+
+      </svg>
+    </div>
+  </div>
+
+  <!-- Score comparison -->
+  <div class="tree-explain">
+    <h3>Kümülatif log-p Karşılaştırması — 5 Token Sonrası</h3>
+    <div class="score-compare">
+      <div class="score-box loser">
+        <div class="score-box-label">🔴 Greedy Search</div>
+        <div class="score-box-seq">"good" → "idea" → "but" → "hard" → "to"</div>
+        <div class="score-box-val">Σ log-p = −4.81</div>
+        <div class="score-breakdown">
+          log(0.72) + log(0.61) + log(0.35) + log(0.28) + log(0.19)<br>
+          = −0.33 − 0.49 − 1.05 − 1.27 − 1.66 = −4.81
+        </div>
+      </div>
+      <div class="score-box winner">
+        <div class="score-box-label">🏆 Beam Search</div>
+        <div class="score-box-seq">"clear" → "vision" → "drives" → "long-term" → "success"</div>
+        <div class="score-box-val">Σ log-p = −3.12</div>
+        <div class="score-breakdown">
+          log(0.18) + log(0.78) + log(0.69) + log(0.84) + log(0.91)<br>
+          = −1.71 − 0.25 − 0.37 − 0.17 − 0.09 = −3.12 ✓
+        </div>
+      </div>
+    </div>
+    <div class="note" style="margin-top:12px;">
+      <strong>Ana ders:</strong> "good" (p=0.72) ile başlamak lokal olarak akıllıca görünür —
+      ama bu token, zayıf devam olasılıklarına sahip bir yola hapseder.
+      "clear" (p=0.18) düşük başlar ama ardından <em>yüksek olasılıklı, tutarlı bir zincir</em> açar.
+      Beam Search bu alternatifi keşfeder; Greedy asla görmez.
+    </div>
+  </div>
+
+</div><!-- /panel-tree -->
 
 <script>
 // ── Veri tabanı: farklı promptlar için logitler ──────────────────────────────
@@ -468,6 +897,14 @@ const PROMPT_DATA = {
 let K = 3;
 let currentTemp = 1.0;
 let running = false;
+
+// ── Tab switcher ──────────────────────────────────────────────────────────────
+function switchTab(name) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('panel-' + name).classList.add('active');
+  document.getElementById('tab-' + name).classList.add('active');
+}
 
 function updateTemp() {
   currentTemp = parseFloat(document.getElementById('temp').value);
