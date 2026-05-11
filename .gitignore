@@ -1,0 +1,10 @@
+# Claude Code temporary files
+.claude/worktrees/
+.claude/settings.local.json
+
+# Environment variables
+.env
+.env.local
+
+# macOS
+.DS_Store

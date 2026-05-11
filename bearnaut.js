@@ -381,6 +381,29 @@ function loop(ts) {
   requestAnimationFrame(loop);
 }
 
+// Duck with 5-second auto-standup and 2-second cooldown
+let duckTimeout = null;
+let duckCooldown = false;
+const MAX_DUCK_MS = 5000;
+const DUCK_COOLDOWN_MS = 2000;
+
+function startDuck() {
+  if (G.bearY >= GROUND && !G.ducking && !duckCooldown) {
+    G.ducking = true;
+    playSound('duck');
+    clearTimeout(duckTimeout);
+    duckTimeout = setTimeout(() => { stopDuck(); }, MAX_DUCK_MS);
+  }
+}
+
+function stopDuck() {
+  G.ducking = false;
+  clearTimeout(duckTimeout);
+  duckTimeout = null;
+  duckCooldown = true;
+  setTimeout(() => { duckCooldown = false; }, DUCK_COOLDOWN_MS);
+}
+
 // Controls
 document.addEventListener('keydown', e => {
   initAudio();
@@ -389,17 +412,16 @@ document.addEventListener('keydown', e => {
     if (G.running && !G.over) { G.paused = !G.paused; lastTs = 0; return; }
   }
   if (e.code === 'ArrowUp' || e.key === 'ArrowUp') {
-    e.preventDefault(); G.jumpHeld = true; G.ducking = false;
+    e.preventDefault(); G.jumpHeld = true; stopDuck();
   }
   if (e.code === 'ArrowDown' || e.key === 'ArrowDown') {
-    e.preventDefault();
-    if (G.bearY >= GROUND && !G.ducking) { G.ducking = true; playSound('duck'); }
+    e.preventDefault(); startDuck();
   }
   if (G.over) { initGame(); }
 });
 document.addEventListener('keyup', e => {
   if (e.code === 'ArrowUp' || e.key === 'ArrowUp') G.jumpHeld = false;
-  if (e.code === 'ArrowDown' || e.key === 'ArrowDown') G.ducking = false;
+  if (e.code === 'ArrowDown' || e.key === 'ArrowDown') stopDuck();
 });
 
 // Touch
@@ -409,8 +431,8 @@ canvas.addEventListener('touchstart', e => {
 }, { passive: false });
 canvas.addEventListener('touchend', e => {
   const dy = touchStartY - e.changedTouches[0].clientY;
-  if (dy > 15) { G.jumpHeld = true; G.ducking = false; setTimeout(() => G.jumpHeld = false, 200); }
-  else { if (G.bearY >= GROUND) { G.ducking = true; playSound('duck'); setTimeout(() => G.ducking = false, 400); } }
+  if (dy > 15) { G.jumpHeld = true; stopDuck(); setTimeout(() => G.jumpHeld = false, 200); }
+  else { startDuck(); setTimeout(() => stopDuck(), 400); }
   if (G.over) initGame();
 }, { passive: false });
 

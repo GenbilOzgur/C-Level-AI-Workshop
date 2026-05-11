@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "skills": {
+    "add-dataverse": {
+      "source": "microsoft/power-platform-skills",
+      "sourceType": "github",
+      "skillPath": "plugins/code-apps/skills/add-dataverse/SKILL.md",
+      "computedHash": "de098d7093cc9e058d0898040120d4e6f1d5d4ca3adfb5999a805f6f270e77cd"
+    }
+  }
+}
