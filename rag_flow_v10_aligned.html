@@ -1,0 +1,332 @@
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+.wrap{font-family:var(--font-sans,sans-serif);background:var(--color-background-primary);border:2px solid #85B7EB;border-radius:16px;overflow:hidden;width:100%}
+.tab-bar{display:flex;border-bottom:2px solid #D3D1C7;background:#F1EFE8}
+.tab{flex:1;padding:12px 6px;text-align:center;font-size:13.5px;font-weight:500;cursor:pointer;border-bottom:3px solid transparent;color:#888780;transition:all .15s;user-select:none}
+.tab.active{color:#042C53;border-bottom-color:#378ADD;background:var(--color-background-primary)}
+.tab:hover:not(.active){color:#444441;background:#E8E6DF}
+.panel{display:none;padding:22px 20px 20px}
+.panel.active{display:block}
+.p-title{text-align:center;font-size:19px;font-weight:500;color:#042C53;margin-bottom:4px}
+.p-sub{text-align:center;font-size:13.5px;color:#5F5E5A;margin-bottom:16px}
+
+/* Phase banners — 4 equal columns with exact gap */
+.phases{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px;margin-bottom:8px}
+.ph{border-radius:8px;padding:7px 6px;text-align:center;font-size:13px;font-weight:500;line-height:1.3}
+.ph-letter{display:block;font-size:18px;font-weight:700;letter-spacing:1px;margin-bottom:1px}
+.ph1{background:#DAEEF9;color:#042C53;border:1px solid #85B7EB}
+.ph2{background:#B5D4F4;color:#042C53;border:1px solid #378ADD}
+.ph3{background:#D6D0F7;color:#26215C;border:1px solid #AFA9EC}
+.ph4{background:#CECBF6;color:#26215C;border:1px solid #7F77DD}
+</style>
+
+<div class="wrap">
+  <div class="tab-bar">
+    <div class="tab active" onclick="showTab('flow',this)">RAG Akış Diyagramı</div>
+    <div class="tab" onclick="showTab('why',this)">Neden RAG?</div>
+    <div class="tab" onclick="showTab('precision',this)">Recall &amp; Precision</div>
+  </div>
+
+  <!-- TAB 1 -->
+  <div id="flow" class="panel active">
+    <div class="p-title">RAG — Retrieval-Augmented Generation Akışı</div>
+    <div class="p-sub">Dahili bilgi tabanına semantik arama ile LLM prompt desteği</div>
+
+    <!-- Phase banners with RAG letters -->
+    <div class="phases">
+      <div class="ph ph1"><span class="ph-letter">R</span>① İndeksleme</div>
+      <div class="ph ph2"><span class="ph-letter">R</span>② Sorgulama</div>
+      <div class="ph ph3"><span class="ph-letter">A</span>③ Zenginleştirme</div>
+      <div class="ph ph4"><span class="ph-letter">G</span>④ Üretim</div>
+    </div>
+
+    <!--
+      SVG coordinate plan — all columns exactly match the 4 equal CSS grid cells.
+      Total SVG width = 680. Panel padding = 20px each side → content = 640px.
+      4 columns + 3 gaps (8px each) = 640px → each column = (640 - 24) / 4 = 154px.
+
+      In SVG (viewBox 680), the panel padding maps to ~21px each side.
+      So content starts at x=21, ends at x=659, width=638.
+      Col width = (638 - 3×8) / 4 = (638-24)/4 = 153.5 ≈ 154px
+      Gap = 8px
+
+      Col centres:
+        C1: x=21 + 154/2          = 21 + 77   = 98
+        C2: x=21 + 154 + 8 + 77   = 21+239    = 260
+        C3: x=21 + 2×(154+8) + 77 = 21+401    = 422
+        C4: x=21 + 3×(154+8) + 77 = 21+563    = 584
+
+      Col left edges (for rect x):
+        C1: 21
+        C2: 21+162 = 183
+        C3: 21+324 = 345
+        C4: 21+486 = 507
+
+      Box width = 154px (matches col width exactly)
+    -->
+    <svg width="100%" viewBox="0 0 680 570" role="img" xmlns="http://www.w3.org/2000/svg">
+      <title>RAG Akış Diyagramı</title>
+      <defs>
+        <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </marker>
+      </defs>
+
+      <!-- Column backgrounds — x/width match box positions exactly -->
+      <rect x="21"  y="8" width="154" height="418" rx="10" fill="#EAF4FC" stroke="#85B7EB" stroke-width="0.8"/>
+      <rect x="183" y="8" width="154" height="418" rx="10" fill="#D6E9F8" stroke="#378ADD" stroke-width="0.8"/>
+      <rect x="345" y="8" width="154" height="418" rx="10" fill="#EEEDFE" stroke="#AFA9EC" stroke-width="0.8"/>
+      <rect x="507" y="8" width="154" height="418" rx="10" fill="#E0DDFC" stroke="#7F77DD" stroke-width="0.8"/>
+
+      <!-- ROW 1: y=20, h=60, box width=138 (8px inset each side inside col bg) -->
+      <!-- Belge Deposu -->
+      <rect x="29"  y="20" width="138" height="60" rx="8" fill="#fff" stroke="#85B7EB" stroke-width="1.2"/>
+      <text font-family="var(--font-sans,sans-serif)" font-size="13.5" font-weight="500" fill="#042C53" text-anchor="middle" x="98" y="44">Belge Deposu</text>
+      <text font-family="var(--font-sans,sans-serif)" font-size="12" fill="#185FA5" text-anchor="middle" x="98" y="64">Döküman / Veri Tabanı</text>
+
+      <!-- User avatar (col 2, no box) -->
+      <circle cx="260" cy="43" r="17" fill="#D6E9F8" stroke="#378ADD" stroke-width="1.5"/>
+      <circle cx="260" cy="40" r="7" fill="#378ADD"/>
+      <path d="M243 62 Q260 53 277 62" fill="#378ADD"/>
+      <text font-family="var(--font-sans,sans-serif)" font-size="13.5" font-weight="500" fill="#0C447C" text-anchor="middle" x="260" y="80">Kullanıcı</text>
+      <text font-family="var(--font-sans,sans-serif)" font-size="12" fill="#185FA5" text-anchor="middle" x="260" y="96">doğal dil sorusu</text>
+
+      <!-- LLM (col 4) -->
+      <rect x="515" y="20" width="138" height="60" rx="8" fill="#fff" stroke="#7F77DD" stroke-width="1.2"/>
+      <text font-family="var(--font-sans,sans-serif)" font-size="13.5" font-weight="500" fill="#26215C" text-anchor="middle" x="584" y="44">LLM</text>
+      <text font-family="var(--font-sans,sans-serif)" font-size="12" fill="#534AB7" text-anchor="middle" x="584" y="64">Üretim Modeli</text>
+
+      <!-- ROW 2: y=168, h=60 -->
+      <rect x="29"  y="168" width="138" height="60" rx="8" fill="#fff" stroke="#85B7EB" stroke-width="1.2"/>
+      <text font-family="var(--font-sans,sans-serif)" font-size="13.5" font-weight="500" fill="#042C53" text-anchor="middle" x="98" y="190">Embedding</text>
+      <text font-family="var(--font-sans,sans-serif)" font-size="13.5" font-weight="500" fill="#042C53" text-anchor="middle" x="98" y="206">Modeli</text>
+      <text font-family="var(--font-sans,sans-serif)" font-size="12" fill="#185FA5" text-anchor="middle" x="98" y="222">Metin → vektör</text>
+
+      <rect x="191" y="168" width="138" height="60" rx="8" fill="#fff" stroke="#378ADD" stroke-width="1.2"/>
+      <text font-family="var(--font-sans,sans-serif)" font-size="13.5" font-weight="500" fill="#042C53" text-anchor="middle" x="260" y="190">Embedding</text>
+      <text font-family="var(--font-sans,sans-serif)" font-size="13.5" font-weight="500" fill="#042C53" text-anchor="middle" x="260" y="206">Modeli</text>
+      <text font-family="var(--font-sans,sans-serif)" font-size="12" fill="#0C447C" text-anchor="middle" x="260" y="222">Sorgu → vektör</text>
+
+      <rect x="353" y="168" width="138" height="60" rx="8" fill="#fff" stroke="#AFA9EC" stroke-width="1.2"/>
+      <text font-family="var(--font-sans,sans-serif)" font-size="13.5" font-weight="500" fill="#26215C" text-anchor="middle" x="422" y="188">Zenginleştirilmiş</text>
+      <text font-family="var(--font-sans,sans-serif)" font-size="13.5" font-weight="500" fill="#26215C" text-anchor="middle" x="422" y="204">Prompt</text>
+      <text font-family="var(--font-sans,sans-serif)" font-size="12" fill="#534AB7" text-anchor="middle" x="422" y="222">Soru + Metin Bağlamı</text>
+
+      <rect x="515" y="168" width="138" height="60" rx="8" fill="#fff" stroke="#AFA9EC" stroke-width="1.2"/>
+      <text font-family="var(--font-sans,sans-serif)" font-size="13.5" font-weight="500" fill="#3C3489" text-anchor="middle" x="584" y="190">Yanıt</text>
+      <text font-family="var(--font-sans,sans-serif)" font-size="12" fill="#534AB7" text-anchor="middle" x="584" y="208">Bağlam temelli,</text>
+      <text font-family="var(--font-sans,sans-serif)" font-size="12" fill="#534AB7" text-anchor="middle" x="584" y="222">kaynaklı çıktı</text>
+
+      <!-- ROW 3: y=326, h=60 -->
+      <rect x="29"  y="326" width="138" height="60" rx="8" fill="#fff" stroke="#85B7EB" stroke-width="1.2"/>
+      <text font-family="var(--font-sans,sans-serif)" font-size="13.5" font-weight="500" fill="#042C53" text-anchor="middle" x="98" y="350">Vektör İndeksi</text>
+      <text font-family="var(--font-sans,sans-serif)" font-size="12" fill="#185FA5" text-anchor="middle" x="98" y="370">Vektörler depolanır</text>
+
+      <rect x="191" y="326" width="138" height="60" rx="8" fill="#fff" stroke="#378ADD" stroke-width="1.2"/>
+      <text font-family="var(--font-sans,sans-serif)" font-size="13.5" font-weight="500" fill="#042C53" text-anchor="middle" x="260" y="350">Semantik Arama</text>
+      <text font-family="var(--font-sans,sans-serif)" font-size="12" fill="#0C447C" text-anchor="middle" x="260" y="370">Cosine benzerliği</text>
+
+      <rect x="353" y="326" width="138" height="60" rx="8" fill="#fff" stroke="#AFA9EC" stroke-width="1.2"/>
+      <text font-family="var(--font-sans,sans-serif)" font-size="13.5" font-weight="500" fill="#26215C" text-anchor="middle" x="422" y="344">İlgili Metin</text>
+      <text font-family="var(--font-sans,sans-serif)" font-size="13.5" font-weight="500" fill="#26215C" text-anchor="middle" x="422" y="361">Parçaları</text>
+      <text font-family="var(--font-sans,sans-serif)" font-size="12" fill="#534AB7" text-anchor="middle" x="422" y="378">Eşleşen chunk'lar</text>
+
+      <!-- ARROWS -->
+      <!-- Col1 down: Belge Deposu → Embedding -->
+      <line x1="98" y1="80" x2="98" y2="166" stroke="#378ADD" stroke-width="1.5" marker-end="url(#arr)"/>
+      <text font-family="var(--font-sans,sans-serif)" font-size="11.5" fill="#185FA5" x="104" y="128">ham metin</text>
+
+      <!-- Col1 down: Embedding → Vektör İndeksi -->
+      <line x1="98" y1="228" x2="98" y2="324" stroke="#378ADD" stroke-width="1.5" marker-end="url(#arr)"/>
+      <text font-family="var(--font-sans,sans-serif)" font-size="11.5" fill="#185FA5" x="104" y="280">döküman</text>
+      <text font-family="var(--font-sans,sans-serif)" font-size="11.5" fill="#185FA5" x="104" y="294">vektörü</text>
+
+      <!-- Col2 down: Kullanıcı → Embedding -->
+      <line x1="260" y1="100" x2="260" y2="166" stroke="#0C447C" stroke-width="1.5" marker-end="url(#arr)"/>
+      <text font-family="var(--font-sans,sans-serif)" font-size="11.5" fill="#0C447C" x="266" y="137">sorgu metni</text>
+
+      <!-- Col2 down: Embedding → Semantik Arama -->
+      <line x1="260" y1="228" x2="260" y2="324" stroke="#0C447C" stroke-width="1.5" marker-end="url(#arr)"/>
+      <text font-family="var(--font-sans,sans-serif)" font-size="11.5" fill="#0C447C" x="266" y="280">sorgu</text>
+      <text font-family="var(--font-sans,sans-serif)" font-size="11.5" fill="#0C447C" x="266" y="294">vektörü</text>
+
+      <!-- Row3 right: Vektör İndeksi → Semantik Arama -->
+      <line x1="168" y1="356" x2="189" y2="356" stroke="#185FA5" stroke-width="1.5" marker-end="url(#arr)"/>
+      <text font-family="var(--font-sans,sans-serif)" font-size="10.5" fill="#185FA5" text-anchor="middle" x="178" y="348">benzer</text>
+      <text font-family="var(--font-sans,sans-serif)" font-size="10.5" fill="#185FA5" text-anchor="middle" x="178" y="372">vektörler</text>
+
+      <!-- Row3 right: Semantik Arama → İlgili Metin Parçaları -->
+      <line x1="330" y1="356" x2="351" y2="356" stroke="#534AB7" stroke-width="1.5" marker-end="url(#arr)"/>
+      <text font-family="var(--font-sans,sans-serif)" font-size="10.5" fill="#534AB7" text-anchor="middle" x="340" y="348">metin</text>
+      <text font-family="var(--font-sans,sans-serif)" font-size="10.5" fill="#534AB7" text-anchor="middle" x="340" y="372">parçaları</text>
+
+      <!-- Col3 up: İlgili Metin Parçaları → Zenginleştirilmiş Prompt -->
+      <line x1="422" y1="324" x2="422" y2="230" stroke="#534AB7" stroke-width="1.5" marker-end="url(#arr)"/>
+      <text font-family="var(--font-sans,sans-serif)" font-size="11.5" fill="#534AB7" text-anchor="end" x="416" y="284">bağlam</text>
+
+      <!-- Dashed: Kullanıcı soru → Zenginleştirilmiş Prompt -->
+      <path d="M 278 74 Q 346 74 353 183" fill="none" stroke="#0C447C" stroke-width="1.5" stroke-dasharray="5 3" marker-end="url(#arr)"/>
+      <text font-family="var(--font-sans,sans-serif)" font-size="11.5" fill="#0C447C" text-anchor="middle" x="344" y="112">orijinal soru</text>
+
+      <!-- Row2 right: Zenginleştirilmiş Prompt → LLM -->
+      <line x1="492" y1="198" x2="513" y2="198" stroke="#7F77DD" stroke-width="2" marker-end="url(#arr)"/>
+      <text font-family="var(--font-sans,sans-serif)" font-size="11.5" fill="#534AB7" text-anchor="middle" x="502" y="191">prompt</text>
+
+      <!-- Col4 down: LLM → Yanıt -->
+      <line x1="584" y1="80" x2="584" y2="166" stroke="#7F77DD" stroke-width="1.5" marker-end="url(#arr)"/>
+      <text font-family="var(--font-sans,sans-serif)" font-size="11.5" fill="#3C3489" x="590" y="127">üretim</text>
+
+      <!-- Return arc: Yanıt → Kullanıcı -->
+      <path d="M 515 198 Q 390 448 278 98" fill="none" stroke="#7F77DD" stroke-width="1.5" stroke-dasharray="5 3" marker-end="url(#arr)"/>
+      <text font-family="var(--font-sans,sans-serif)" font-size="12.5" fill="#534AB7" text-anchor="middle" x="398" y="462">yanıt kullanıcıya döner</text>
+
+      <!-- Legend -->
+      <line x1="21"  y1="486" x2="55"  y2="486" stroke="#378ADD" stroke-width="1.5" marker-end="url(#arr)"/>
+      <text font-family="var(--font-sans,sans-serif)" font-size="12.5" fill="#5F5E5A" x="61" y="491">Veri akışı</text>
+      <line x1="186" y1="486" x2="220" y2="486" stroke="#0C447C" stroke-width="1.5" stroke-dasharray="5 3" marker-end="url(#arr)"/>
+      <text font-family="var(--font-sans,sans-serif)" font-size="12.5" fill="#5F5E5A" x="226" y="491">Sorgu yolu</text>
+      <line x1="350" y1="486" x2="384" y2="486" stroke="#7F77DD" stroke-width="2" marker-end="url(#arr)"/>
+      <text font-family="var(--font-sans,sans-serif)" font-size="12.5" fill="#5F5E5A" x="390" y="491">Prompt → LLM → Yanıt</text>
+      <text font-family="var(--font-sans,sans-serif)" font-size="12" fill="#888780" text-anchor="middle" x="340" y="516">İndeksleme önceden yapılır · Sorgulama &amp; Üretim her kullanıcı sorusunda tetiklenir</text>
+    </svg>
+  </div>
+
+  <!-- TAB 2 -->
+  <div id="why" class="panel">
+    <div class="p-title">Neden RAG?</div>
+    <div class="p-sub">RAG, Fine-Tuning ve Prompt Engineering arasındaki fark</div>
+    <div style="background:#F6F5FE;border:1.5px solid #AFA9EC;border-radius:12px;padding:20px 16px 12px;margin-bottom:14px">
+      <div style="text-align:center;font-size:15px;font-weight:500;color:#26215C;margin-bottom:14px">LLM Geliştirme Yaklaşımları — Karşılaştırma Matrisi</div>
+      <div style="display:flex;gap:6px">
+        <div style="writing-mode:vertical-rl;transform:rotate(180deg);font-size:12px;font-weight:500;color:#5F5E5A;align-self:center;white-space:nowrap;padding-bottom:20px">Dahili / Özel Bilgi İhtiyacı</div>
+        <div style="flex:1">
+          <div style="text-align:right;font-size:11px;color:#888780;margin-bottom:3px">Yüksek ↑</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:3px;border:1.5px solid #AFA9EC;border-radius:8px;overflow:hidden">
+            <div style="background:#DAEEF9;padding:22px 14px 16px;min-height:120px;display:flex;flex-direction:column;justify-content:flex-end"><div style="display:inline-block;background:#378ADD;color:#fff;border-radius:18px;padding:6px 16px;font-size:13.5px;font-weight:500;margin-bottom:7px;align-self:flex-start">RAG</div><div style="font-size:12px;color:#185FA5;line-height:1.5">Dahili bilgi yüksek, model değişmez. Vektör arama ile dinamik bağlam sağlar.</div></div>
+            <div style="background:#E0DDFC;padding:22px 14px 16px;min-height:120px;display:flex;flex-direction:column;justify-content:flex-end"><div style="display:inline-block;background:#534AB7;color:#fff;border-radius:18px;padding:6px 14px;font-size:13.5px;font-weight:500;margin-bottom:7px;align-self:flex-start">RAG + Fine-Tuning</div><div style="font-size:12px;color:#3C3489;line-height:1.5">Her ikisi yüksek. Karmaşık ama en güçlü yaklaşım.</div></div>
+            <div style="background:#F1EFE8;padding:16px 14px;min-height:120px;display:flex;flex-direction:column;justify-content:flex-end"><div style="display:inline-block;background:#888780;color:#fff;border-radius:18px;padding:6px 16px;font-size:13.5px;font-weight:500;margin-bottom:7px;align-self:flex-start">Prompt Engineering</div><div style="font-size:12px;color:#444441;line-height:1.5">Hızlı ve ucuz. Bilgi bağlam penceresine sığarsa yeterli.</div></div>
+            <div style="background:#EAF4FC;padding:16px 14px;min-height:120px;display:flex;flex-direction:column;justify-content:flex-end"><div style="display:inline-block;background:#AFA9EC;color:#26215C;border-radius:18px;padding:6px 16px;font-size:13.5px;font-weight:500;margin-bottom:7px;align-self:flex-start">Fine-Tuning</div><div style="font-size:12px;color:#185FA5;line-height:1.5">Model davranışını kalıcı değiştirir. Pahalı, yeniden eğitim gerekir.</div></div>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:11px;color:#888780;margin-top:4px;padding:0 2px"><span>Düşük ↓</span><span>Yüksek ↑</span></div>
+          <div style="text-align:center;font-size:12px;font-weight:500;color:#5F5E5A;margin-top:4px">Model Adaptasyon İhtiyacı →</div>
+        </div>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:12px">
+      <div style="border-radius:10px;padding:13px 14px;background:#EAF4FC;border:1.5px solid #85B7EB"><div style="display:inline-block;background:#B5D4F4;color:#042C53;border-radius:10px;padding:2px 10px;font-size:11px;font-weight:500;margin-bottom:6px">RAG</div><div style="font-size:13.5px;font-weight:500;color:#042C53;margin-bottom:4px">Dinamik bilgi erişimi</div><div style="font-size:12px;color:#185FA5;line-height:1.5">Model değişmez. Vektör indeksine yeni bilgi eklemek yeterli. Güncel &amp; özel veriler için ideal.</div></div>
+      <div style="border-radius:10px;padding:13px 14px;background:#F1EFE8;border:1.5px solid #B4B2A9"><div style="display:inline-block;background:#D3D1C7;color:#2C2C2A;border-radius:10px;padding:2px 10px;font-size:11px;font-weight:500;margin-bottom:6px">Prompt Engineering</div><div style="font-size:13.5px;font-weight:500;color:#2C2C2A;margin-bottom:4px">Hızlı ve kolay</div><div style="font-size:12px;color:#5F5E5A;line-height:1.5">Eğitim gerekmez. Bağlam penceresiyle sınırlı. Küçük bilgi tabanları için uygundur.</div></div>
+      <div style="border-radius:10px;padding:13px 14px;background:#E0DDFC;border:1.5px solid #7F77DD"><div style="display:inline-block;background:#CECBF6;color:#26215C;border-radius:10px;padding:2px 10px;font-size:11px;font-weight:500;margin-bottom:6px">Fine-Tuning</div><div style="font-size:13.5px;font-weight:500;color:#26215C;margin-bottom:4px">Model davranışını şekillendirir</div><div style="font-size:12px;color:#534AB7;line-height:1.5">Model ağırlıkları değişir. Yüksek maliyet &amp; zaman. Ton/stil/domain adaptasyonu için.</div></div>
+    </div>
+    <div style="border:1.5px solid #CECBF6;border-radius:10px;padding:14px 18px;background:#F6F5FE">
+      <div style="font-size:14px;font-weight:500;color:#26215C;margin-bottom:9px;text-align:center">RAG ne zaman seçilmeli?</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div style="font-size:13px;color:#534AB7;line-height:1.8">✓ Şirket içi doküman veya güncel veriye erişim gerektiğinde<br>✓ Modeli yeniden eğitmek pahalı veya mümkün değilse<br>✓ Bilgi tabanı sık güncelleniyorsa</div>
+        <div style="font-size:13px;color:#534AB7;line-height:1.8">✓ Kaynaklı, izlenebilir yanıt vermek öncelikliyse<br>✓ Hallucination riskini minimize etmek gerekiyorsa<br>✓ Bağlam penceresi yeterli değilse</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 3 -->
+  <div id="precision" class="panel">
+    <div class="p-title">Recall &amp; Precision — Belge Erişiminde Denge</div>
+    <div class="p-sub">RAG sisteminde sorgulama kalitesini belirleyen iki temel metrik</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px">
+      <div style="background:#EAF4FC;border:1.5px solid #85B7EB;border-radius:10px;padding:13px 16px">
+        <div style="font-size:13.5px;font-weight:500;color:#042C53;margin-bottom:5px">Recall (Geri Çağırma)</div>
+        <div style="font-size:12.5px;color:#185FA5;line-height:1.6">İlgili belgelerin ne kadarı getirildi?<br><span style="font-family:monospace;background:#D6E9F8;padding:1px 6px;border-radius:4px;font-size:12px;color:#0C447C">RET_REL / REL</span></div>
+        <div style="font-size:12px;color:#378ADD;margin-top:6px;line-height:1.5">Düşük Recall → Bazı ilgili belgeler eksik, yanıt eksik kalır.</div>
+      </div>
+      <div style="background:#EEEDFE;border:1.5px solid #AFA9EC;border-radius:10px;padding:13px 16px">
+        <div style="font-size:13.5px;font-weight:500;color:#26215C;margin-bottom:5px">Precision (Hassasiyet)</div>
+        <div style="font-size:12.5px;color:#534AB7;line-height:1.6">Getirilen belgelerin ne kadarı gerçekten ilgiliydi?<br><span style="font-family:monospace;background:#E0DDFC;padding:1px 6px;border-radius:4px;font-size:12px;color:#3C3489">RET_REL / RET</span></div>
+        <div style="font-size:12px;color:#7F77DD;margin-top:6px;line-height:1.5">Düşük Precision → Alakasız belgeler LLM bağlamını kirletir.</div>
+      </div>
+    </div>
+    <div style="background:#F6F5FE;border:1.5px solid #AFA9EC;border-radius:12px;padding:16px 16px 12px">
+      <svg width="100%" viewBox="0 0 640 470" role="img" xmlns="http://www.w3.org/2000/svg">
+        <title>Recall ve Precision Matrisi</title>
+        <defs>
+          <marker id="arr3" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </marker>
+        </defs>
+        <line x1="88" y1="18" x2="88" y2="438" stroke="#888780" stroke-width="1.5" marker-end="url(#arr3)"/>
+        <line x1="88" y1="438" x2="628" y2="438" stroke="#888780" stroke-width="1.5" marker-end="url(#arr3)"/>
+        <text font-family="var(--font-sans,sans-serif)" font-size="12" font-weight="500" fill="#5F5E5A" text-anchor="middle" x="26" y="228" transform="rotate(-90,26,228)">Precision (RET_REL / RET)</text>
+        <text font-family="var(--font-sans,sans-serif)" font-size="12" font-weight="500" fill="#5F5E5A" text-anchor="middle" x="358" y="462">Recall (RET_REL / REL)</text>
+        <text font-family="var(--font-sans,sans-serif)" font-size="11.5" fill="#888780" text-anchor="end" x="82" y="148">Yüksek</text>
+        <text font-family="var(--font-sans,sans-serif)" font-size="11.5" fill="#888780" text-anchor="end" x="82" y="375">Düşük</text>
+        <text font-family="var(--font-sans,sans-serif)" font-size="11.5" fill="#888780" text-anchor="middle" x="200" y="454">Düşük</text>
+        <text font-family="var(--font-sans,sans-serif)" font-size="11.5" fill="#888780" text-anchor="middle" x="460" y="454">Yüksek</text>
+        <line x1="88" y1="258" x2="628" y2="258" stroke="#B4B2A9" stroke-width="1" stroke-dasharray="5 4"/>
+        <line x1="328" y1="18" x2="328" y2="438" stroke="#B4B2A9" stroke-width="1" stroke-dasharray="5 4"/>
+        <rect x="254" y="244" width="148" height="22" rx="5" fill="#F1EFE8" stroke="#B4B2A9" stroke-width="0.8"/>
+        <text font-family="var(--font-sans,sans-serif)" font-size="11" fill="#5F5E5A" text-anchor="middle" x="328" y="259">Recall – Precision Dengesi</text>
+        <text font-family="var(--font-sans,sans-serif)" font-size="10.5" fill="#AFA9EC" text-anchor="middle" x="208" y="34">Yüksek Precision · Düşük Recall</text>
+        <text font-family="var(--font-sans,sans-serif)" font-size="10.5" fill="#AFA9EC" text-anchor="middle" x="468" y="34">Yüksek Precision · Yüksek Recall ✓</text>
+        <text font-family="var(--font-sans,sans-serif)" font-size="10.5" fill="#AFA9EC" text-anchor="middle" x="208" y="274">Düşük Precision · Düşük Recall</text>
+        <text font-family="var(--font-sans,sans-serif)" font-size="10.5" fill="#AFA9EC" text-anchor="middle" x="468" y="274">Düşük Precision · Yüksek Recall</text>
+        <circle cx="200" cy="148" r="68" fill="#DAEEF9" stroke="#85B7EB" stroke-width="1"/>
+        <circle cx="193" cy="142" r="42" fill="#D6D0F7" stroke="#AFA9EC" stroke-width="1.2" fill-opacity="0.9"/>
+        <circle cx="214" cy="146" r="21" fill="#E8E6E0" stroke="#888780" stroke-width="1.2" fill-opacity="0.9"/>
+        <circle cx="205" cy="144" r="15" fill="#7F77DD" fill-opacity="0.28" stroke="none"/>
+        <text font-family="var(--font-sans,sans-serif)" font-size="12" font-weight="500" fill="#3C3489" text-anchor="middle" x="176" y="144">İlgili</text>
+        <text font-family="var(--font-sans,sans-serif)" font-size="11" fill="#444441" text-anchor="middle" x="220" y="149">Geti-</text>
+        <text font-family="var(--font-sans,sans-serif)" font-size="11" fill="#444441" text-anchor="middle" x="220" y="161">rilen</text>
+        <text font-family="var(--font-sans,sans-serif)" font-size="10.5" fill="#185FA5" text-anchor="middle" x="200" y="207">Tüm Belgeler</text>
+        <rect x="104" y="52" width="126" height="40" rx="7" fill="#FFE8E8" stroke="#F09595" stroke-width="1"/>
+        <text font-family="var(--font-sans,sans-serif)" font-size="12" font-weight="500" fill="#791F1F" text-anchor="middle" x="167" y="69">Düşük Recall</text>
+        <text font-family="var(--font-sans,sans-serif)" font-size="10.5" fill="#A32D2D" text-anchor="middle" x="167" y="85">Bazı belgeler eksik</text>
+        <line x1="193" y1="106" x2="173" y2="94" stroke="#F09595" stroke-width="1.2" stroke-dasharray="4 3" marker-end="url(#arr3)"/>
+        <circle cx="460" cy="148" r="68" fill="#DAEEF9" stroke="#85B7EB" stroke-width="1"/>
+        <circle cx="457" cy="145" r="42" fill="#D6D0F7" stroke="#AFA9EC" stroke-width="1.2" fill-opacity="0.85"/>
+        <circle cx="460" cy="147" r="40" fill="#E8E6E0" stroke="#888780" stroke-width="1.2" fill-opacity="0.6"/>
+        <circle cx="458" cy="146" r="37" fill="#7F77DD" fill-opacity="0.20" stroke="none"/>
+        <text font-family="var(--font-sans,sans-serif)" font-size="12" font-weight="500" fill="#3C3489" text-anchor="middle" x="458" y="143">İlgili ≈ Getirilen</text>
+        <text font-family="var(--font-sans,sans-serif)" font-size="10.5" fill="#185FA5" text-anchor="middle" x="460" y="207">Tüm Belgeler</text>
+        <rect x="394" y="52" width="134" height="40" rx="7" fill="#E0DDFC" stroke="#7F77DD" stroke-width="1.2"/>
+        <text font-family="var(--font-sans,sans-serif)" font-size="12" font-weight="500" fill="#26215C" text-anchor="middle" x="461" y="69">İdeal Durum ✓</text>
+        <text font-family="var(--font-sans,sans-serif)" font-size="10.5" fill="#534AB7" text-anchor="middle" x="461" y="85">İlgili ≈ Getirilen belgeler</text>
+        <line x1="460" y1="107" x2="460" y2="94" stroke="#7F77DD" stroke-width="1.2" stroke-dasharray="4 3" marker-end="url(#arr3)"/>
+        <circle cx="200" cy="370" r="62" fill="#DAEEF9" stroke="#85B7EB" stroke-width="1"/>
+        <circle cx="185" cy="361" r="38" fill="#D6D0F7" stroke="#AFA9EC" stroke-width="1.2" fill-opacity="0.9"/>
+        <circle cx="216" cy="378" r="36" fill="#E8E6E0" stroke="#888780" stroke-width="1.2" fill-opacity="0.85"/>
+        <circle cx="200" cy="369" r="13" fill="#7F77DD" fill-opacity="0.26" stroke="none"/>
+        <text font-family="var(--font-sans,sans-serif)" font-size="12" font-weight="500" fill="#3C3489" text-anchor="middle" x="166" y="358">İlgili</text>
+        <text font-family="var(--font-sans,sans-serif)" font-size="11" fill="#444441" text-anchor="middle" x="228" y="384">Getirilen</text>
+        <text font-family="var(--font-sans,sans-serif)" font-size="10.5" fill="#185FA5" text-anchor="middle" x="200" y="424">Tüm Belgeler</text>
+        <circle cx="460" cy="370" r="62" fill="#DAEEF9" stroke="#85B7EB" stroke-width="1"/>
+        <circle cx="460" cy="371" r="52" fill="#E8E6E0" stroke="#888780" stroke-width="1.2" fill-opacity="0.85"/>
+        <circle cx="450" cy="362" r="34" fill="#D6D0F7" stroke="#AFA9EC" stroke-width="1.2" fill-opacity="0.9"/>
+        <circle cx="450" cy="362" r="30" fill="#7F77DD" fill-opacity="0.22" stroke="none"/>
+        <text font-family="var(--font-sans,sans-serif)" font-size="12" font-weight="500" fill="#3C3489" text-anchor="middle" x="448" y="359">İlgili</text>
+        <text font-family="var(--font-sans,sans-serif)" font-size="11" fill="#444441" text-anchor="middle" x="493" y="410">Getirilen</text>
+        <text font-family="var(--font-sans,sans-serif)" font-size="10.5" fill="#185FA5" text-anchor="middle" x="460" y="424">Tüm Belgeler</text>
+        <rect x="392" y="270" width="156" height="50" rx="7" fill="#FFE8E8" stroke="#F09595" stroke-width="1"/>
+        <text font-family="var(--font-sans,sans-serif)" font-size="12" font-weight="500" fill="#791F1F" text-anchor="middle" x="470" y="289">Düşük Precision</text>
+        <text font-family="var(--font-sans,sans-serif)" font-size="10.5" fill="#A32D2D" text-anchor="middle" x="470" y="305">Alakasız belgeler de</text>
+        <text font-family="var(--font-sans,sans-serif)" font-size="10.5" fill="#A32D2D" text-anchor="middle" x="470" y="317">bağlama karışır</text>
+        <line x1="460" y1="330" x2="460" y2="340" stroke="#F09595" stroke-width="1.2" stroke-dasharray="4 3" marker-end="url(#arr3)"/>
+      </svg>
+      <div style="display:flex;gap:20px;justify-content:center;padding-top:10px;border-top:1px solid #D3D1C7;margin-top:4px;flex-wrap:wrap">
+        <div style="display:flex;align-items:center;gap:7px;font-size:12px;color:#5F5E5A"><div style="width:14px;height:14px;border-radius:50%;background:#D6D0F7;border:1.5px solid #AFA9EC;flex-shrink:0"></div>İlgili Belgeler (REL)</div>
+        <div style="display:flex;align-items:center;gap:7px;font-size:12px;color:#5F5E5A"><div style="width:14px;height:14px;border-radius:50%;background:#E8E6E0;border:1.5px solid #888780;flex-shrink:0"></div>Getirilen Belgeler (RET)</div>
+        <div style="display:flex;align-items:center;gap:7px;font-size:12px;color:#5F5E5A"><div style="width:14px;height:14px;border-radius:50%;background:#7F77DD;opacity:0.5;flex-shrink:0"></div>Kesişim (RET_REL)</div>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px">
+      <div style="background:#FFE8E8;border:1.5px solid #F09595;border-radius:10px;padding:12px 14px"><div style="font-size:13.5px;font-weight:500;color:#791F1F;margin-bottom:5px">Düşük Recall → Eksik Yanıt</div><div style="font-size:12px;color:#A32D2D;line-height:1.5">İlgili belgelerin bir kısmı getirilemiyor. LLM eksik bağlamla yanıt üretiyor, yanıt yetersiz kalıyor.</div></div>
+      <div style="background:#FFE8E8;border:1.5px solid #F09595;border-radius:10px;padding:12px 14px"><div style="font-size:13.5px;font-weight:500;color:#791F1F;margin-bottom:5px">Düşük Precision → Kirli Bağlam</div><div style="font-size:12px;color:#A32D2D;line-height:1.5">Alakasız belgeler bağlama karışıyor. LLM gürültülü veriden yanıt üretiyor, hallucination riski artar.</div></div>
+      <div style="background:#E0DDFC;border:1.5px solid #7F77DD;border-radius:10px;padding:12px 14px"><div style="font-size:13.5px;font-weight:500;color:#26215C;margin-bottom:5px">Chunk boyutu küçüldükçe</div><div style="font-size:12px;color:#534AB7;line-height:1.5">Precision artar (daha odaklı), Recall düşer (daha az bağlam). İnce ayar gerektiren bir denge.</div></div>
+      <div style="background:#EAF4FC;border:1.5px solid #85B7EB;border-radius:10px;padding:12px 14px"><div style="font-size:13.5px;font-weight:500;color:#042C53;margin-bottom:5px">RAG sisteminde hedef</div><div style="font-size:12px;color:#185FA5;line-height:1.5">İlgili belgelerin büyük bölümünü getirirken (yüksek Recall) alakasız belgeleri dışarıda tutmak (yüksek Precision).</div></div>
+    </div>
+  </div>
+</div>
+<script>
+function showTab(id,el){
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  el.classList.add('active');
+}
+</script>
