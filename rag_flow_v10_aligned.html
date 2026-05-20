@@ -925,7 +925,620 @@
 
 </div>
 
-<script src="rag-flow-sequences.js"></script>
+<script>
+// ============================================================
+// RAG Flow — UML Sequence Diagram Renderers
+// ============================================================
+
+const NS = 'http://www.w3.org/2000/svg';
+
+function el(tag, attrs, text) {
+  const e = document.createElementNS(NS, tag);
+  for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v);
+  if (text != null) e.textContent = text;
+  return e;
+}
+
+// Common defs (arrow markers)
+function buildDefs(svg, idPrefix) {
+  const defs = el('defs', {});
+  ['default', 'dashed', 'coral', 'indigo', 'teal', 'amber'].forEach(name => {
+    const colorMap = {
+      'default': '#4A453E',
+      'dashed':  '#4A453E',
+      'coral':   '#C9522F',
+      'indigo':  '#2E4368',
+      'teal':    '#1F6B5F',
+      'amber':   '#A8761E'
+    };
+    const m = el('marker', {
+      id: `${idPrefix}-arr-${name}`,
+      viewBox: '0 0 10 10',
+      refX: 8, refY: 5,
+      markerWidth: 6, markerHeight: 6,
+      orient: 'auto-start-reverse'
+    });
+    m.appendChild(el('path', {
+      d: 'M2 1 L8 5 L2 9',
+      fill: 'none',
+      stroke: colorMap[name],
+      'stroke-width': 1.6,
+      'stroke-linecap': 'round',
+      'stroke-linejoin': 'round'
+    }));
+    defs.appendChild(m);
+  });
+  svg.appendChild(defs);
+}
+
+// Actor header card
+function drawActor(svg, actor) {
+  const { x, name, sub, color, soft, icon } = actor;
+  const boxW = 210, boxH = 64;
+  svg.appendChild(el('rect', {
+    x: x - boxW/2, y: 14, width: boxW, height: boxH,
+    rx: 10,
+    fill: soft, stroke: color, 'stroke-width': 1.5
+  }));
+
+  let textX = x;
+  if (icon === 'brain') {
+    // Draw brain icon to the left of text
+    drawBrainIcon(svg, x - boxW/2 + 20, 14 + boxH/2, 22, color);
+    textX = x + 14; // shift text right to make room
+  }
+
+  svg.appendChild(el('text', {
+    x: textX, y: 36,
+    'font-family': 'Inter, sans-serif',
+    'font-size': 14,
+    'font-weight': 600,
+    fill: color,
+    'text-anchor': 'middle',
+    'dominant-baseline': 'central'
+  }, name));
+  svg.appendChild(el('text', {
+    x: textX, y: 56,
+    'font-family': 'JetBrains Mono, monospace',
+    'font-size': 10,
+    fill: '#4A453E',
+    'text-anchor': 'middle',
+    'dominant-baseline': 'central',
+    'letter-spacing': '0.04em'
+  }, sub));
+}
+
+// Brain / AI glyph
+function drawBrainIcon(svg, cx, cy, size, color) {
+  const r = size / 2;
+  // outer dashed ring (network)
+  svg.appendChild(el('circle', {
+    cx, cy, r,
+    fill: 'none',
+    stroke: color,
+    'stroke-width': 0.9,
+    'stroke-dasharray': '2.5 2'
+  }));
+  // left lobe
+  svg.appendChild(el('path', {
+    d: `M ${cx} ${cy - r*0.7} Q ${cx - r*0.85} ${cy - r*0.4} ${cx - r*0.75} ${cy} Q ${cx - r*0.85} ${cy + r*0.4} ${cx} ${cy + r*0.7}`,
+    fill: 'none',
+    stroke: color,
+    'stroke-width': 1.4,
+    'stroke-linecap': 'round'
+  }));
+  // right lobe
+  svg.appendChild(el('path', {
+    d: `M ${cx} ${cy - r*0.7} Q ${cx + r*0.85} ${cy - r*0.4} ${cx + r*0.75} ${cy} Q ${cx + r*0.85} ${cy + r*0.4} ${cx} ${cy + r*0.7}`,
+    fill: 'none',
+    stroke: color,
+    'stroke-width': 1.4,
+    'stroke-linecap': 'round'
+  }));
+  // synapse nodes
+  svg.appendChild(el('circle', { cx, cy: cy - r*0.7, r: 1.5, fill: color }));
+  svg.appendChild(el('circle', { cx, cy: cy + r*0.7, r: 1.5, fill: color }));
+  svg.appendChild(el('circle', { cx: cx - r*0.75, cy, r: 1.5, fill: color }));
+  svg.appendChild(el('circle', { cx: cx + r*0.75, cy, r: 1.5, fill: color }));
+  // core
+  svg.appendChild(el('circle', { cx, cy, r: 2.2, fill: color }));
+}
+
+// Lifeline
+function drawLifeline(svg, x, yTop, yBottom) {
+  svg.appendChild(el('line', {
+    x1: x, y1: yTop, x2: x, y2: yBottom,
+    stroke: '#CFC5AE',
+    'stroke-width': 1.2,
+    'stroke-dasharray': '5 4'
+  }));
+}
+
+// Phase band (background rect across diagram with label)
+function drawPhase(svg, opts) {
+  const { x1, x2, y1, y2, fill, stroke, label, accent } = opts;
+  svg.appendChild(el('rect', {
+    x: x1, y: y1, width: x2 - x1, height: y2 - y1,
+    rx: 8,
+    fill, stroke,
+    'stroke-width': 1,
+    'stroke-dasharray': '3 3'
+  }));
+  // label tab on top-left — auto-sized based on text length
+  const labelW = Math.max(200, label.length * 8 + 24);
+  svg.appendChild(el('rect', {
+    x: x1 + 8, y: y1 - 12, width: labelW, height: 22,
+    rx: 5,
+    fill: accent,
+    stroke: 'none'
+  }));
+  svg.appendChild(el('text', {
+    x: x1 + 8 + labelW/2, y: y1 - 1,
+    'font-family': 'JetBrains Mono, monospace',
+    'font-size': 11,
+    'font-weight': 500,
+    fill: '#FFFFFF',
+    'text-anchor': 'middle',
+    'dominant-baseline': 'central',
+    'letter-spacing': '0.1em'
+  }, label));
+}
+
+// Numbered message arrow
+function drawMessage(svg, opts) {
+  const { idPrefix, num, fromX, toX, y, label, sublabel, color = '#4A453E', dashed = false, marker = 'default' } = opts;
+
+  const lineAttrs = {
+    x1: fromX, y1: y, x2: toX, y2: y,
+    stroke: color,
+    'stroke-width': 1.5,
+    'marker-end': `url(#${idPrefix}-arr-${marker})`
+  };
+  if (dashed) lineAttrs['stroke-dasharray'] = '6 4';
+  svg.appendChild(el('line', lineAttrs));
+
+  // numbered badge at midpoint slightly above
+  const mid = (fromX + toX) / 2;
+  if (num != null) {
+    svg.appendChild(el('circle', {
+      cx: mid, cy: y - 18,
+      r: 14,
+      fill: color,
+      stroke: '#FBF8F1',
+      'stroke-width': 2.5
+    }));
+    svg.appendChild(el('text', {
+      x: mid, y: y - 18,
+      'font-family': 'JetBrains Mono, monospace',
+      'font-size': 13,
+      'font-weight': 700,
+      fill: '#FBF8F1',
+      'text-anchor': 'middle',
+      'dominant-baseline': 'central'
+    }, String(num)));
+  }
+
+  // label above
+  if (label) {
+    svg.appendChild(el('text', {
+      x: mid, y: y - 38,
+      'font-family': 'Inter, sans-serif',
+      'font-size': 12,
+      'font-weight': 500,
+      fill: color,
+      'text-anchor': 'middle',
+      'dominant-baseline': 'central'
+    }, label));
+  }
+  if (sublabel) {
+    svg.appendChild(el('text', {
+      x: mid, y: y + 14,
+      'font-family': 'JetBrains Mono, monospace',
+      'font-size': 10,
+      fill: '#8A8378',
+      'text-anchor': 'middle',
+      'dominant-baseline': 'central',
+      'letter-spacing': '0.02em'
+    }, sublabel));
+  }
+}
+
+// Self-call (loop on a lifeline)
+function drawSelfCall(svg, opts) {
+  const { idPrefix, num, x, y, height = 32, width = 70, label, color = '#A8761E', side = 'right' } = opts;
+  const dir = side === 'right' ? 1 : -1;
+  const d = `M ${x} ${y} L ${x + dir*width} ${y} L ${x + dir*width} ${y + height} L ${x + dir*8} ${y + height}`;
+  svg.appendChild(el('path', {
+    d,
+    fill: 'none',
+    stroke: color,
+    'stroke-width': 1.5,
+    'marker-end': `url(#${idPrefix}-arr-amber)`
+  }));
+  // numbered badge
+  if (num != null) {
+    svg.appendChild(el('circle', {
+      cx: x + dir*(width + 18), cy: y + height/2,
+      r: 14,
+      fill: color,
+      stroke: '#FBF8F1',
+      'stroke-width': 2.5
+    }));
+    svg.appendChild(el('text', {
+      x: x + dir*(width + 18), y: y + height/2,
+      'font-family': 'JetBrains Mono, monospace',
+      'font-size': 13,
+      'font-weight': 700,
+      fill: '#FBF8F1',
+      'text-anchor': 'middle',
+      'dominant-baseline': 'central'
+    }, String(num)));
+  }
+  // label
+  if (label) {
+    svg.appendChild(el('text', {
+      x: x + dir*(width + 38), y: y + height/2,
+      'font-family': 'Inter, sans-serif',
+      'font-size': 12,
+      'font-style': 'italic',
+      fill: color,
+      'text-anchor': side === 'right' ? 'start' : 'end',
+      'dominant-baseline': 'central'
+    }, label));
+  }
+}
+
+// Note box anchored at (x, y) with side ('left' | 'right')
+function drawNote(svg, opts) {
+  const { x, y, w = 200, h, lines, color = '#A8761E', soft = '#F1E1B8' } = opts;
+  const lineH = 14;
+  const padding = 8;
+  const boxH = h || (lines.length * lineH + padding * 2);
+
+  svg.appendChild(el('rect', {
+    x, y, width: w, height: boxH,
+    rx: 6,
+    fill: soft,
+    stroke: color,
+    'stroke-width': 1
+  }));
+  // notch corner
+  svg.appendChild(el('path', {
+    d: `M ${x + w - 10} ${y} L ${x + w} ${y} L ${x + w} ${y + 10} Z`,
+    fill: '#FFFFFF',
+    stroke: color,
+    'stroke-width': 1
+  }));
+
+  lines.forEach((ln, i) => {
+    svg.appendChild(el('text', {
+      x: x + padding,
+      y: y + padding + (i + 0.5) * lineH,
+      'font-family': 'Inter, sans-serif',
+      'font-size': 11,
+      fill: '#4A453E',
+      'dominant-baseline': 'central'
+    }, ln));
+  });
+}
+
+// Loop frame (UML alt/loop combined fragment)
+function drawLoopFrame(svg, opts) {
+  const { x1, x2, y1, y2, label, condition, color = '#A8761E' } = opts;
+  svg.appendChild(el('rect', {
+    x: x1, y: y1, width: x2 - x1, height: y2 - y1,
+    rx: 6,
+    fill: 'none',
+    stroke: color,
+    'stroke-width': 1.2,
+    'stroke-dasharray': '5 4'
+  }));
+  // label tab (pentagon shape) — auto width
+  const tagText = label;
+  const w = Math.max(58, tagText.length * 7 + 18), h = 20;
+  svg.appendChild(el('path', {
+    d: `M ${x1} ${y1} L ${x1 + w} ${y1} L ${x1 + w - 8} ${y1 + h} L ${x1} ${y1 + h} Z`,
+    fill: color,
+    stroke: color
+  }));
+  svg.appendChild(el('text', {
+    x: x1 + (w - 8)/2, y: y1 + h/2,
+    'font-family': 'JetBrains Mono, monospace',
+    'font-size': 10,
+    'font-weight': 700,
+    fill: '#FFFFFF',
+    'text-anchor': 'middle',
+    'dominant-baseline': 'central',
+    'letter-spacing': '0.12em'
+  }, tagText));
+  // condition text next to tab
+  if (condition) {
+    svg.appendChild(el('text', {
+      x: x1 + w + 8, y: y1 + h/2,
+      'font-family': 'Inter, sans-serif',
+      'font-size': 11,
+      'font-style': 'italic',
+      fill: color,
+      'dominant-baseline': 'central'
+    }, condition));
+  }
+}
+
+// ============================================================
+// CLASSIC RAG SEQUENCE
+// ============================================================
+function buildClassicSequence() {
+  const svg = document.getElementById('seq-classic');
+  if (!svg) return;
+  svg.innerHTML = '';
+
+  const W = 1040, H = 600;
+  svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+
+  const actors = [
+    { x: 130, name: 'Kullanıcı',         sub: 'son kullanıcı',       color: '#C9522F', soft: '#F7E2D6' },
+    { x: 390, name: 'Embedding Modeli',  sub: 'metin → vektör',      color: '#1F6B5F', soft: '#D3E6E2' },
+    { x: 650, name: 'Vektör Veritabanı', sub: 'similarity search',   color: '#1F6B5F', soft: '#D3E6E2' },
+    { x: 910, name: 'LLM',               sub: 'üretim modeli',       color: '#2E4368', soft: '#DBE3F1', icon: 'brain' }
+  ];
+
+  buildDefs(svg, 'cl');
+
+  // Lifelines first (so phase bands sit on top)
+  const lifelineTop = 78, lifelineBot = H - 30;
+  actors.forEach(a => drawLifeline(svg, a.x, lifelineTop, lifelineBot));
+
+  // Phase A: İndeksleme (offline) — y=110 to y=180
+  drawPhase(svg, {
+    x1: 30, x2: W - 30,
+    y1: 110, y2: 188,
+    fill: '#D3E6E2', stroke: '#5BA398',
+    label: 'A · İNDEKSLEME · OFFLINE',
+    accent: '#1F6B5F'
+  });
+
+  // Note for indexing (placed inside phase)
+  drawNote(svg, {
+    x: 50, y: 122,
+    w: 270,
+    lines: [
+      'Belgeler önceden parçalanır (chunk),',
+      'embedding ile vektöre çevrilip',
+      'Vektör DB\'ye yazılır. Bir kerelik adım.'
+    ],
+    color: '#1F6B5F', soft: '#E7F1EE'
+  });
+
+  // Indexing message: Embedding → Vector DB
+  drawMessage(svg, {
+    idPrefix: 'cl', num: 1,
+    fromX: actors[1].x, toX: actors[2].x,
+    y: 162,
+    label: 'döküman vektörleri',
+    sublabel: 'depola',
+    color: '#1F6B5F',
+    marker: 'teal'
+  });
+
+  // Phase B: Sorgu (runtime) — y=215 to y=H-50
+  drawPhase(svg, {
+    x1: 30, x2: W - 30,
+    y1: 215, y2: H - 50,
+    fill: '#F7E2D6', stroke: '#E08665',
+    label: 'B · SORGU · RUNTIME',
+    accent: '#C9522F'
+  });
+
+  // ② User → Embedding: soru metni
+  drawMessage(svg, {
+    idPrefix: 'cl', num: 2,
+    fromX: actors[0].x, toX: actors[1].x,
+    y: 270,
+    label: 'soru metni',
+    sublabel: 'plain text',
+    color: '#C9522F',
+    marker: 'coral'
+  });
+
+  // ③ Embedding → Vector DB
+  drawMessage(svg, {
+    idPrefix: 'cl', num: 3,
+    fromX: actors[1].x, toX: actors[2].x,
+    y: 340,
+    label: 'sorgu vektörü',
+    sublabel: 'cosine similarity',
+    color: '#1F6B5F',
+    marker: 'teal'
+  });
+
+  // ④ Vector DB → LLM: top-k chunks
+  drawMessage(svg, {
+    idPrefix: 'cl', num: 4,
+    fromX: actors[2].x, toX: actors[3].x,
+    y: 410,
+    label: 'ilgili chunk\'lar',
+    sublabel: 'top-k (k≈5)',
+    color: '#1F6B5F',
+    marker: 'teal'
+  });
+
+  // ⑤ User → LLM (dashed, parallel) — orijinal soru
+  drawMessage(svg, {
+    idPrefix: 'cl', num: 5,
+    fromX: actors[0].x, toX: actors[3].x,
+    y: 478,
+    label: 'orijinal soru (prompt\'a eklenir)',
+    sublabel: 'prompt = soru + bağlam',
+    color: '#C9522F',
+    dashed: true,
+    marker: 'coral'
+  });
+
+  // ⑥ LLM → User (return)
+  drawMessage(svg, {
+    idPrefix: 'cl', num: 6,
+    fromX: actors[3].x, toX: actors[0].x,
+    y: 540,
+    label: 'kaynaklı yanıt',
+    sublabel: 'context-grounded answer',
+    color: '#2E4368',
+    dashed: true,
+    marker: 'indigo'
+  });
+
+  // Actor headers ON TOP
+  actors.forEach(a => drawActor(svg, a));
+}
+
+// ============================================================
+// AGENTIC RAG SEQUENCE
+// ============================================================
+function buildAgenticSequence() {
+  const svg = document.getElementById('seq-agentic');
+  if (!svg) return;
+  svg.innerHTML = '';
+
+  const W = 1040, H = 850;
+  svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+
+  const actors = [
+    { x: 130, name: 'Kullanıcı',          sub: 'son kullanıcı',     color: '#C9522F', soft: '#F7E2D6' },
+    { x: 390, name: 'LLM Ajan',           sub: 'karar verici · planner',   color: '#A8761E', soft: '#F1E1B8', icon: 'brain' },
+    { x: 650, name: 'Search Tool',        sub: 'function call API',  color: '#1F6B5F', soft: '#D3E6E2' },
+    { x: 910, name: 'Vektör Veritabanı',  sub: 'similarity search', color: '#1F6B5F', soft: '#D3E6E2' }
+  ];
+
+  buildDefs(svg, 'ag');
+
+  const lifelineTop = 78, lifelineBot = H - 30;
+  actors.forEach(a => drawLifeline(svg, a.x, lifelineTop, lifelineBot));
+
+  // ① Kullanıcı → LLM Ajan: soru
+  drawMessage(svg, {
+    idPrefix: 'ag', num: 1,
+    fromX: actors[0].x, toX: actors[1].x,
+    y: 140,
+    label: 'soru',
+    sublabel: 'natural language',
+    color: '#C9522F',
+    marker: 'coral'
+  });
+
+  // Self-call: LLM düşünür "bağlam gerekli mi?"
+  drawSelfCall(svg, {
+    idPrefix: 'ag', num: 2,
+    x: actors[1].x, y: 180,
+    height: 30, width: 60,
+    label: 'düşün: bağlama ihtiyaç var mı?',
+    color: '#A8761E',
+    side: 'right'
+  });
+
+  // Loop frame for the tool-calling block
+  drawLoopFrame(svg, {
+    x1: actors[1].x - 30, x2: actors[3].x + 30,
+    y1: 245, y2: 640,
+    label: 'LOOP',
+    condition: '[yeterli bağlam toplanana kadar tekrarla]',
+    color: '#A8761E'
+  });
+
+  // ③ LLM Ajan → Search Tool: tool_call("search_documents", {query})
+  drawMessage(svg, {
+    idPrefix: 'ag', num: 3,
+    fromX: actors[1].x, toX: actors[2].x,
+    y: 320,
+    label: 'tool_call: search_documents(query)',
+    sublabel: 'sorgu LLM tarafından formüle edilir',
+    color: '#A8761E',
+    marker: 'amber'
+  });
+
+  // ④ Search Tool → Vektör DB
+  drawMessage(svg, {
+    idPrefix: 'ag', num: 4,
+    fromX: actors[2].x, toX: actors[3].x,
+    y: 395,
+    label: 'embed + semantic search',
+    sublabel: 'vektör + filtre',
+    color: '#1F6B5F',
+    marker: 'teal'
+  });
+
+  // ⑤ Vektör DB → Search Tool (return)
+  drawMessage(svg, {
+    idPrefix: 'ag', num: 5,
+    fromX: actors[3].x, toX: actors[2].x,
+    y: 470,
+    label: 'top-k chunks',
+    sublabel: 'JSON snippets',
+    color: '#1F6B5F',
+    dashed: true,
+    marker: 'teal'
+  });
+
+  // ⑥ Search Tool → LLM Ajan (return)
+  drawMessage(svg, {
+    idPrefix: 'ag', num: 6,
+    fromX: actors[2].x, toX: actors[1].x,
+    y: 540,
+    label: 'tool result',
+    sublabel: 'context payload',
+    color: '#A8761E',
+    dashed: true,
+    marker: 'amber'
+  });
+
+  // Self-call: LLM evaluates if enough
+  drawSelfCall(svg, {
+    idPrefix: 'ag', num: 7,
+    x: actors[1].x, y: 590,
+    height: 32, width: 60,
+    label: 'değerlendir: yeterli mi? · sorguyu rafine et',
+    color: '#A8761E',
+    side: 'right'
+  });
+
+  // Note about looping
+  drawNote(svg, {
+    x: 35, y: 485,
+    w: 250,
+    lines: [
+      'LOOP içinde Ajan, sonuçları',
+      'değerlendirip yeniden aramaya',
+      'karar verebilir. Sorgu her tur',
+      'iyileştirilir (query refinement).'
+    ],
+    color: '#A8761E', soft: '#FCF1D2'
+  });
+
+  // ⑧ Final synthesis self-call
+  drawSelfCall(svg, {
+    idPrefix: 'ag', num: 8,
+    x: actors[1].x, y: 690,
+    height: 30, width: 60,
+    label: 'sentezle: yanıtı kur + kaynak ekle',
+    color: '#2E4368',
+    side: 'right'
+  });
+
+  // ⑨ LLM Ajan → Kullanıcı: cevap
+  drawMessage(svg, {
+    idPrefix: 'ag', num: 9,
+    fromX: actors[1].x, toX: actors[0].x,
+    y: 770,
+    label: 'kaynaklı yanıt',
+    sublabel: 'tool history dahil edilebilir',
+    color: '#2E4368',
+    dashed: true,
+    marker: 'indigo'
+  });
+
+  // Actor headers on top
+  actors.forEach(a => drawActor(svg, a));
+}
+
+</script>
 <script>
   function showTab(id, el) {
     document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
