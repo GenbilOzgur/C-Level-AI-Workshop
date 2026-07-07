@@ -1,0 +1,852 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Yapay Sinir Ağları — 1986</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Newsreader:ital,opsz,wght@0,6..72,400;1,6..72,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:        #F6F2E9;
+    --bg-2:      #FBF8F1;
+    --card:      #FFFFFF;
+    --ink:       #1B1815;
+    --ink-2:     #4A453E;
+    --ink-3:     #8A8378;
+    --line:      #E3DCCB;
+    --line-2:    #CFC5AE;
+
+    --coral:     #C9522F;
+    --coral-soft:#F7E2D6;
+    --coral-mid: #E08665;
+
+    --teal:      #1F6B5F;
+    --teal-soft: #D3E6E2;
+    --teal-mid:  #4D9387;
+
+    --indigo:    #2E4368;
+    --indigo-soft:#DBE3F1;
+    --indigo-mid:#5A7299;
+
+    --amber:     #A8761E;
+    --amber-soft:#F1E1B8;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    font-family: 'Inter', system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .wrap {
+    background: var(--bg);
+    border: 1px solid var(--line-2);
+    border-radius: 18px;
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 40px 44px 48px;
+  }
+
+  /* Header */
+  .hero {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: end;
+    gap: 24px;
+    padding-bottom: 22px;
+    margin-bottom: 32px;
+    border-bottom: 1px solid var(--line);
+  }
+  .eyebrow {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--coral);
+    margin-bottom: 14px;
+    font-weight: 500;
+  }
+  h1 {
+    font-family: 'Instrument Serif', 'Times New Roman', serif;
+    font-weight: 400;
+    font-size: 56px;
+    line-height: 0.95;
+    letter-spacing: -0.02em;
+    color: var(--ink);
+    margin-bottom: 16px;
+  }
+  h1 em {
+    font-style: italic;
+    color: var(--coral);
+  }
+  .hero-sub {
+    font-family: 'Newsreader', 'Instrument Serif', serif;
+    font-size: 17px;
+    font-style: italic;
+    color: var(--ink-2);
+    line-height: 1.5;
+    max-width: 620px;
+  }
+  .hero-year {
+    text-align: right;
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--ink-3);
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    line-height: 1.5;
+  }
+  .hero-year .big {
+    display: block;
+    font-family: 'Instrument Serif', serif;
+    font-size: 72px;
+    line-height: 0.9;
+    color: var(--ink);
+    letter-spacing: -0.02em;
+    margin-bottom: 2px;
+    font-style: italic;
+  }
+
+  /* Main network diagram */
+  .net-card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 24px;
+    margin-bottom: 24px;
+    position: relative;
+  }
+  .net-card .label-top {
+    position: absolute;
+    top: -12px; left: 20px;
+    background: var(--bg);
+    padding: 2px 10px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    color: var(--coral);
+    text-transform: uppercase;
+    font-weight: 500;
+  }
+  .net-card svg { width: 100%; display: block; }
+
+  /* 3-column explainer row */
+  .row-3 {
+    display: grid;
+    grid-template-columns: 1.1fr 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+  .pane {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 22px 22px 20px;
+    position: relative;
+  }
+  .pane .pane-tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    margin-bottom: 6px;
+    font-weight: 500;
+  }
+  .pane .pane-tag.coral { color: var(--coral); }
+  .pane .pane-tag.teal { color: var(--teal); }
+  .pane .pane-tag.amber { color: var(--amber); }
+  .pane h3 {
+    font-family: 'Instrument Serif', serif;
+    font-weight: 400;
+    font-size: 26px;
+    color: var(--ink);
+    line-height: 1.1;
+    letter-spacing: -0.01em;
+    margin-bottom: 14px;
+  }
+  .pane h3 em { font-style: italic; color: var(--coral); }
+  .pane h3 .teal-em { font-style: italic; color: var(--teal); }
+  .pane h3 .amber-em { font-style: italic; color: var(--amber); }
+  .pane .desc {
+    font-size: 13px;
+    line-height: 1.6;
+    color: var(--ink-2);
+    text-wrap: pretty;
+  }
+  .pane .pane-svg {
+    margin-bottom: 12px;
+    background: var(--bg-2);
+    border-radius: 8px;
+    padding: 8px;
+  }
+  .pane .pane-svg svg { width: 100%; display: block; }
+  .pane .formula {
+    font-family: 'Newsreader', 'Instrument Serif', serif;
+    font-style: italic;
+    font-size: 18px;
+    text-align: center;
+    color: var(--ink);
+    margin: 8px 0 12px;
+    line-height: 1.4;
+  }
+  .pane .formula .var {
+    color: var(--coral);
+    font-weight: 400;
+  }
+
+  /* Equation strip */
+  .eq-strip {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 22px 26px;
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 28px;
+    align-items: center;
+    margin-bottom: 24px;
+  }
+  .eq-strip .eq-head {
+    border-right: 1px solid var(--line);
+    padding-right: 28px;
+  }
+  .eq-strip .eq-head .pane-tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--amber);
+    margin-bottom: 6px;
+    font-weight: 500;
+  }
+  .eq-strip .eq-head h3 {
+    font-family: 'Instrument Serif', serif;
+    font-size: 26px;
+    color: var(--ink);
+    line-height: 1.1;
+    letter-spacing: -0.01em;
+    max-width: 240px;
+  }
+  .eq-strip .eq-head h3 em { font-style: italic; color: var(--amber); }
+  .eq-strip .eqs {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 24px;
+  }
+  .eq-cell {
+    text-align: center;
+  }
+  .eq-cell .eq-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--ink-3);
+    margin-bottom: 6px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+  }
+  .eq-cell .eq {
+    font-family: 'Newsreader', serif;
+    font-style: italic;
+    font-size: 22px;
+    color: var(--ink);
+    line-height: 1.3;
+  }
+  .eq-cell .eq .var-c { color: var(--coral); }
+  .eq-cell .eq .var-t { color: var(--teal); }
+  .eq-cell .eq .var-i { color: var(--indigo); }
+  .eq-cell .eq .var-a { color: var(--amber); }
+
+  /* Footer: historical note */
+  .historical {
+    background: var(--bg-2);
+    border: 1px solid var(--line);
+    border-left: 4px solid var(--coral);
+    border-radius: 10px;
+    padding: 18px 22px;
+    font-size: 13.5px;
+    color: var(--ink-2);
+    line-height: 1.6;
+  }
+  .historical strong {
+    color: var(--ink);
+    font-weight: 600;
+  }
+  .historical em {
+    font-style: italic;
+    font-family: 'Newsreader', serif;
+    font-size: 14.5px;
+    color: var(--ink);
+  }
+
+  @media (max-width: 980px) {
+    .row-3 { grid-template-columns: 1fr; }
+    .eq-strip { grid-template-columns: 1fr; }
+    .eq-strip .eq-head { border-right: none; border-bottom: 1px solid var(--line); padding: 0 0 14px; }
+    .eq-strip .eqs { grid-template-columns: 1fr; }
+    .hero { grid-template-columns: 1fr; }
+    .hero-year { text-align: left; }
+    h1 { font-size: 38px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <!-- HERO -->
+  <div class="hero">
+    <div>
+      <div class="eyebrow">— Klasik Mimari · Backpropagation</div>
+      <h1>Yapay <em>sinir ağları.</em></h1>
+      <p class="hero-sub">
+        Katmanlı bir nöron yapısı, ağırlıklı bağlantılar, ileri yönde sinyal akışı ve hatayı geri yayarak öğrenme.
+        Rumelhart–Hinton–Williams (1986) ile pratik hâle gelen, bugünkü derin öğrenmenin temel iskeleti.
+      </p>
+    </div>
+    <div class="hero-year">
+      <span class="big">1986</span>
+      Backpropagation<br/>
+      Rumelhart · Hinton · Williams
+    </div>
+  </div>
+
+  <!-- MAIN NETWORK DIAGRAM -->
+  <div class="net-card">
+    <span class="label-top">Ağ Mimarisi · Forward + Backward Pass</span>
+    <svg id="net-svg" viewBox="0 0 1100 460" xmlns="http://www.w3.org/2000/svg" role="img">
+      <title>Yapay Sinir Ağı Mimarisi</title>
+    </svg>
+  </div>
+
+  <!-- 3-PANE EXPLAINER -->
+  <div class="row-3">
+
+    <!-- Pane 1: Single Neuron -->
+    <div class="pane">
+      <div class="pane-tag coral">— TEK NÖRON</div>
+      <h3>Bir nöron, <em>ne yapar?</em></h3>
+      <div class="pane-svg">
+        <svg viewBox="0 0 360 220" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <marker id="n-arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+              <path d="M2 1 L8 5 L2 9" fill="none" stroke="#1B1815" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+            </marker>
+            <marker id="n-arr-coral" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+              <path d="M2 1 L8 5 L2 9" fill="none" stroke="#C9522F" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+            </marker>
+          </defs>
+
+          <!-- inputs -->
+          <g font-family="Newsreader, serif" font-style="italic" font-size="14" fill="#C9522F">
+            <text x="22" y="38" text-anchor="middle">x₁</text>
+            <text x="22" y="82" text-anchor="middle">x₂</text>
+            <text x="22" y="126" text-anchor="middle">x₃</text>
+            <text x="22" y="170" text-anchor="middle">xₙ</text>
+            <text x="22" y="151" text-anchor="middle" font-size="10" fill="#8A8378">⋮</text>
+          </g>
+          <!-- weights on lines -->
+          <g font-family="Newsreader, serif" font-style="italic" font-size="11" fill="#1F6B5F">
+            <text x="72" y="42" text-anchor="middle">w₁</text>
+            <text x="72" y="74" text-anchor="middle">w₂</text>
+            <text x="72" y="118" text-anchor="middle">w₃</text>
+            <text x="72" y="162" text-anchor="middle">wₙ</text>
+          </g>
+          <!-- input arrows -->
+          <g stroke="#C9522F" stroke-width="1.3" fill="none" marker-end="url(#n-arr-coral)">
+            <line x1="32" y1="36" x2="155" y2="98"/>
+            <line x1="32" y1="80" x2="155" y2="105"/>
+            <line x1="32" y1="124" x2="155" y2="112"/>
+            <line x1="32" y1="168" x2="155" y2="120"/>
+          </g>
+
+          <!-- Sum circle -->
+          <circle cx="180" cy="110" r="28" fill="#FBF8F1" stroke="#2E4368" stroke-width="2"/>
+          <text x="180" y="118" text-anchor="middle" font-family="Newsreader, serif" font-size="28" fill="#2E4368">Σ</text>
+
+          <!-- bias -->
+          <text x="180" y="172" text-anchor="middle" font-family="Newsreader, serif" font-style="italic" font-size="13" fill="#8A8378">+ b (bias)</text>
+
+          <!-- Arrow to activation -->
+          <line x1="210" y1="110" x2="240" y2="110" stroke="#1B1815" stroke-width="1.5" marker-end="url(#n-arr)"/>
+
+          <!-- Activation box: sigmoid curve -->
+          <rect x="242" y="80" width="62" height="60" rx="8" fill="#F7E2D6" stroke="#C9522F" stroke-width="1.4"/>
+          <!-- sigmoid curve inside -->
+          <path d="M 250 130 C 260 130 268 124 273 110 C 278 96 286 90 296 90"
+                fill="none" stroke="#C9522F" stroke-width="1.8"/>
+          <line x1="250" y1="130" x2="296" y2="130" stroke="#CFC5AE" stroke-width="0.8"/>
+          <line x1="273" y1="86" x2="273" y2="138" stroke="#CFC5AE" stroke-width="0.8" stroke-dasharray="2 2"/>
+          <text x="273" y="156" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9" fill="#C9522F" letter-spacing="0.05em">σ(·)</text>
+
+          <!-- Arrow to output -->
+          <line x1="306" y1="110" x2="332" y2="110" stroke="#1B1815" stroke-width="1.5" marker-end="url(#n-arr)"/>
+
+          <!-- Output -->
+          <text x="346" y="116" text-anchor="middle" font-family="Newsreader, serif" font-style="italic" font-size="18" fill="#2E4368">y</text>
+
+          <!-- equation under -->
+          <text x="180" y="208" text-anchor="middle" font-family="Newsreader, serif" font-style="italic" font-size="15" fill="#1B1815">
+            y = σ(Σ wᵢ·xᵢ + b)
+          </text>
+        </svg>
+      </div>
+      <p class="desc">
+        Her nöron, girdileri ağırlıklarla çarpıp toplar, bir <em>bias</em> ekler ve sonucu doğrusal olmayan bir
+        <em>aktivasyon fonksiyonundan</em> (sigmoid, tanh, ReLU) geçirir. Çıktısı sonraki katmanın girdisi olur.
+      </p>
+    </div>
+
+    <!-- Pane 2: Forward Pass -->
+    <div class="pane">
+      <div class="pane-tag teal">— İLERİ YAYILIM</div>
+      <h3>Forward <span class="teal-em">pass.</span></h3>
+      <div class="pane-svg">
+        <svg viewBox="0 0 360 220" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <marker id="f-arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M2 1 L8 5 L2 9" fill="none" stroke="#1F6B5F" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+            </marker>
+          </defs>
+
+          <!-- 3 columns of small dots -->
+          <g>
+            <!-- input -->
+            <circle cx="60" cy="60" r="9" fill="#F7E2D6" stroke="#C9522F" stroke-width="1.5"/>
+            <circle cx="60" cy="110" r="9" fill="#F7E2D6" stroke="#C9522F" stroke-width="1.5"/>
+            <circle cx="60" cy="160" r="9" fill="#F7E2D6" stroke="#C9522F" stroke-width="1.5"/>
+            <!-- hidden -->
+            <circle cx="180" cy="50" r="9" fill="#D3E6E2" stroke="#1F6B5F" stroke-width="1.5"/>
+            <circle cx="180" cy="100" r="9" fill="#D3E6E2" stroke="#1F6B5F" stroke-width="1.5"/>
+            <circle cx="180" cy="150" r="9" fill="#D3E6E2" stroke="#1F6B5F" stroke-width="1.5"/>
+            <circle cx="180" cy="180" r="9" fill="#D3E6E2" stroke="#1F6B5F" stroke-width="1.5"/>
+            <!-- output -->
+            <circle cx="300" cy="80" r="9" fill="#DBE3F1" stroke="#2E4368" stroke-width="1.5"/>
+            <circle cx="300" cy="130" r="9" fill="#DBE3F1" stroke="#2E4368" stroke-width="1.5"/>
+          </g>
+
+          <!-- connection lines -->
+          <g stroke="#CFC5AE" stroke-width="0.6" fill="none">
+            <line x1="69" y1="60" x2="171" y2="50"/>
+            <line x1="69" y1="60" x2="171" y2="100"/>
+            <line x1="69" y1="60" x2="171" y2="150"/>
+            <line x1="69" y1="60" x2="171" y2="180"/>
+            <line x1="69" y1="110" x2="171" y2="50"/>
+            <line x1="69" y1="110" x2="171" y2="100"/>
+            <line x1="69" y1="110" x2="171" y2="150"/>
+            <line x1="69" y1="110" x2="171" y2="180"/>
+            <line x1="69" y1="160" x2="171" y2="50"/>
+            <line x1="69" y1="160" x2="171" y2="100"/>
+            <line x1="69" y1="160" x2="171" y2="150"/>
+            <line x1="69" y1="160" x2="171" y2="180"/>
+            <line x1="189" y1="50" x2="291" y2="80"/>
+            <line x1="189" y1="50" x2="291" y2="130"/>
+            <line x1="189" y1="100" x2="291" y2="80"/>
+            <line x1="189" y1="100" x2="291" y2="130"/>
+            <line x1="189" y1="150" x2="291" y2="80"/>
+            <line x1="189" y1="150" x2="291" y2="130"/>
+            <line x1="189" y1="180" x2="291" y2="80"/>
+            <line x1="189" y1="180" x2="291" y2="130"/>
+          </g>
+
+          <!-- big forward arrow at bottom -->
+          <path d="M 40 200 L 320 200" stroke="#1F6B5F" stroke-width="2.5" marker-end="url(#f-arr)" fill="none"/>
+          <text x="180" y="193" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10" fill="#1F6B5F" font-weight="600" letter-spacing="0.1em">SİNYAL AKIŞI</text>
+        </svg>
+      </div>
+      <p class="desc">
+        Girdi vektörü sırayla her katmandan geçer. Her katmanda lineer kombinasyon + aktivasyon uygulanır.
+        Sonunda çıktı katmanı bir <em>tahmin</em> (ŷ) üretir. Tüm hesap ileri yönde, durmadan akar.
+      </p>
+    </div>
+
+    <!-- Pane 3: Backpropagation -->
+    <div class="pane">
+      <div class="pane-tag amber">— GERİ YAYILIM</div>
+      <h3>Backward <span class="amber-em">pass.</span></h3>
+      <div class="pane-svg">
+        <svg viewBox="0 0 360 220" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <marker id="b-arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M2 1 L8 5 L2 9" fill="none" stroke="#A8761E" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+            </marker>
+          </defs>
+
+          <!-- same layout but with target node and error -->
+          <g>
+            <circle cx="60" cy="60" r="9" fill="#F7E2D6" stroke="#C9522F" stroke-width="1.5"/>
+            <circle cx="60" cy="110" r="9" fill="#F7E2D6" stroke="#C9522F" stroke-width="1.5"/>
+            <circle cx="60" cy="160" r="9" fill="#F7E2D6" stroke="#C9522F" stroke-width="1.5"/>
+            <circle cx="180" cy="50" r="9" fill="#D3E6E2" stroke="#1F6B5F" stroke-width="1.5"/>
+            <circle cx="180" cy="100" r="9" fill="#D3E6E2" stroke="#1F6B5F" stroke-width="1.5"/>
+            <circle cx="180" cy="150" r="9" fill="#D3E6E2" stroke="#1F6B5F" stroke-width="1.5"/>
+            <circle cx="180" cy="180" r="9" fill="#D3E6E2" stroke="#1F6B5F" stroke-width="1.5"/>
+            <circle cx="300" cy="80" r="9" fill="#F1E1B8" stroke="#A8761E" stroke-width="1.8"/>
+            <circle cx="300" cy="130" r="9" fill="#F1E1B8" stroke="#A8761E" stroke-width="1.8"/>
+          </g>
+
+          <!-- gradient flow lines (amber dashed) going back -->
+          <g stroke="#A8761E" stroke-width="0.9" fill="none" stroke-dasharray="3 2" opacity="0.7">
+            <line x1="291" y1="80" x2="189" y2="50"/>
+            <line x1="291" y1="80" x2="189" y2="100"/>
+            <line x1="291" y1="80" x2="189" y2="150"/>
+            <line x1="291" y1="80" x2="189" y2="180"/>
+            <line x1="291" y1="130" x2="189" y2="50"/>
+            <line x1="291" y1="130" x2="189" y2="100"/>
+            <line x1="291" y1="130" x2="189" y2="150"/>
+            <line x1="291" y1="130" x2="189" y2="180"/>
+            <line x1="171" y1="50" x2="69" y2="60"/>
+            <line x1="171" y1="50" x2="69" y2="110"/>
+            <line x1="171" y1="50" x2="69" y2="160"/>
+            <line x1="171" y1="100" x2="69" y2="60"/>
+            <line x1="171" y1="100" x2="69" y2="110"/>
+            <line x1="171" y1="100" x2="69" y2="160"/>
+            <line x1="171" y1="150" x2="69" y2="60"/>
+            <line x1="171" y1="150" x2="69" y2="110"/>
+            <line x1="171" y1="150" x2="69" y2="160"/>
+            <line x1="171" y1="180" x2="69" y2="60"/>
+            <line x1="171" y1="180" x2="69" y2="110"/>
+            <line x1="171" y1="180" x2="69" y2="160"/>
+          </g>
+
+          <!-- error indicator at output -->
+          <text x="335" y="84" font-family="Newsreader, serif" font-style="italic" font-size="13" fill="#A8761E">ŷ</text>
+          <text x="335" y="134" font-family="Newsreader, serif" font-style="italic" font-size="13" fill="#A8761E">ŷ</text>
+          <text x="328" y="108" font-family="JetBrains Mono, monospace" font-size="9" fill="#A8761E" letter-spacing="0.05em">vs y</text>
+
+          <!-- big backward arrow at bottom -->
+          <path d="M 320 200 L 40 200" stroke="#A8761E" stroke-width="2.5" marker-end="url(#b-arr)" fill="none"/>
+          <text x="180" y="193" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10" fill="#A8761E" font-weight="600" letter-spacing="0.1em">HATA GRADYANI</text>
+        </svg>
+      </div>
+      <p class="desc">
+        Çıktıda hata hesaplanır (E = ½(y − ŷ)²). <em>Zincir kuralı</em> ile bu hatanın her ağırlığa göre türevi
+        sondan başa doğru hesaplanır. Her ağırlık, hatayı azaltacak yönde küçük bir miktar güncellenir.
+      </p>
+    </div>
+
+  </div>
+
+  <!-- EQUATION STRIP -->
+  <div class="eq-strip">
+    <div class="eq-head">
+      <div class="pane-tag">— ÖĞRENMENİN ÜÇ DENKLEMİ</div>
+      <h3>Öğrenme, <em>aslında</em> üç satırdır.</h3>
+    </div>
+    <div class="eqs">
+      <div class="eq-cell">
+        <div class="eq-label">1 · İLERİ</div>
+        <div class="eq">ŷ = σ(<span class="var-i">W</span>·<span class="var-c">x</span> + <span class="var-i">b</span>)</div>
+      </div>
+      <div class="eq-cell">
+        <div class="eq-label">2 · HATA</div>
+        <div class="eq">E = ½(<span class="var-t">y</span> − <span class="var-a">ŷ</span>)²</div>
+      </div>
+      <div class="eq-cell">
+        <div class="eq-label">3 · GÜNCELLE</div>
+        <div class="eq"><span class="var-i">w</span> ← <span class="var-i">w</span> − η · ∂E/∂<span class="var-i">w</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- HISTORICAL NOTE -->
+  <div class="historical">
+    <strong>Tarihsel not.</strong> Sinir ağı fikri 1940'larda (McCulloch–Pitts) ortaya atılır, 1958'de Rosenblatt'ın
+    <em>perceptron</em>'u tek katmanı pratiğe geçirir. Çok katmanlı ağları eğitmek 1986'ya kadar mümkün değildi —
+    <strong>Rumelhart, Hinton ve Williams</strong>'ın <em>"Learning representations by back-propagating errors"</em>
+    makalesi, gradyanı katmanlar arası geri yaymanın yolunu açar. Bugünkü tüm derin öğrenme — CNN'ler, RNN'ler,
+    Transformer'lar, LLM'ler — bu aynı backprop mekanizması üzerine kurulur. Mimariler değişti; ilke aynı kaldı.
+  </div>
+
+</div>
+
+<script>
+// ===========================================
+// MAIN NETWORK DIAGRAM — programmatic build
+// ===========================================
+(function() {
+  const NS = 'http://www.w3.org/2000/svg';
+  function el(tag, attrs, text) {
+    const e = document.createElementNS(NS, tag);
+    for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v);
+    if (text != null) e.textContent = text;
+    return e;
+  }
+
+  const svg = document.getElementById('net-svg');
+  const W = 1100, H = 460;
+
+  // Layers: input (5), hidden1 (6), hidden2 (6), output (3)
+  const layers = [
+    { count: 5, x: 130, label: 'GİRDİ KATMANI',  sub: 'x₁ … xₙ',  color: '#C9522F', soft: '#F7E2D6', tagColor: '#C9522F' },
+    { count: 6, x: 350, label: 'GİZLİ KATMAN 1', sub: 'h¹ = σ(W¹x + b¹)', color: '#1F6B5F', soft: '#D3E6E2', tagColor: '#1F6B5F' },
+    { count: 6, x: 570, label: 'GİZLİ KATMAN 2', sub: 'h² = σ(W²h¹ + b²)', color: '#1F6B5F', soft: '#D3E6E2', tagColor: '#1F6B5F' },
+    { count: 3, x: 790, label: 'ÇIKTI KATMANI',  sub: 'ŷ = σ(W³h² + b³)',  color: '#2E4368', soft: '#DBE3F1', tagColor: '#2E4368' }
+  ];
+
+  const cy = 230;       // vertical center
+  const nodeR = 13;
+  const vSpacing = 42;  // vertical spacing between nodes
+
+  // Compute node positions
+  layers.forEach(layer => {
+    const total = layer.count;
+    const startY = cy - ((total - 1) * vSpacing) / 2;
+    layer.nodes = [];
+    for (let i = 0; i < total; i++) {
+      layer.nodes.push({ x: layer.x, y: startY + i * vSpacing });
+    }
+  });
+
+  // Defs (arrow markers)
+  const defs = el('defs', {});
+  const mkMarker = (id, color) => {
+    const m = el('marker', { id, viewBox: '0 0 10 10', refX: 9, refY: 5, markerWidth: 7, markerHeight: 7, orient: 'auto-start-reverse' });
+    m.appendChild(el('path', { d: 'M2 1 L9 5 L2 9', fill: 'none', stroke: color, 'stroke-width': 1.6, 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }));
+    return m;
+  };
+  defs.appendChild(mkMarker('net-arr-teal', '#1F6B5F'));
+  defs.appendChild(mkMarker('net-arr-amber', '#A8761E'));
+  svg.appendChild(defs);
+
+  // Connections (light grey lines, all-to-all between adjacent layers)
+  for (let i = 0; i < layers.length - 1; i++) {
+    const A = layers[i].nodes;
+    const B = layers[i + 1].nodes;
+    A.forEach(a => B.forEach(b => {
+      svg.appendChild(el('line', {
+        x1: a.x + nodeR, y1: a.y,
+        x2: b.x - nodeR, y2: b.y,
+        stroke: '#CFC5AE',
+        'stroke-width': 0.6,
+        opacity: 0.7
+      }));
+    }));
+  }
+
+  // Layer column tags (above)
+  layers.forEach(layer => {
+    svg.appendChild(el('text', {
+      x: layer.x, y: 38,
+      'font-family': 'JetBrains Mono, monospace',
+      'font-size': 11,
+      'font-weight': 600,
+      fill: layer.tagColor,
+      'text-anchor': 'middle',
+      'letter-spacing': '0.16em'
+    }, layer.label));
+    svg.appendChild(el('text', {
+      x: layer.x, y: 56,
+      'font-family': 'Newsreader, serif',
+      'font-style': 'italic',
+      'font-size': 13,
+      fill: '#4A453E',
+      'text-anchor': 'middle'
+    }, layer.sub));
+  });
+
+  // Nodes
+  layers.forEach(layer => {
+    layer.nodes.forEach((n, idx) => {
+      svg.appendChild(el('circle', {
+        cx: n.x, cy: n.y, r: nodeR,
+        fill: layer.soft,
+        stroke: layer.color,
+        'stroke-width': 1.6
+      }));
+    });
+  });
+
+  // Input labels (x1, x2, ... on input nodes)
+  const inputLabels = ['x₁','x₂','x₃','x₄','xₙ'];
+  layers[0].nodes.forEach((n, i) => {
+    svg.appendChild(el('text', {
+      x: n.x, y: n.y + 1.5,
+      'font-family': 'Newsreader, serif',
+      'font-style': 'italic',
+      'font-size': 12,
+      fill: '#C9522F',
+      'text-anchor': 'middle',
+      'dominant-baseline': 'central'
+    }, inputLabels[i] || ''));
+  });
+
+  // Output labels (ŷ1, ŷ2, ŷ3) + class names
+  const outputLabels = ['ŷ₁','ŷ₂','ŷ₃'];
+  const outputClasses = ['Kedi','Köpek','Araba'];
+  layers[3].nodes.forEach((n, i) => {
+    svg.appendChild(el('text', {
+      x: n.x, y: n.y + 1.5,
+      'font-family': 'Newsreader, serif',
+      'font-style': 'italic',
+      'font-size': 12,
+      fill: '#2E4368',
+      'text-anchor': 'middle',
+      'dominant-baseline': 'central'
+    }, outputLabels[i] || ''));
+
+    // class label to the right
+    svg.appendChild(el('text', {
+      x: n.x + 24, y: n.y,
+      'font-family': 'Newsreader, serif',
+      'font-style': 'italic',
+      'font-size': 14,
+      fill: '#4A453E',
+      'text-anchor': 'start',
+      'dominant-baseline': 'central'
+    }, outputClasses[i] || ''));
+  });
+
+  // Hidden layer node labels (h1, h2, ...)
+  layers[1].nodes.forEach((n, i) => {
+    svg.appendChild(el('text', {
+      x: n.x, y: n.y + 1.5,
+      'font-family': 'Newsreader, serif',
+      'font-style': 'italic',
+      'font-size': 11,
+      fill: '#1F6B5F',
+      'text-anchor': 'middle',
+      'dominant-baseline': 'central'
+    }, `h¹${'₁₂₃₄₅₆'[i]}`));
+  });
+  layers[2].nodes.forEach((n, i) => {
+    svg.appendChild(el('text', {
+      x: n.x, y: n.y + 1.5,
+      'font-family': 'Newsreader, serif',
+      'font-style': 'italic',
+      'font-size': 11,
+      fill: '#1F6B5F',
+      'text-anchor': 'middle',
+      'dominant-baseline': 'central'
+    }, `h²${'₁₂₃₄₅₆'[i]}`));
+  });
+
+  // Highlight a sample weight (between h¹_3 and h²_3) — show w label
+  const fromN = layers[1].nodes[2];
+  const toN = layers[2].nodes[2];
+  svg.appendChild(el('line', {
+    x1: fromN.x + nodeR, y1: fromN.y,
+    x2: toN.x - nodeR, y2: toN.y,
+    stroke: '#A8761E',
+    'stroke-width': 1.8,
+    opacity: 0.9
+  }));
+  const wmx = (fromN.x + toN.x) / 2;
+  const wmy = (fromN.y + toN.y) / 2;
+  svg.appendChild(el('rect', {
+    x: wmx - 22, y: wmy - 12,
+    width: 44, height: 18,
+    rx: 4,
+    fill: '#FBF8F1',
+    stroke: '#A8761E',
+    'stroke-width': 1
+  }));
+  svg.appendChild(el('text', {
+    x: wmx, y: wmy,
+    'font-family': 'Newsreader, serif',
+    'font-style': 'italic',
+    'font-size': 13,
+    fill: '#A8761E',
+    'text-anchor': 'middle',
+    'dominant-baseline': 'central'
+  }, 'wᵢⱼ'));
+
+  // ============ Forward pass big arrow (top) ============
+  const arrowY = 405;
+  svg.appendChild(el('line', {
+    x1: 90, y1: arrowY,
+    x2: 880, y2: arrowY,
+    stroke: '#1F6B5F',
+    'stroke-width': 3,
+    'marker-end': 'url(#net-arr-teal)'
+  }));
+  svg.appendChild(el('text', {
+    x: 485, y: arrowY - 10,
+    'font-family': 'JetBrains Mono, monospace',
+    'font-size': 12,
+    'font-weight': 700,
+    fill: '#1F6B5F',
+    'text-anchor': 'middle',
+    'letter-spacing': '0.15em'
+  }, 'FORWARD PASS · İLERİ YAYILIM'));
+  svg.appendChild(el('text', {
+    x: 485, y: arrowY + 18,
+    'font-family': 'Newsreader, serif',
+    'font-style': 'italic',
+    'font-size': 12,
+    fill: '#4A453E',
+    'text-anchor': 'middle'
+  }, 'her katmanda: lineer kombinasyon + aktivasyon'));
+
+  // ============ Backward pass big arrow (bottom of canvas) ============
+  const backY = 440;
+  svg.appendChild(el('line', {
+    x1: 880, y1: backY,
+    x2: 90, y2: backY,
+    stroke: '#A8761E',
+    'stroke-width': 3,
+    'stroke-dasharray': '7 4',
+    'marker-end': 'url(#net-arr-amber)'
+  }));
+
+  // Loss bubble next to output
+  const lossX = 920, lossY = 230;
+  svg.appendChild(el('rect', {
+    x: lossX - 50, y: lossY - 60,
+    width: 145, height: 120,
+    rx: 10,
+    fill: '#F1E1B8',
+    stroke: '#A8761E',
+    'stroke-width': 1.5
+  }));
+  svg.appendChild(el('text', {
+    x: lossX + 22, y: lossY - 38,
+    'font-family': 'JetBrains Mono, monospace',
+    'font-size': 10,
+    'font-weight': 700,
+    fill: '#A8761E',
+    'text-anchor': 'middle',
+    'letter-spacing': '0.15em'
+  }, 'HATA HESABI'));
+  svg.appendChild(el('text', {
+    x: lossX + 22, y: lossY - 16,
+    'font-family': 'Newsreader, serif',
+    'font-style': 'italic',
+    'font-size': 18,
+    fill: '#1B1815',
+    'text-anchor': 'middle'
+  }, 'E = ½(y − ŷ)²'));
+  svg.appendChild(el('text', {
+    x: lossX + 22, y: lossY + 8,
+    'font-family': 'Newsreader, serif',
+    'font-style': 'italic',
+    'font-size': 12,
+    fill: '#4A453E',
+    'text-anchor': 'middle'
+  }, 'y: gerçek etiket'));
+  svg.appendChild(el('text', {
+    x: lossX + 22, y: lossY + 26,
+    'font-family': 'Newsreader, serif',
+    'font-style': 'italic',
+    'font-size': 12,
+    fill: '#4A453E',
+    'text-anchor': 'middle'
+  }, 'ŷ: tahmin'));
+  svg.appendChild(el('text', {
+    x: lossX + 22, y: lossY + 50,
+    'font-family': 'JetBrains Mono, monospace',
+    'font-size': 9.5,
+    fill: '#A8761E',
+    'text-anchor': 'middle',
+    'letter-spacing': '0.08em'
+  }, 'gradyanı geri yay →'));
+
+  // (Loss bubble's relationship to outputs is conveyed by proximity; no connector needed)
+
+})();
+</script>
+
+</body>
+</html>

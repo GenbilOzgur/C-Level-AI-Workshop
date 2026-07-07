@@ -1,0 +1,1561 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RAG Akış Şeması — Klasik & Agentic</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    /* warm editorial palette */
+    --bg:        #F6F2E9;
+    --bg-2:      #FBF8F1;
+    --card:      #FFFFFF;
+    --ink:       #1B1815;
+    --ink-2:     #4A453E;
+    --ink-3:     #8A8378;
+    --line:      #E3DCCB;
+    --line-2:    #CFC5AE;
+
+    --coral:     #C9522F;   /* user / input */
+    --coral-soft:#F7E2D6;
+    --coral-mid: #E08665;
+
+    --teal:      #1F6B5F;   /* data / retrieval */
+    --teal-soft: #D3E6E2;
+    --teal-mid:  #4D9387;
+
+    --indigo:    #2E4368;   /* LLM / model */
+    --indigo-soft:#DBE3F1;
+    --indigo-mid:#5A7299;
+
+    --amber:     #A8761E;   /* agentic / highlight */
+    --amber-soft:#F1E1B8;
+    --amber-mid: #C99B3F;
+
+    --plum:      #6B3F5C;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    font-family: 'Inter', system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .wrap {
+    background: var(--bg);
+    border: 1px solid var(--line-2);
+    border-radius: 18px;
+    overflow: hidden;
+    width: 100%;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+
+  /* Tab bar */
+  .tab-bar {
+    display: flex;
+    background: var(--bg-2);
+    border-bottom: 1px solid var(--line);
+    padding: 4px;
+    gap: 2px;
+  }
+  .tab {
+    flex: 1;
+    padding: 12px 14px;
+    text-align: center;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--ink-3);
+    cursor: pointer;
+    border-radius: 10px;
+    user-select: none;
+    transition: background .15s, color .15s;
+    letter-spacing: 0.01em;
+  }
+  .tab:hover:not(.active) {
+    color: var(--ink-2);
+    background: rgba(0,0,0,0.025);
+  }
+  .tab.active {
+    background: var(--card);
+    color: var(--ink);
+    font-weight: 600;
+    box-shadow: 0 1px 0 var(--line-2), 0 2px 6px rgba(27,24,21,0.04);
+  }
+
+  .panel { display: none; padding: 28px 30px 36px; }
+  .panel.active { display: block; }
+
+  /* Section headers */
+  .section { margin-bottom: 42px; }
+  .section:last-child { margin-bottom: 0; }
+
+  .section-head {
+    margin-bottom: 6px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid var(--line);
+  }
+  .section-num {
+    display: block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    color: var(--coral);
+    text-transform: uppercase;
+    font-weight: 500;
+    margin-bottom: 8px;
+    white-space: nowrap;
+  }
+  .section-title {
+    font-family: 'Instrument Serif', 'Times New Roman', serif;
+    font-weight: 400;
+    font-size: 38px;
+    letter-spacing: -0.01em;
+    color: var(--ink);
+    line-height: 1.05;
+  }
+  .section-title em {
+    font-style: italic;
+    color: var(--coral);
+  }
+  .section-sub {
+    font-size: 13.5px;
+    color: var(--ink-2);
+    margin-top: 4px;
+    margin-bottom: 24px;
+    max-width: 720px;
+    line-height: 1.55;
+  }
+
+  /* SVG canvas */
+  .seq-canvas {
+    width: 100%;
+    background: var(--bg-2);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 12px;
+    display: block;
+  }
+  .seq-canvas svg { width: 100%; display: block; }
+
+  /* Phase chips above diagram */
+  .phase-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 14px;
+  }
+  .phase-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    border-radius: 999px;
+    background: var(--bg-2);
+    border: 1px solid var(--line);
+    font-size: 12px;
+    color: var(--ink-2);
+    font-weight: 500;
+  }
+  .phase-chip .dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--coral);
+  }
+  .phase-chip.teal .dot { background: var(--teal); }
+  .phase-chip.indigo .dot { background: var(--indigo); }
+  .phase-chip.amber .dot { background: var(--amber); }
+
+  /* Caption box under SVG */
+  .seq-caption {
+    margin-top: 14px;
+    padding: 14px 18px;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--coral);
+    border-radius: 10px;
+    font-size: 13px;
+    line-height: 1.6;
+    color: var(--ink-2);
+  }
+  .seq-caption.amber { border-left-color: var(--amber); }
+  .seq-caption strong { color: var(--ink); font-weight: 600; }
+
+  /* Technique grid */
+  .tech-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+  }
+  .tech-card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 18px 18px 16px;
+    position: relative;
+    transition: border-color .2s, transform .2s;
+  }
+  .tech-card:hover {
+    border-color: var(--line-2);
+    transform: translateY(-1px);
+  }
+  .tech-card .num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    color: var(--ink-3);
+    letter-spacing: 0.15em;
+    margin-bottom: 10px;
+    display: block;
+  }
+  .tech-card .name {
+    font-family: 'Instrument Serif', serif;
+    font-size: 22px;
+    font-weight: 400;
+    color: var(--ink);
+    margin-bottom: 4px;
+    letter-spacing: -0.01em;
+    line-height: 1.15;
+  }
+  .tech-card .name em {
+    font-style: italic;
+    color: var(--coral);
+  }
+  .tech-card .tagline {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--teal);
+    margin-bottom: 10px;
+    letter-spacing: 0.02em;
+  }
+  .tech-card .desc {
+    font-size: 12.5px;
+    color: var(--ink-2);
+    line-height: 1.55;
+    text-wrap: pretty;
+  }
+  .tech-card .tag {
+    position: absolute;
+    top: 16px; right: 16px;
+    font-size: 10px;
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--ink-3);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+
+  /* Tab 2: Neden RAG cards */
+  .matrix-wrap {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 22px 22px 16px;
+    margin-bottom: 16px;
+  }
+  .matrix-title {
+    font-family: 'Instrument Serif', serif;
+    font-size: 22px;
+    color: var(--ink);
+    text-align: center;
+    margin-bottom: 22px;
+    letter-spacing: -0.01em;
+  }
+  .matrix-title em { font-style: italic; color: var(--coral); }
+
+  /* X-Y chart with visible axes */
+  .xy-chart {
+    display: grid;
+    grid-template-columns: auto auto 1fr;
+    grid-template-rows: 1fr auto;
+    gap: 8px 10px;
+    align-items: stretch;
+  }
+  .xy-ylabel-cell {
+    grid-column: 1; grid-row: 1;
+    display: flex; align-items: center; justify-content: center;
+    padding: 12px 0;
+  }
+  .xy-ylabel {
+    writing-mode: vertical-rl;
+    transform: rotate(180deg);
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--ink-2);
+    letter-spacing: 0.05em;
+    white-space: nowrap;
+  }
+  .xy-yaxis-cell {
+    grid-column: 2; grid-row: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    font-size: 10.5px;
+    color: var(--ink-3);
+    padding: 2px 0;
+  }
+  .xy-yaxis-cell .tick { font-weight: 500; }
+  .xy-yaxis-cell .tick.hi { color: var(--ink); font-weight: 700; }
+  .xy-yaxis-line {
+    width: 2.5px;
+    flex: 1;
+    min-height: 60px;
+    background: var(--ink);
+    position: relative;
+    margin: 4px 0;
+  }
+  .xy-yaxis-line::before {
+    content: '';
+    position: absolute;
+    top: -7px; left: 50%;
+    transform: translateX(-50%);
+    width: 0; height: 0;
+    border-left: 7px solid transparent;
+    border-right: 7px solid transparent;
+    border-bottom: 9px solid var(--ink);
+  }
+  .xy-grid-cell {
+    grid-column: 3; grid-row: 1;
+  }
+  .xy-xaxis-cell {
+    grid-column: 3; grid-row: 2;
+    padding-top: 8px;
+  }
+  .xy-xaxis-line {
+    height: 2.5px;
+    background: var(--ink);
+    position: relative;
+    margin-bottom: 6px;
+  }
+  .xy-xaxis-line::after {
+    content: '';
+    position: absolute;
+    right: -7px; top: 50%;
+    transform: translateY(-50%);
+    width: 0; height: 0;
+    border-top: 7px solid transparent;
+    border-bottom: 7px solid transparent;
+    border-left: 9px solid var(--ink);
+  }
+  .xy-xticks {
+    display: flex;
+    justify-content: space-between;
+    font-size: 10.5px;
+    color: var(--ink-3);
+    padding: 0 2px;
+    font-weight: 500;
+  }
+  .xy-xticks .hi { color: var(--ink); font-weight: 700; }
+  .xy-xlabel {
+    text-align: center;
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--ink-2);
+    letter-spacing: 0.05em;
+    margin-top: 6px;
+  }
+  .matrix-2x2 {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 3px;
+    border-radius: 10px;
+    overflow: hidden;
+    background: var(--line);
+  }
+  .quad {
+    padding: 22px 16px 18px;
+    min-height: 140px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    background: var(--bg-2);
+  }
+  .quad.q1 { background: var(--coral-soft); }
+  .quad.q2 { background: var(--amber-soft); }
+  .quad.q3 { background: var(--bg-2); }
+  .quad.q4 { background: var(--teal-soft); }
+  .quad-tag {
+    display: inline-block;
+    padding: 5px 12px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    align-self: flex-start;
+    letter-spacing: 0.01em;
+    white-space: nowrap;
+  }
+  .quad.q1 .quad-tag { background: var(--coral); color: white; }
+  .quad.q2 .quad-tag { background: var(--amber); color: white; }
+  .quad.q3 .quad-tag { background: var(--ink-3); color: white; }
+  .quad.q4 .quad-tag { background: var(--teal); color: white; }
+  .quad-desc { font-size: 12px; color: var(--ink-2); line-height: 1.55; }
+
+  .axis-labels {
+    display: flex;
+    justify-content: space-between;
+    font-size: 10.5px;
+    color: var(--ink-3);
+    margin-top: 6px;
+    padding: 0 4px;
+  }
+  .axis-x { text-align: center; font-size: 11.5px; color: var(--ink-2); margin-top: 6px; font-weight: 500; }
+  .axis-y-label { font-size: 10.5px; color: var(--ink-3); text-align: right; margin-bottom: 4px; }
+
+  .compare-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+  .compare-card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 14px 16px;
+    border-top: 3px solid var(--ink-3);
+  }
+  .compare-card.coral { border-top-color: var(--coral); }
+  .compare-card.amber { border-top-color: var(--amber); }
+  .compare-card.indigo { border-top-color: var(--indigo); }
+
+  .compare-tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    margin-bottom: 8px;
+    display: block;
+  }
+  .compare-card.coral .compare-tag { color: var(--coral); }
+  .compare-card.amber .compare-tag { color: var(--amber); }
+  .compare-card.indigo .compare-tag { color: var(--indigo); }
+  .compare-title {
+    font-family: 'Instrument Serif', serif;
+    font-size: 20px;
+    color: var(--ink);
+    margin-bottom: 4px;
+    letter-spacing: -0.01em;
+  }
+  .compare-desc { font-size: 12px; color: var(--ink-2); line-height: 1.55; }
+
+  .when-box {
+    background: var(--coral-soft);
+    border: 1px solid var(--coral-mid);
+    border-radius: 12px;
+    padding: 18px 20px;
+  }
+  .when-title {
+    font-family: 'Instrument Serif', serif;
+    font-size: 22px;
+    text-align: center;
+    color: var(--ink);
+    margin-bottom: 12px;
+  }
+  .when-title em { font-style: italic; color: var(--coral); }
+  .when-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px 28px;
+    font-size: 13px;
+    color: var(--ink-2);
+    line-height: 1.75;
+  }
+  .when-grid .check { color: var(--coral); font-weight: 600; margin-right: 4px; }
+
+  /* Tab 3 precision tab */
+  .precision-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+  .metric-card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 16px 18px;
+    border-left: 4px solid var(--teal);
+  }
+  .metric-card.indigo { border-left-color: var(--indigo); }
+  .metric-name {
+    font-family: 'Instrument Serif', serif;
+    font-size: 22px;
+    color: var(--ink);
+    margin-bottom: 4px;
+  }
+  .metric-name em { font-style: italic; color: var(--teal); }
+  .metric-card.indigo .metric-name em { color: var(--indigo); }
+  .metric-formula {
+    font-family: 'JetBrains Mono', monospace;
+    background: var(--bg-2);
+    padding: 3px 8px;
+    border-radius: 5px;
+    font-size: 11.5px;
+    color: var(--ink-2);
+    display: inline-block;
+    margin: 6px 0;
+    white-space: nowrap;
+  }
+  .metric-desc { font-size: 12.5px; color: var(--ink-2); line-height: 1.55; }
+  .metric-warn { font-size: 11.5px; color: var(--coral); margin-top: 6px; font-style: italic; }
+
+  /* annotation legend */
+  .legend {
+    display: flex;
+    gap: 22px;
+    justify-content: center;
+    flex-wrap: wrap;
+    padding: 12px;
+    margin-top: 12px;
+    border-top: 1px solid var(--line);
+    font-size: 11.5px;
+    color: var(--ink-2);
+  }
+  .legend-item { display: flex; align-items: center; gap: 8px; }
+  .legend-swatch {
+    width: 14px; height: 14px;
+    border-radius: 3px;
+  }
+
+  /* Responsive */
+  @media (max-width: 900px) {
+    .tech-grid { grid-template-columns: 1fr 1fr; }
+    .compare-row, .precision-row { grid-template-columns: 1fr; }
+    .panel { padding: 20px 18px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <div class="tab-bar">
+    <div class="tab active" onclick="showTab('flow', this)">RAG Akış Diyagramı</div>
+    <div class="tab" onclick="showTab('why', this)">Neden RAG?</div>
+    <div class="tab" onclick="showTab('precision', this)">Recall &amp; Precision</div>
+  </div>
+
+  <!-- ============================================ -->
+  <!--  TAB 1: FLOW DIAGRAM                          -->
+  <!-- ============================================ -->
+  <div id="flow" class="panel active">
+
+    <!-- Section 1: Klasik Akış -->
+    <div class="section">
+      <div class="section-head">
+        <span class="section-num">01 · KLASİK</span>
+        <h2 class="section-title">Klasik <em>RAG akışı.</em></h2>
+      </div>
+      <p class="section-sub">
+        Geleneksel boru hattı yaklaşımı: kullanıcı sorusu önce embedding modeline,
+        ardından vektör veritabanına gider; getirilen bağlam LLM'e prompt olarak iletilir.
+        Sıralama sabittir, LLM yalnızca son adımda devreye girer.
+      </p>
+
+      <div class="phase-chips">
+        <span class="phase-chip"><span class="dot"></span>Kullanıcı</span>
+        <span class="phase-chip teal"><span class="dot"></span>Embedding · Vektör DB</span>
+        <span class="phase-chip indigo"><span class="dot"></span>LLM (üretim)</span>
+      </div>
+
+      <div class="seq-canvas">
+        <svg id="seq-classic" viewBox="0 0 1040 600" xmlns="http://www.w3.org/2000/svg" role="img">
+          <title>Klasik RAG Sekans Diyagramı</title>
+        </svg>
+      </div>
+
+      <div class="seq-caption">
+        <strong>Not.</strong> Embedding modeli iki kez kullanılır: bir kez indeksleme (offline),
+        bir kez sorgu (runtime). LLM bağlamı ham olarak alır ve sentezler — karar mekanizması yoktur.
+      </div>
+    </div>
+
+    <!-- Section 2: Agentic Akış -->
+    <div class="section">
+      <div class="section-head">
+        <span class="section-num" style="color:var(--amber)">02 · AGENTIC</span>
+        <h2 class="section-title">Agentic <em>RAG akışı.</em></h2>
+      </div>
+      <p class="section-sub">
+        LLM bir <strong>ajan</strong> gibi davranır: sorunun bağlama ihtiyacı olup olmadığına kendisi karar verir,
+        gerekirse <strong>tool calling</strong> ile arama fonksiyonunu çağırır, sonuç yetersizse sorguyu yeniden formüle ederek
+        tekrar arar. Akış dinamik bir döngüdür.
+      </p>
+
+      <div class="phase-chips">
+        <span class="phase-chip"><span class="dot"></span>Kullanıcı</span>
+        <span class="phase-chip amber"><span class="dot"></span>LLM Ajan (karar verici)</span>
+        <span class="phase-chip teal"><span class="dot"></span>Search Tool · Vektör DB</span>
+      </div>
+
+      <div class="seq-canvas">
+        <svg id="seq-agentic" viewBox="0 0 1040 850" xmlns="http://www.w3.org/2000/svg" role="img">
+          <title>Agentic RAG Sekans Diyagramı</title>
+        </svg>
+      </div>
+
+      <div class="seq-caption amber">
+        <strong>Kritik fark.</strong> Klasik akışta her sorgu mutlaka vektör aramasına gider.
+        Agentic akışta LLM önce <em>"buna gerçekten bağlam lazım mı?"</em> diye düşünür;
+        gerekirse aramayı <em>kendi formüle ettiği</em> sorgularla, gerektiği <em>kadar tekrar</em> çağırır.
+      </div>
+    </div>
+
+    <!-- Section 3: Semantic Search İyileştirmeleri -->
+    <div class="section">
+      <div class="section-head">
+        <span class="section-num" style="color:var(--teal)">03 · TEKNİKLER</span>
+        <h2 class="section-title">Semantik aramayı <em>iyileştirmek.</em></h2>
+      </div>
+      <p class="section-sub">
+        Klasik RAG'in kalitesi neredeyse tamamen "doğru chunk'ı bulma" başarısına bağlıdır.
+        Aşağıdaki teknikler, basit cosine benzerliğinin yetmediği yerde devreye girer.
+      </p>
+
+      <div class="tech-grid">
+
+        <div class="tech-card">
+          <span class="num">01</span>
+          <span class="tag">retrieval</span>
+          <div class="name">Hibrit <em>Arama</em></div>
+          <div class="tagline">BM25 + dense vector</div>
+          <p class="desc">
+            Anahtar kelime tabanlı (BM25) ve semantik (vektör) aramayı birleştirir.
+            Özel isimler, kod, ürün kodu gibi terimlerde keyword; kavramsal benzerlikte vektör güçlüdür — ikisi birbirini tamamlar.
+          </p>
+        </div>
+
+        <div class="tech-card">
+          <span class="num">02</span>
+          <span class="tag">query</span>
+          <div class="name">Sorgu <em>Genişletme</em></div>
+          <div class="tagline">HyDE · multi-query</div>
+          <p class="desc">
+            LLM, kullanıcı sorusundan birden çok varyasyon veya
+            <em>hipotetik bir cevap</em> üretir; bu metinler embed edilip aranır.
+            Kısa/belirsiz sorgularda recall'ı belirgin yükseltir.
+          </p>
+        </div>
+
+        <div class="tech-card">
+          <span class="num">03</span>
+          <span class="tag">ranking</span>
+          <div class="name">Yeniden <em>Sıralama</em></div>
+          <div class="tagline">cross-encoder reranker</div>
+          <p class="desc">
+            İlk aşamada top-50 hızlıca çekilir; ardından cross-encoder
+            (örn. Cohere Rerank, BGE-Reranker) her chunk'ı soru ile birlikte değerlendirip
+            gerçek alaka skoruna göre top-5 seçer. Precision'ı dramatik artırır.
+          </p>
+        </div>
+
+        <div class="tech-card">
+          <span class="num">04</span>
+          <span class="tag">chunking</span>
+          <div class="name">Akıllı <em>Parçalama</em></div>
+          <div class="tagline">semantic chunking · parent-doc</div>
+          <p class="desc">
+            Sabit pencere yerine cümle/paragraf sınırlarına ve anlam yoğunluğuna göre
+            parçala. Parent-doc yaklaşımında küçük chunk'lar aranır ama LLM'e
+            <em>üst paragraf</em> verilir — bağlam korunur.
+          </p>
+        </div>
+
+        <div class="tech-card">
+          <span class="num">05</span>
+          <span class="tag">context</span>
+          <div class="name">Bağlamsal <em>Embedding</em></div>
+          <div class="tagline">contextual retrieval</div>
+          <p class="desc">
+            Her chunk'ı embed etmeden önce LLM ile kısa bir bağlam (üstteki başlık,
+            dökümanın özeti) eklersin. Anthropic'in açıkladığı bu yöntem
+            retrieval hatasını ~%50 azaltır.
+          </p>
+        </div>
+
+        <div class="tech-card">
+          <span class="num">06</span>
+          <span class="tag">filter</span>
+          <div class="name">Metadata <em>Filtre</em></div>
+          <div class="tagline">tarih · kategori · kaynak</div>
+          <p class="desc">
+            Vektör aramadan önce sert filtreler (departman, tarih aralığı, dil, doküman tipi)
+            uygulanır. Arama uzayı küçülür, hem hız hem precision artar — özellikle
+            kurumsal RAG'de vazgeçilmez.
+          </p>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ============================================ -->
+  <!--  TAB 2: NEDEN RAG                             -->
+  <!-- ============================================ -->
+  <div id="why" class="panel">
+
+    <div class="section-head">
+      <span class="section-num">NEDEN</span>
+      <h2 class="section-title"><em>Neden</em> RAG?</h2>
+    </div>
+    <p class="section-sub">
+      RAG, Fine-Tuning ve Prompt Engineering, LLM'i şirket bilgisiyle buluşturmanın üç farklı yoludur.
+      İhtiyacın iki eksene göre değişir: <em>özel bilgi</em> ne kadar yoğun, <em>modeli ne kadar değiştirmen</em> gerekiyor.
+    </p>
+
+    <div class="matrix-wrap">
+      <div class="matrix-title">LLM Geliştirme Yaklaşımları — <em>Karşılaştırma matrisi.</em></div>
+      <div class="xy-chart">
+        <div class="xy-ylabel-cell">
+          <div class="xy-ylabel">Dahili / Özel Bilgi İhtiyacı</div>
+        </div>
+        <div class="xy-yaxis-cell">
+          <span class="tick hi">Yüksek</span>
+          <span class="xy-yaxis-line"></span>
+          <span class="tick">Düşük</span>
+        </div>
+        <div class="xy-grid-cell">
+          <div class="matrix-2x2">
+            <div class="quad q1">
+              <span class="quad-tag">RAG</span>
+              <div class="quad-desc">Dahili bilgi yüksek, model değişmez. Vektör arama ile dinamik bağlam sağlar.</div>
+            </div>
+            <div class="quad q2">
+              <span class="quad-tag">RAG + Fine-Tuning</span>
+              <div class="quad-desc">Her ikisi yüksek. Karmaşık ama en güçlü yaklaşım — kurumsal asistanlar.</div>
+            </div>
+            <div class="quad q3">
+              <span class="quad-tag">Prompt Engineering</span>
+              <div class="quad-desc">Hızlı ve ucuz. Bilgi bağlam penceresine sığarsa yeterli.</div>
+            </div>
+            <div class="quad q4">
+              <span class="quad-tag">Fine-Tuning</span>
+              <div class="quad-desc">Model davranışını kalıcı değiştirir. Pahalı, yeniden eğitim gerekir.</div>
+            </div>
+          </div>
+        </div>
+        <div class="xy-xaxis-cell">
+          <div class="xy-xaxis-line"></div>
+          <div class="xy-xticks">
+            <span>Düşük</span>
+            <span class="hi">Yüksek</span>
+          </div>
+          <div class="xy-xlabel">Model Adaptasyon İhtiyacı</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="compare-row">
+      <div class="compare-card coral">
+        <span class="compare-tag">RAG</span>
+        <div class="compare-title">Dinamik bilgi erişimi</div>
+        <div class="compare-desc">Model değişmez. Vektör indeksine yeni bilgi eklemek yeterli — anında güncel.</div>
+      </div>
+      <div class="compare-card">
+        <span class="compare-tag">Prompt Engineering</span>
+        <div class="compare-title">Hızlı ve kolay</div>
+        <div class="compare-desc">Eğitim gerekmez. Bağlam penceresiyle sınırlı, büyük bilgi tabanına ölçeklenmez.</div>
+      </div>
+      <div class="compare-card indigo">
+        <span class="compare-tag">Fine-Tuning</span>
+        <div class="compare-title">Davranışı şekillendirir</div>
+        <div class="compare-desc">Model ağırlıkları değişir. Yüksek maliyet &amp; zaman; veri sürekli güncellense yetmez.</div>
+      </div>
+    </div>
+
+    <div class="when-box">
+      <div class="when-title">RAG ne zaman <em>seçilmeli?</em></div>
+      <div class="when-grid">
+        <div>
+          <span class="check">✓</span>Şirket içi doküman veya güncel veriye erişim gerektiğinde<br>
+          <span class="check">✓</span>Modeli yeniden eğitmek pahalı veya mümkün değilse<br>
+          <span class="check">✓</span>Bilgi tabanı sık güncelleniyorsa
+        </div>
+        <div>
+          <span class="check">✓</span>Kaynaklı, izlenebilir yanıt vermek öncelikliyse<br>
+          <span class="check">✓</span>Hallucination riskini minimize etmek gerekiyorsa<br>
+          <span class="check">✓</span>Bağlam penceresi yeterli değilse
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================ -->
+  <!--  TAB 3: RECALL & PRECISION                    -->
+  <!-- ============================================ -->
+  <div id="precision" class="panel">
+
+    <div class="section-head">
+      <span class="section-num" style="color:var(--teal)">METRİK</span>
+      <h2 class="section-title">Recall &amp; <em>Precision.</em></h2>
+    </div>
+    <p class="section-sub">
+      RAG'de getirilen belgelerin kalitesini belirleyen iki temel metrik. İkisi de yüksek olmalı; biri düşerse
+      ya bilgi eksik kalır ya da LLM kirli bağlamla yanıt üretir.
+    </p>
+
+    <div class="precision-row">
+      <div class="metric-card">
+        <div class="metric-name">Recall — <em>Geri Çağırma</em></div>
+        <div class="metric-formula">RET_REL / REL</div>
+        <div class="metric-desc">İlgili belgelerin ne kadarı getirildi? Tüm gerçek alakalı dökümanların yakalanma oranı.</div>
+        <div class="metric-warn">Düşük Recall → bazı ilgili belgeler eksik, yanıt yarım kalır.</div>
+      </div>
+      <div class="metric-card indigo">
+        <div class="metric-name">Precision — <em>Hassasiyet</em></div>
+        <div class="metric-formula">RET_REL / RET</div>
+        <div class="metric-desc">Getirilen belgelerin ne kadarı gerçekten ilgiliydi? Sonuç setinin temizliği.</div>
+        <div class="metric-warn">Düşük Precision → bağlam kirletilir, hallucination riski artar.</div>
+      </div>
+    </div>
+
+    <div class="matrix-wrap">
+      <svg viewBox="0 0 640 470" style="width:92%;display:block;margin:0 auto" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <marker id="arrP" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </marker>
+        </defs>
+        <line x1="88" y1="18" x2="88" y2="438" stroke="#8A8378" stroke-width="1.5" marker-end="url(#arrP)"/>
+        <line x1="88" y1="438" x2="628" y2="438" stroke="#8A8378" stroke-width="1.5" marker-end="url(#arrP)"/>
+        <text font-family="Inter" font-size="12" font-weight="500" fill="#4A453E" text-anchor="middle" x="26" y="228" transform="rotate(-90,26,228)">Precision (RET_REL / RET)</text>
+        <text font-family="Inter" font-size="12" font-weight="500" fill="#4A453E" text-anchor="middle" x="358" y="462">Recall (RET_REL / REL)</text>
+        <text font-family="Inter" font-size="11" fill="#8A8378" text-anchor="end" x="82" y="148">Yüksek</text>
+        <text font-family="Inter" font-size="11" fill="#8A8378" text-anchor="end" x="82" y="375">Düşük</text>
+        <text font-family="Inter" font-size="11" fill="#8A8378" text-anchor="middle" x="200" y="454">Düşük</text>
+        <text font-family="Inter" font-size="11" fill="#8A8378" text-anchor="middle" x="460" y="454">Yüksek</text>
+        <line x1="88" y1="258" x2="628" y2="258" stroke="#CFC5AE" stroke-width="1" stroke-dasharray="5 4"/>
+        <line x1="328" y1="18" x2="328" y2="438" stroke="#CFC5AE" stroke-width="1" stroke-dasharray="5 4"/>
+
+        <!-- Quadrant labels -->
+        <text font-family="Inter" font-size="10.5" font-weight="500" fill="#8A8378" text-anchor="middle" x="208" y="34">Yüksek Precision · Düşük Recall</text>
+        <text font-family="Inter" font-size="10.5" font-weight="600" fill="#1F6B5F" text-anchor="middle" x="468" y="34">Yüksek Precision · Yüksek Recall ✓</text>
+        <text font-family="Inter" font-size="10.5" font-weight="500" fill="#8A8378" text-anchor="middle" x="208" y="274">Düşük Precision · Düşük Recall</text>
+        <text font-family="Inter" font-size="10.5" font-weight="500" fill="#8A8378" text-anchor="middle" x="468" y="274">Düşük Precision · Yüksek Recall</text>
+
+        <!-- Q1: high precision low recall -->
+        <circle cx="200" cy="148" r="68" fill="#F7E2D6" stroke="#E08665" stroke-width="1"/>
+        <circle cx="193" cy="142" r="42" fill="#DBE3F1" stroke="#5A7299" stroke-width="1.2" fill-opacity="0.9"/>
+        <circle cx="214" cy="146" r="21" fill="#FBF8F1" stroke="#8A8378" stroke-width="1.2" fill-opacity="0.9"/>
+        <circle cx="205" cy="144" r="15" fill="#2E4368" fill-opacity="0.25" stroke="none"/>
+        <text font-family="Inter" font-size="11" font-weight="500" fill="#2E4368" text-anchor="middle" x="176" y="144">İlgili</text>
+        <text font-family="Inter" font-size="10.5" fill="#4A453E" text-anchor="middle" x="220" y="149">Geti-</text>
+        <text font-family="Inter" font-size="10.5" fill="#4A453E" text-anchor="middle" x="220" y="161">rilen</text>
+        <text font-family="Inter" font-size="10.5" fill="#8A8378" text-anchor="middle" x="200" y="207">Tüm Belgeler</text>
+
+        <rect x="104" y="52" width="126" height="40" rx="7" fill="#F7E2D6" stroke="#C9522F" stroke-width="1"/>
+        <text font-family="Inter" font-size="12" font-weight="600" fill="#C9522F" text-anchor="middle" x="167" y="69">Düşük Recall</text>
+        <text font-family="Inter" font-size="10" fill="#A8421F" text-anchor="middle" x="167" y="85">Bazı belgeler eksik</text>
+        <line x1="193" y1="106" x2="173" y2="94" stroke="#C9522F" stroke-width="1.2" stroke-dasharray="4 3" marker-end="url(#arrP)"/>
+
+        <!-- Q2: ideal -->
+        <circle cx="460" cy="148" r="68" fill="#F7E2D6" stroke="#E08665" stroke-width="1"/>
+        <circle cx="457" cy="145" r="42" fill="#DBE3F1" stroke="#5A7299" stroke-width="1.2" fill-opacity="0.85"/>
+        <circle cx="460" cy="147" r="40" fill="#FBF8F1" stroke="#8A8378" stroke-width="1.2" fill-opacity="0.6"/>
+        <circle cx="458" cy="146" r="37" fill="#2E4368" fill-opacity="0.2" stroke="none"/>
+        <text font-family="Inter" font-size="11" font-weight="500" fill="#2E4368" text-anchor="middle" x="458" y="143">İlgili ≈ Getirilen</text>
+        <text font-family="Inter" font-size="10.5" fill="#8A8378" text-anchor="middle" x="460" y="207">Tüm Belgeler</text>
+
+        <rect x="394" y="52" width="134" height="40" rx="7" fill="#D3E6E2" stroke="#1F6B5F" stroke-width="1.2"/>
+        <text font-family="Inter" font-size="12" font-weight="600" fill="#1F6B5F" text-anchor="middle" x="461" y="69">İdeal Durum ✓</text>
+        <text font-family="Inter" font-size="10" fill="#1F6B5F" text-anchor="middle" x="461" y="85">İlgili ≈ Getirilen belgeler</text>
+        <line x1="460" y1="107" x2="460" y2="94" stroke="#1F6B5F" stroke-width="1.2" stroke-dasharray="4 3" marker-end="url(#arrP)"/>
+
+        <!-- Q3: low low -->
+        <circle cx="200" cy="370" r="62" fill="#F7E2D6" stroke="#E08665" stroke-width="1"/>
+        <circle cx="185" cy="361" r="38" fill="#DBE3F1" stroke="#5A7299" stroke-width="1.2" fill-opacity="0.9"/>
+        <circle cx="216" cy="378" r="36" fill="#FBF8F1" stroke="#8A8378" stroke-width="1.2" fill-opacity="0.85"/>
+        <circle cx="200" cy="369" r="13" fill="#2E4368" fill-opacity="0.25" stroke="none"/>
+        <text font-family="Inter" font-size="11" font-weight="500" fill="#2E4368" text-anchor="middle" x="166" y="358">İlgili</text>
+        <text font-family="Inter" font-size="10.5" fill="#4A453E" text-anchor="middle" x="228" y="384">Getirilen</text>
+        <text font-family="Inter" font-size="10.5" fill="#8A8378" text-anchor="middle" x="200" y="424">Tüm Belgeler</text>
+
+        <!-- Q4: high recall low precision -->
+        <circle cx="460" cy="370" r="62" fill="#F7E2D6" stroke="#E08665" stroke-width="1"/>
+        <circle cx="460" cy="371" r="52" fill="#FBF8F1" stroke="#8A8378" stroke-width="1.2" fill-opacity="0.85"/>
+        <circle cx="450" cy="362" r="34" fill="#DBE3F1" stroke="#5A7299" stroke-width="1.2" fill-opacity="0.9"/>
+        <circle cx="450" cy="362" r="30" fill="#2E4368" fill-opacity="0.22" stroke="none"/>
+        <text font-family="Inter" font-size="11" font-weight="500" fill="#2E4368" text-anchor="middle" x="448" y="359">İlgili</text>
+        <text font-family="Inter" font-size="10.5" fill="#4A453E" text-anchor="middle" x="493" y="410">Getirilen</text>
+        <text font-family="Inter" font-size="10.5" fill="#8A8378" text-anchor="middle" x="460" y="424">Tüm Belgeler</text>
+
+        <rect x="392" y="270" width="156" height="50" rx="7" fill="#F7E2D6" stroke="#C9522F" stroke-width="1"/>
+        <text font-family="Inter" font-size="12" font-weight="600" fill="#C9522F" text-anchor="middle" x="470" y="289">Düşük Precision</text>
+        <text font-family="Inter" font-size="10" fill="#A8421F" text-anchor="middle" x="470" y="305">Alakasız belgeler de</text>
+        <text font-family="Inter" font-size="10" fill="#A8421F" text-anchor="middle" x="470" y="317">bağlama karışır</text>
+        <line x1="460" y1="330" x2="460" y2="340" stroke="#C9522F" stroke-width="1.2" stroke-dasharray="4 3" marker-end="url(#arrP)"/>
+      </svg>
+
+      <div class="legend">
+        <div class="legend-item"><div class="legend-swatch" style="background:#DBE3F1;border:1.5px solid #5A7299"></div>İlgili Belgeler (REL)</div>
+        <div class="legend-item"><div class="legend-swatch" style="background:#FBF8F1;border:1.5px solid #8A8378"></div>Getirilen Belgeler (RET)</div>
+        <div class="legend-item"><div class="legend-swatch" style="background:#2E4368;opacity:0.4"></div>Kesişim (RET_REL)</div>
+      </div>
+    </div>
+
+    <div class="compare-row" style="margin-top:16px;grid-template-columns:1fr 1fr">
+      <div class="compare-card coral">
+        <span class="compare-tag">DİKKAT</span>
+        <div class="compare-title">Düşük Recall → Eksik Yanıt</div>
+        <div class="compare-desc">İlgili belgelerin bir kısmı getirilemiyor. LLM eksik bağlamla yanıt üretir.</div>
+      </div>
+      <div class="compare-card coral">
+        <span class="compare-tag">DİKKAT</span>
+        <div class="compare-title">Düşük Precision → Kirli Bağlam</div>
+        <div class="compare-desc">Alakasız belgeler bağlama karışır. Hallucination riski artar.</div>
+      </div>
+      <div class="compare-card indigo">
+        <span class="compare-tag">DENGE</span>
+        <div class="compare-title">Chunk boyutu küçüldükçe</div>
+        <div class="compare-desc">Precision artar, Recall düşer. İnce ayar gerektiren bir denge.</div>
+      </div>
+      <div class="compare-card amber">
+        <span class="compare-tag">HEDEF</span>
+        <div class="compare-title">RAG'de optimal nokta</div>
+        <div class="compare-desc">Yüksek Recall ile yüksek Precision'ı aynı anda sağlamak. Tekniklerle iyileştirilir.</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ============================================================
+// RAG Flow — UML Sequence Diagram Renderers
+// ============================================================
+
+const NS = 'http://www.w3.org/2000/svg';
+
+function el(tag, attrs, text) {
+  const e = document.createElementNS(NS, tag);
+  for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v);
+  if (text != null) e.textContent = text;
+  return e;
+}
+
+// Common defs (arrow markers)
+function buildDefs(svg, idPrefix) {
+  const defs = el('defs', {});
+  ['default', 'dashed', 'coral', 'indigo', 'teal', 'amber'].forEach(name => {
+    const colorMap = {
+      'default': '#4A453E',
+      'dashed':  '#4A453E',
+      'coral':   '#C9522F',
+      'indigo':  '#2E4368',
+      'teal':    '#1F6B5F',
+      'amber':   '#A8761E'
+    };
+    const m = el('marker', {
+      id: `${idPrefix}-arr-${name}`,
+      viewBox: '0 0 10 10',
+      refX: 8, refY: 5,
+      markerWidth: 6, markerHeight: 6,
+      orient: 'auto-start-reverse'
+    });
+    m.appendChild(el('path', {
+      d: 'M2 1 L8 5 L2 9',
+      fill: 'none',
+      stroke: colorMap[name],
+      'stroke-width': 1.6,
+      'stroke-linecap': 'round',
+      'stroke-linejoin': 'round'
+    }));
+    defs.appendChild(m);
+  });
+  svg.appendChild(defs);
+}
+
+// Actor header card
+function drawActor(svg, actor) {
+  const { x, name, sub, color, soft, icon } = actor;
+  const boxW = 210, boxH = 64;
+  svg.appendChild(el('rect', {
+    x: x - boxW/2, y: 14, width: boxW, height: boxH,
+    rx: 10,
+    fill: soft, stroke: color, 'stroke-width': 1.5
+  }));
+
+  let textX = x;
+  if (icon === 'brain') {
+    // Draw brain icon to the left of text
+    drawBrainIcon(svg, x - boxW/2 + 20, 14 + boxH/2, 22, color);
+    textX = x + 14; // shift text right to make room
+  }
+
+  svg.appendChild(el('text', {
+    x: textX, y: 36,
+    'font-family': 'Inter, sans-serif',
+    'font-size': 14,
+    'font-weight': 600,
+    fill: color,
+    'text-anchor': 'middle',
+    'dominant-baseline': 'central'
+  }, name));
+  svg.appendChild(el('text', {
+    x: textX, y: 56,
+    'font-family': 'JetBrains Mono, monospace',
+    'font-size': 10,
+    fill: '#4A453E',
+    'text-anchor': 'middle',
+    'dominant-baseline': 'central',
+    'letter-spacing': '0.04em'
+  }, sub));
+}
+
+// Brain / AI glyph
+function drawBrainIcon(svg, cx, cy, size, color) {
+  const r = size / 2;
+  // outer dashed ring (network)
+  svg.appendChild(el('circle', {
+    cx, cy, r,
+    fill: 'none',
+    stroke: color,
+    'stroke-width': 0.9,
+    'stroke-dasharray': '2.5 2'
+  }));
+  // left lobe
+  svg.appendChild(el('path', {
+    d: `M ${cx} ${cy - r*0.7} Q ${cx - r*0.85} ${cy - r*0.4} ${cx - r*0.75} ${cy} Q ${cx - r*0.85} ${cy + r*0.4} ${cx} ${cy + r*0.7}`,
+    fill: 'none',
+    stroke: color,
+    'stroke-width': 1.4,
+    'stroke-linecap': 'round'
+  }));
+  // right lobe
+  svg.appendChild(el('path', {
+    d: `M ${cx} ${cy - r*0.7} Q ${cx + r*0.85} ${cy - r*0.4} ${cx + r*0.75} ${cy} Q ${cx + r*0.85} ${cy + r*0.4} ${cx} ${cy + r*0.7}`,
+    fill: 'none',
+    stroke: color,
+    'stroke-width': 1.4,
+    'stroke-linecap': 'round'
+  }));
+  // synapse nodes
+  svg.appendChild(el('circle', { cx, cy: cy - r*0.7, r: 1.5, fill: color }));
+  svg.appendChild(el('circle', { cx, cy: cy + r*0.7, r: 1.5, fill: color }));
+  svg.appendChild(el('circle', { cx: cx - r*0.75, cy, r: 1.5, fill: color }));
+  svg.appendChild(el('circle', { cx: cx + r*0.75, cy, r: 1.5, fill: color }));
+  // core
+  svg.appendChild(el('circle', { cx, cy, r: 2.2, fill: color }));
+}
+
+// Lifeline
+function drawLifeline(svg, x, yTop, yBottom) {
+  svg.appendChild(el('line', {
+    x1: x, y1: yTop, x2: x, y2: yBottom,
+    stroke: '#CFC5AE',
+    'stroke-width': 1.2,
+    'stroke-dasharray': '5 4'
+  }));
+}
+
+// Phase band (background rect across diagram with label)
+function drawPhase(svg, opts) {
+  const { x1, x2, y1, y2, fill, stroke, label, accent } = opts;
+  svg.appendChild(el('rect', {
+    x: x1, y: y1, width: x2 - x1, height: y2 - y1,
+    rx: 8,
+    fill, stroke,
+    'stroke-width': 1,
+    'stroke-dasharray': '3 3'
+  }));
+  // label tab on top-left — auto-sized based on text length
+  const labelW = Math.max(200, label.length * 8 + 24);
+  svg.appendChild(el('rect', {
+    x: x1 + 8, y: y1 - 12, width: labelW, height: 22,
+    rx: 5,
+    fill: accent,
+    stroke: 'none'
+  }));
+  svg.appendChild(el('text', {
+    x: x1 + 8 + labelW/2, y: y1 - 1,
+    'font-family': 'JetBrains Mono, monospace',
+    'font-size': 11,
+    'font-weight': 500,
+    fill: '#FFFFFF',
+    'text-anchor': 'middle',
+    'dominant-baseline': 'central',
+    'letter-spacing': '0.1em'
+  }, label));
+}
+
+// Numbered message arrow
+function drawMessage(svg, opts) {
+  const { idPrefix, num, fromX, toX, y, label, sublabel, color = '#4A453E', dashed = false, marker = 'default' } = opts;
+
+  const lineAttrs = {
+    x1: fromX, y1: y, x2: toX, y2: y,
+    stroke: color,
+    'stroke-width': 1.5,
+    'marker-end': `url(#${idPrefix}-arr-${marker})`
+  };
+  if (dashed) lineAttrs['stroke-dasharray'] = '6 4';
+  svg.appendChild(el('line', lineAttrs));
+
+  // numbered badge at midpoint slightly above
+  const mid = (fromX + toX) / 2;
+  if (num != null) {
+    svg.appendChild(el('circle', {
+      cx: mid, cy: y - 18,
+      r: 14,
+      fill: color,
+      stroke: '#FBF8F1',
+      'stroke-width': 2.5
+    }));
+    svg.appendChild(el('text', {
+      x: mid, y: y - 18,
+      'font-family': 'JetBrains Mono, monospace',
+      'font-size': 13,
+      'font-weight': 700,
+      fill: '#FBF8F1',
+      'text-anchor': 'middle',
+      'dominant-baseline': 'central'
+    }, String(num)));
+  }
+
+  // label above
+  if (label) {
+    svg.appendChild(el('text', {
+      x: mid, y: y - 38,
+      'font-family': 'Inter, sans-serif',
+      'font-size': 12,
+      'font-weight': 500,
+      fill: color,
+      'text-anchor': 'middle',
+      'dominant-baseline': 'central'
+    }, label));
+  }
+  if (sublabel) {
+    svg.appendChild(el('text', {
+      x: mid, y: y + 14,
+      'font-family': 'JetBrains Mono, monospace',
+      'font-size': 10,
+      fill: '#8A8378',
+      'text-anchor': 'middle',
+      'dominant-baseline': 'central',
+      'letter-spacing': '0.02em'
+    }, sublabel));
+  }
+}
+
+// Self-call (loop on a lifeline)
+function drawSelfCall(svg, opts) {
+  const { idPrefix, num, x, y, height = 32, width = 70, label, color = '#A8761E', side = 'right' } = opts;
+  const dir = side === 'right' ? 1 : -1;
+  const d = `M ${x} ${y} L ${x + dir*width} ${y} L ${x + dir*width} ${y + height} L ${x + dir*8} ${y + height}`;
+  svg.appendChild(el('path', {
+    d,
+    fill: 'none',
+    stroke: color,
+    'stroke-width': 1.5,
+    'marker-end': `url(#${idPrefix}-arr-amber)`
+  }));
+  // numbered badge
+  if (num != null) {
+    svg.appendChild(el('circle', {
+      cx: x + dir*(width + 18), cy: y + height/2,
+      r: 14,
+      fill: color,
+      stroke: '#FBF8F1',
+      'stroke-width': 2.5
+    }));
+    svg.appendChild(el('text', {
+      x: x + dir*(width + 18), y: y + height/2,
+      'font-family': 'JetBrains Mono, monospace',
+      'font-size': 13,
+      'font-weight': 700,
+      fill: '#FBF8F1',
+      'text-anchor': 'middle',
+      'dominant-baseline': 'central'
+    }, String(num)));
+  }
+  // label
+  if (label) {
+    svg.appendChild(el('text', {
+      x: x + dir*(width + 38), y: y + height/2,
+      'font-family': 'Inter, sans-serif',
+      'font-size': 12,
+      'font-style': 'italic',
+      fill: color,
+      'text-anchor': side === 'right' ? 'start' : 'end',
+      'dominant-baseline': 'central'
+    }, label));
+  }
+}
+
+// Note box anchored at (x, y) with side ('left' | 'right')
+function drawNote(svg, opts) {
+  const { x, y, w = 200, h, lines, color = '#A8761E', soft = '#F1E1B8' } = opts;
+  const lineH = 14;
+  const padding = 8;
+  const boxH = h || (lines.length * lineH + padding * 2);
+
+  svg.appendChild(el('rect', {
+    x, y, width: w, height: boxH,
+    rx: 6,
+    fill: soft,
+    stroke: color,
+    'stroke-width': 1
+  }));
+  // notch corner
+  svg.appendChild(el('path', {
+    d: `M ${x + w - 10} ${y} L ${x + w} ${y} L ${x + w} ${y + 10} Z`,
+    fill: '#FFFFFF',
+    stroke: color,
+    'stroke-width': 1
+  }));
+
+  lines.forEach((ln, i) => {
+    svg.appendChild(el('text', {
+      x: x + padding,
+      y: y + padding + (i + 0.5) * lineH,
+      'font-family': 'Inter, sans-serif',
+      'font-size': 11,
+      fill: '#4A453E',
+      'dominant-baseline': 'central'
+    }, ln));
+  });
+}
+
+// Loop frame (UML alt/loop combined fragment)
+function drawLoopFrame(svg, opts) {
+  const { x1, x2, y1, y2, label, condition, color = '#A8761E' } = opts;
+  svg.appendChild(el('rect', {
+    x: x1, y: y1, width: x2 - x1, height: y2 - y1,
+    rx: 6,
+    fill: 'none',
+    stroke: color,
+    'stroke-width': 1.2,
+    'stroke-dasharray': '5 4'
+  }));
+  // label tab (pentagon shape) — auto width
+  const tagText = label;
+  const w = Math.max(58, tagText.length * 7 + 18), h = 20;
+  svg.appendChild(el('path', {
+    d: `M ${x1} ${y1} L ${x1 + w} ${y1} L ${x1 + w - 8} ${y1 + h} L ${x1} ${y1 + h} Z`,
+    fill: color,
+    stroke: color
+  }));
+  svg.appendChild(el('text', {
+    x: x1 + (w - 8)/2, y: y1 + h/2,
+    'font-family': 'JetBrains Mono, monospace',
+    'font-size': 10,
+    'font-weight': 700,
+    fill: '#FFFFFF',
+    'text-anchor': 'middle',
+    'dominant-baseline': 'central',
+    'letter-spacing': '0.12em'
+  }, tagText));
+  // condition text next to tab
+  if (condition) {
+    svg.appendChild(el('text', {
+      x: x1 + w + 8, y: y1 + h/2,
+      'font-family': 'Inter, sans-serif',
+      'font-size': 11,
+      'font-style': 'italic',
+      fill: color,
+      'dominant-baseline': 'central'
+    }, condition));
+  }
+}
+
+// ============================================================
+// CLASSIC RAG SEQUENCE
+// ============================================================
+function buildClassicSequence() {
+  const svg = document.getElementById('seq-classic');
+  if (!svg) return;
+  svg.innerHTML = '';
+
+  const W = 1040, H = 600;
+  svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+
+  const actors = [
+    { x: 130, name: 'Kullanıcı',         sub: 'son kullanıcı',       color: '#C9522F', soft: '#F7E2D6' },
+    { x: 390, name: 'Embedding Modeli',  sub: 'metin → vektör',      color: '#1F6B5F', soft: '#D3E6E2' },
+    { x: 650, name: 'Vektör Veritabanı', sub: 'similarity search',   color: '#1F6B5F', soft: '#D3E6E2' },
+    { x: 910, name: 'LLM',               sub: 'üretim modeli',       color: '#2E4368', soft: '#DBE3F1', icon: 'brain' }
+  ];
+
+  buildDefs(svg, 'cl');
+
+  // Lifelines first (so phase bands sit on top)
+  const lifelineTop = 78, lifelineBot = H - 30;
+  actors.forEach(a => drawLifeline(svg, a.x, lifelineTop, lifelineBot));
+
+  // Phase A: İndeksleme (offline) — y=110 to y=180
+  drawPhase(svg, {
+    x1: 30, x2: W - 30,
+    y1: 110, y2: 188,
+    fill: '#D3E6E2', stroke: '#5BA398',
+    label: 'A · İNDEKSLEME · OFFLINE',
+    accent: '#1F6B5F'
+  });
+
+  // Note for indexing (placed inside phase)
+  drawNote(svg, {
+    x: 50, y: 122,
+    w: 270,
+    lines: [
+      'Belgeler önceden parçalanır (chunk),',
+      'embedding ile vektöre çevrilip',
+      'Vektör DB\'ye yazılır. Bir kerelik adım.'
+    ],
+    color: '#1F6B5F', soft: '#E7F1EE'
+  });
+
+  // Indexing message: Embedding → Vector DB
+  drawMessage(svg, {
+    idPrefix: 'cl', num: 1,
+    fromX: actors[1].x, toX: actors[2].x,
+    y: 162,
+    label: 'döküman vektörleri',
+    sublabel: 'depola',
+    color: '#1F6B5F',
+    marker: 'teal'
+  });
+
+  // Phase B: Sorgu (runtime) — y=215 to y=H-50
+  drawPhase(svg, {
+    x1: 30, x2: W - 30,
+    y1: 215, y2: H - 50,
+    fill: '#F7E2D6', stroke: '#E08665',
+    label: 'B · SORGU · RUNTIME',
+    accent: '#C9522F'
+  });
+
+  // ② User → Embedding: soru metni
+  drawMessage(svg, {
+    idPrefix: 'cl', num: 2,
+    fromX: actors[0].x, toX: actors[1].x,
+    y: 270,
+    label: 'soru metni',
+    sublabel: 'plain text',
+    color: '#C9522F',
+    marker: 'coral'
+  });
+
+  // ③ Embedding → Vector DB
+  drawMessage(svg, {
+    idPrefix: 'cl', num: 3,
+    fromX: actors[1].x, toX: actors[2].x,
+    y: 340,
+    label: 'sorgu vektörü',
+    sublabel: 'cosine similarity',
+    color: '#1F6B5F',
+    marker: 'teal'
+  });
+
+  // ④ Vector DB → LLM: top-k chunks
+  drawMessage(svg, {
+    idPrefix: 'cl', num: 4,
+    fromX: actors[2].x, toX: actors[3].x,
+    y: 410,
+    label: 'ilgili chunk\'lar',
+    sublabel: 'top-k (k≈5)',
+    color: '#1F6B5F',
+    marker: 'teal'
+  });
+
+  // ⑤ User → LLM (dashed, parallel) — orijinal soru
+  drawMessage(svg, {
+    idPrefix: 'cl', num: 5,
+    fromX: actors[0].x, toX: actors[3].x,
+    y: 478,
+    label: 'orijinal soru (prompt\'a eklenir)',
+    sublabel: 'prompt = soru + bağlam',
+    color: '#C9522F',
+    dashed: true,
+    marker: 'coral'
+  });
+
+  // ⑥ LLM → User (return)
+  drawMessage(svg, {
+    idPrefix: 'cl', num: 6,
+    fromX: actors[3].x, toX: actors[0].x,
+    y: 540,
+    label: 'kaynaklı yanıt',
+    sublabel: 'context-grounded answer',
+    color: '#2E4368',
+    dashed: true,
+    marker: 'indigo'
+  });
+
+  // Actor headers ON TOP
+  actors.forEach(a => drawActor(svg, a));
+}
+
+// ============================================================
+// AGENTIC RAG SEQUENCE
+// ============================================================
+function buildAgenticSequence() {
+  const svg = document.getElementById('seq-agentic');
+  if (!svg) return;
+  svg.innerHTML = '';
+
+  const W = 1040, H = 850;
+  svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+
+  const actors = [
+    { x: 130, name: 'Kullanıcı',          sub: 'son kullanıcı',     color: '#C9522F', soft: '#F7E2D6' },
+    { x: 390, name: 'LLM Ajan',           sub: 'karar verici · planner',   color: '#A8761E', soft: '#F1E1B8', icon: 'brain' },
+    { x: 650, name: 'Search Tool',        sub: 'function call API',  color: '#1F6B5F', soft: '#D3E6E2' },
+    { x: 910, name: 'Vektör Veritabanı',  sub: 'similarity search', color: '#1F6B5F', soft: '#D3E6E2' }
+  ];
+
+  buildDefs(svg, 'ag');
+
+  const lifelineTop = 78, lifelineBot = H - 30;
+  actors.forEach(a => drawLifeline(svg, a.x, lifelineTop, lifelineBot));
+
+  // ① Kullanıcı → LLM Ajan: soru
+  drawMessage(svg, {
+    idPrefix: 'ag', num: 1,
+    fromX: actors[0].x, toX: actors[1].x,
+    y: 140,
+    label: 'soru',
+    sublabel: 'natural language',
+    color: '#C9522F',
+    marker: 'coral'
+  });
+
+  // Self-call: LLM düşünür "bağlam gerekli mi?"
+  drawSelfCall(svg, {
+    idPrefix: 'ag', num: 2,
+    x: actors[1].x, y: 180,
+    height: 30, width: 60,
+    label: 'düşün: bağlama ihtiyaç var mı?',
+    color: '#A8761E',
+    side: 'right'
+  });
+
+  // Loop frame for the tool-calling block
+  drawLoopFrame(svg, {
+    x1: actors[1].x - 30, x2: actors[3].x + 30,
+    y1: 245, y2: 640,
+    label: 'LOOP',
+    condition: '[yeterli bağlam toplanana kadar tekrarla]',
+    color: '#A8761E'
+  });
+
+  // ③ LLM Ajan → Search Tool: tool_call("search_documents", {query})
+  drawMessage(svg, {
+    idPrefix: 'ag', num: 3,
+    fromX: actors[1].x, toX: actors[2].x,
+    y: 320,
+    label: 'tool_call: search_documents(query)',
+    sublabel: 'sorgu LLM tarafından formüle edilir',
+    color: '#A8761E',
+    marker: 'amber'
+  });
+
+  // ④ Search Tool → Vektör DB
+  drawMessage(svg, {
+    idPrefix: 'ag', num: 4,
+    fromX: actors[2].x, toX: actors[3].x,
+    y: 395,
+    label: 'embed + semantic search',
+    sublabel: 'vektör + filtre',
+    color: '#1F6B5F',
+    marker: 'teal'
+  });
+
+  // ⑤ Vektör DB → Search Tool (return)
+  drawMessage(svg, {
+    idPrefix: 'ag', num: 5,
+    fromX: actors[3].x, toX: actors[2].x,
+    y: 470,
+    label: 'top-k chunks',
+    sublabel: 'JSON snippets',
+    color: '#1F6B5F',
+    dashed: true,
+    marker: 'teal'
+  });
+
+  // ⑥ Search Tool → LLM Ajan (return)
+  drawMessage(svg, {
+    idPrefix: 'ag', num: 6,
+    fromX: actors[2].x, toX: actors[1].x,
+    y: 540,
+    label: 'tool result',
+    sublabel: 'context payload',
+    color: '#A8761E',
+    dashed: true,
+    marker: 'amber'
+  });
+
+  // Self-call: LLM evaluates if enough
+  drawSelfCall(svg, {
+    idPrefix: 'ag', num: 7,
+    x: actors[1].x, y: 590,
+    height: 32, width: 60,
+    label: 'değerlendir: yeterli mi? · sorguyu rafine et',
+    color: '#A8761E',
+    side: 'right'
+  });
+
+  // Note about looping
+  drawNote(svg, {
+    x: 35, y: 485,
+    w: 250,
+    lines: [
+      'LOOP içinde Ajan, sonuçları',
+      'değerlendirip yeniden aramaya',
+      'karar verebilir. Sorgu her tur',
+      'iyileştirilir (query refinement).'
+    ],
+    color: '#A8761E', soft: '#FCF1D2'
+  });
+
+  // ⑧ Final synthesis self-call
+  drawSelfCall(svg, {
+    idPrefix: 'ag', num: 8,
+    x: actors[1].x, y: 690,
+    height: 30, width: 60,
+    label: 'sentezle: yanıtı kur + kaynak ekle',
+    color: '#2E4368',
+    side: 'right'
+  });
+
+  // ⑨ LLM Ajan → Kullanıcı: cevap
+  drawMessage(svg, {
+    idPrefix: 'ag', num: 9,
+    fromX: actors[1].x, toX: actors[0].x,
+    y: 770,
+    label: 'kaynaklı yanıt',
+    sublabel: 'tool history dahil edilebilir',
+    color: '#2E4368',
+    dashed: true,
+    marker: 'indigo'
+  });
+
+  // Actor headers on top
+  actors.forEach(a => drawActor(svg, a));
+}
+
+</script>
+<script>
+  function showTab(id, el) {
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    el.classList.add('active');
+    if (id === 'flow') {
+      buildClassicSequence();
+      buildAgenticSequence();
+    }
+  }
+
+  window.addEventListener('load', () => {
+    buildClassicSequence();
+    buildAgenticSequence();
+  });
+</script>
+
+</body>
+</html>
