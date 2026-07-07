@@ -4,12 +4,15 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Transformer Mimarisi — Liderler İçin Açıklandı</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 * { margin:0; padding:0; box-sizing:border-box; }
 
 body {
   background:#F5F7FA; color:#1A202C;
-  font-family:'Segoe UI',Calibri,Arial,sans-serif;
+  font-family:'IBM Plex Sans','Segoe UI',Arial,sans-serif;
   height:100vh; display:flex; flex-direction:column; overflow:hidden;
 }
 
@@ -26,7 +29,7 @@ header {
   padding:5px 12px; border-radius:4px; white-space:nowrap;
 }
 header h1 {
-  font-size:15px; font-family:Georgia,serif;
+  font-size:15px; font-family:'IBM Plex Sans',sans-serif;
   color:#1A202C; font-weight:normal;
 }
 
@@ -42,7 +45,7 @@ canvas { position:absolute; top:0; left:0; width:100%; height:100%; }
   display:flex; flex-direction:column; gap:13px;
 }
 .kicker { font-size:11px; font-weight:800; letter-spacing:2.5px; text-transform:uppercase; }
-.ptitle { font-size:22px; font-family:Georgia,serif; color:#1A202C; line-height:1.25; font-weight:bold; }
+.ptitle { font-size:22px; font-family:'IBM Plex Sans',sans-serif; color:#1A202C; line-height:1.25; font-weight:bold; }
 .divider { height:2px; background:#E2E8F0; border-radius:1px; }
 .body-text { font-size:16px; line-height:1.7; color:#2D3748; }
 .body-text strong { color:#1A202C; }
@@ -103,20 +106,22 @@ canvas { position:absolute; top:0; left:0; width:100%; height:100%; }
 /* ── NAV ─────────────────────────────────────────── */
 .nav {
   display:flex; flex-shrink:0;
-  border-top:2px solid #E2E8F0; background:#fff;
-  box-shadow:0 -2px 8px rgba(0,0,0,0.06);
+  border-bottom:2px solid #E2E8F0; background:#fff;
+  box-shadow:0 2px 8px rgba(0,0,0,0.06);
 }
 .nav button {
-  flex:1; padding:13px 8px;
+  flex:1; padding:14px 10px;
+  display:flex; align-items:center; justify-content:center; gap:10px;
   background:transparent; border:none;
-  border-top:4px solid transparent;
-  color:#64748B; font-size:14px; font-weight:600;
+  border-bottom:4px solid transparent;
+  color:#64748B; font-size:15px; font-weight:600;
   cursor:pointer; transition:all 0.2s;
-  font-family:'Segoe UI',Calibri,Arial,sans-serif;
+  font-family:'IBM Plex Sans','Segoe UI',Arial,sans-serif;
 }
+.nav button svg { flex-shrink:0; display:block; }
 .nav button:hover { color:#7C3AED; background:rgba(124,58,237,0.04); }
 .nav button.active {
-  color:#7C3AED; border-top-color:#7C3AED;
+  color:#7C3AED; border-bottom-color:#7C3AED;
   background:rgba(124,58,237,0.06);
 }
 </style>
@@ -128,15 +133,38 @@ canvas { position:absolute; top:0; left:0; width:100%; height:100%; }
   <h1>Transformer Mimarisi — 2017 Her Şeyi Neden Değiştirdi?</h1>
 </header>
 
+<div class="nav">
+  <button id="btn0" onclick="setStep(0)">
+    <svg width="22" height="20" viewBox="0 0 26 24" fill="none" stroke="#C53030" stroke-width="2" stroke-linecap="round">
+      <circle cx="4" cy="12" r="2.6" fill="#C53030" stroke="none"/>
+      <line x1="7" y1="12" x2="10.5" y2="12"/>
+      <circle cx="13" cy="12" r="2.6" fill="#C53030" stroke="none" opacity="0.6"/>
+      <line x1="16" y1="12" x2="19" y2="12" opacity="0.4"/>
+      <circle cx="21.5" cy="12" r="2.2" fill="#C53030" stroke="none" opacity="0.3"/>
+    </svg>
+    <span>Eski Sorun: RNN</span>
+  </button>
+  <button id="btn1" onclick="setStep(1)">
+    <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#7C3AED" stroke-width="1.8">
+      <line x1="12" y1="12" x2="12" y2="4"/><line x1="12" y1="12" x2="4" y2="9"/><line x1="12" y1="12" x2="20" y2="9"/><line x1="12" y1="12" x2="6" y2="19"/><line x1="12" y1="12" x2="18" y2="19"/>
+      <circle cx="12" cy="4" r="2" fill="#7C3AED" stroke="none"/><circle cx="4" cy="9" r="2" fill="#7C3AED" stroke="none"/><circle cx="20" cy="9" r="2" fill="#7C3AED" stroke="none"/><circle cx="6" cy="19" r="2" fill="#7C3AED" stroke="none"/><circle cx="18" cy="19" r="2" fill="#7C3AED" stroke="none"/>
+      <circle cx="12" cy="12" r="3" fill="#fff" stroke="#7C3AED" stroke-width="2"/>
+    </svg>
+    <span>Atılım: Öz-Dikkat &amp; QKV</span>
+  </button>
+  <button id="btn2" onclick="setStep(2)">
+    <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#16A34A" stroke-width="2" stroke-linejoin="round" stroke-linecap="round">
+      <path d="M12 3 3 8l9 5 9-5-9-5z" fill="#16A34A" fill-opacity="0.16"/>
+      <path d="M3 13l9 5 9-5"/>
+      <path d="M3 17.5l9 5 9-5" opacity="0.55"/>
+    </svg>
+    <span>Transformer Katmanları</span>
+  </button>
+</div>
+
 <div class="main">
   <div class="canvas-wrap"><canvas id="cvs"></canvas></div>
   <div class="panel" id="panel"></div>
-</div>
-
-<div class="nav">
-  <button id="btn0" onclick="setStep(0)">① Eski Sorun: RNN</button>
-  <button id="btn1" onclick="setStep(1)">② Atılım: Öz-Dikkat &amp; QKV</button>
-  <button id="btn2" onclick="setStep(2)">③ Transformer Katmanları</button>
 </div>
 
 <script>
@@ -264,9 +292,13 @@ window.addEventListener('load', () => {
 
 function resize() {
   const wp = cvs.parentElement;
-  cvs.width = wp.clientWidth; cvs.height = wp.clientHeight;
-  W = cvs.width; H = cvs.height;
+  const cssW = wp.clientWidth, cssH = wp.clientHeight;
+  const dpr = Math.max(2, Math.ceil(window.devicePixelRatio || 1));
+  cvs.width = cssW * dpr; cvs.height = cssH * dpr;
+  cvs.style.width = cssW + 'px'; cvs.style.height = cssH + 'px';
+  W = cssW; H = cssH;
   ctx = cvs.getContext('2d');
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -368,7 +400,7 @@ function drawStep0(){
   ctx.fillStyle='rgba(220,53,53,0.05)';
   ctx.fillRect(W*0.02,rnnY-64,W*0.96,130);
 
-  ctx.font='bold 11px Calibri'; ctx.fillStyle='#C53030'; ctx.textAlign='left';
+  ctx.font='bold 14px IBM Plex Sans'; ctx.fillStyle='#C53030'; ctx.textAlign='left';
   ctx.fillText('ESKİ YÖL  ·  RNN (Yinelemeli Sinir Ağı)  ·  Sıralı İşleme — Kelime Kelime', W*0.04,rnnY-46);
 
   SENTENCE.forEach((word,i)=>{
@@ -387,7 +419,7 @@ function drawStep0(){
       hexAlpha('#C53030',Math.max(0.75*fade,0.22)),   // kırmızı kenarlık solar
       2);
     // Metin: koyu (#1A202C) ama opacity ile solar — kırmızı değil!
-    ctx.font=`${i===0?'bold ':''}${Math.min(bw*0.19,13)}px Calibri`;
+    ctx.font=`${i===0?'bold ':''}${Math.min(bw*0.24,17)}px IBM Plex Sans`;
     ctx.fillStyle=hexAlpha('#1A202C',Math.max(fade,0.25));
     ctx.textAlign='center'; ctx.textBaseline='middle';
     ctx.fillText(word,bx+bw/2,rnnY); ctx.textBaseline='alphabetic';
@@ -404,9 +436,9 @@ function drawStep0(){
     }
   });
 
-  ctx.font='12px Calibri'; ctx.fillStyle='rgba(197,48,48,0.85)'; ctx.textAlign='center';
+  ctx.font='14px IBM Plex Sans'; ctx.fillStyle='rgba(197,48,48,0.85)'; ctx.textAlign='center';
   ctx.fillText('▼ "CEO" ile başlayan bağlam, "onayladı"ya gelindiğinde büyük ölçüde unutulmuştur ▼',W/2,rnnY+bh/2+32);
-  ctx.font='11px Calibri'; ctx.fillStyle='rgba(197,48,48,0.7)'; ctx.textAlign='left';
+  ctx.font='14px IBM Plex Sans'; ctx.fillStyle='rgba(197,48,48,0.7)'; ctx.textAlign='left';
   ctx.fillText('⏱  Her seferinde 1 kelime işlenir — paralel işleme mümkün değil → YAVAŞ',W*0.04,rnnY+bh/2+52);
 
   // Ayırıcı
@@ -419,7 +451,7 @@ function drawStep0(){
   ctx.fillStyle='rgba(29,78,216,0.04)';
   ctx.fillRect(W*0.02,txY-64,W*0.96,130);
 
-  ctx.font='bold 11px Calibri'; ctx.fillStyle='#1D4ED8'; ctx.textAlign='left';
+  ctx.font='bold 14px IBM Plex Sans'; ctx.fillStyle='#1D4ED8'; ctx.textAlign='left';
   ctx.fillText('YENİ YOL  ·  TRANSFORMER  ·  Paralel İşleme — Tüm Kelimeler Eş Zamanlı',W*0.04,txY-46);
 
   const tokenCX=SENTENCE.map((_,i)=>mx+i*(bw+gapX)+bw/2);
@@ -430,7 +462,7 @@ function drawStep0(){
       const str=ATTN[i][j]*0.5;
       ctx.beginPath(); ctx.moveTo(x1,txY); ctx.lineTo(x2,txY);
       ctx.strokeStyle=hexAlpha('#1D4ED8',str*pulse);
-      ctx.lineWidth=ATTN[i][j]*2.5; ctx.stroke();
+      ctx.lineWidth=ATTN[i][j]*3.8+0.6; ctx.stroke();
     });
   });
 
@@ -438,13 +470,13 @@ function drawStep0(){
     const bx=mx+i*(bw+gapX);
     roundRect(bx+bw/2,txY,bw,bh,5,
       hexAlpha(TOKEN_LIGHT[i],1),TOKEN_COLORS[i],2);
-    ctx.font=`bold ${Math.min(bw*0.19,13)}px Calibri`;
+    ctx.font=`bold ${Math.min(bw*0.24,17)}px IBM Plex Sans`;
     ctx.fillStyle=TOKEN_COLORS[i];
     ctx.textAlign='center'; ctx.textBaseline='middle';
     ctx.fillText(word,bx+bw/2,txY); ctx.textBaseline='alphabetic';
   });
 
-  ctx.font='12px Calibri'; ctx.fillStyle='rgba(29,78,216,0.9)'; ctx.textAlign='left';
+  ctx.font='14px IBM Plex Sans'; ctx.fillStyle='rgba(29,78,216,0.9)'; ctx.textAlign='left';
   ctx.fillText('⚡  Tüm kelimeler aynı anda işleniyor — devasa paralelleştirme → 100× daha hızlı eğitim',W*0.04,txY+bh/2+30);
   ctx.fillText('✓  Tam bağlam korunuyor — "onayladı" her zaman "CEO" ile doğrudan bağlantı kuruyor',W*0.04,txY+bh/2+48);
 }
@@ -481,14 +513,14 @@ function drawStep1(){
     // Ana yay
     ctx.beginPath(); ctx.moveTo(x1,y1); ctx.quadraticCurveTo(midX,midY,x2,y2);
     ctx.strokeStyle=hexAlpha(TOKEN_COLORS[sel],animW*0.85);
-    ctx.lineWidth=w*5+0.8; ctx.stroke();
+    ctx.lineWidth=w*6+1.2; ctx.stroke();
 
     // Ağırlık etiketi
     if(w>=0.2){
       const t2=0.55;
       const lx=(1-t2)*(1-t2)*x1+2*(1-t2)*t2*midX+t2*t2*x2;
       const ly=(1-t2)*(1-t2)*y1+2*(1-t2)*t2*midY+t2*t2*y2+14;
-      ctx.font='bold 13px Calibri';
+      ctx.font='bold 16px IBM Plex Sans';
       ctx.fillStyle=hexAlpha(TOKEN_COLORS[sel],animW*0.95);
       ctx.textAlign='center'; ctx.textBaseline='middle';
       ctx.fillText(Math.round(w*100)+'%',lx,ly);
@@ -512,27 +544,27 @@ function drawStep1(){
       isSel?TOKEN_COLORS[i]:hexAlpha(TOKEN_COLORS[i],0.6),
       isSel?2.5:1.5);
 
-    ctx.font=`${isSel?'bold ':''}${Math.min(t.w*0.20,14)}px Calibri`;
+    ctx.font=`${isSel?'bold ':''}${Math.min(t.w*0.26,18)}px IBM Plex Sans`;
     ctx.fillStyle=TOKEN_COLORS[i];
     ctx.textAlign='center'; ctx.textBaseline='middle';
     ctx.fillText(SENTENCE[i],t.cx,t.cy); ctx.textBaseline='alphabetic';
 
     if(isSel){
-      ctx.font='bold 11px Calibri'; ctx.fillStyle=TOKEN_COLORS[i];
+      ctx.font='bold 13px IBM Plex Sans'; ctx.fillStyle=TOKEN_COLORS[i];
       ctx.textAlign='center';
       ctx.fillText('SORGU (Q)',t.cx,t.cy+t.h/2+16);
     } else if(ease(attnAnim)*weight>0.25){
-      ctx.font='10px Calibri'; ctx.fillStyle=hexAlpha(TOKEN_COLORS[sel],0.7);
+      ctx.font='12px IBM Plex Sans'; ctx.fillStyle=hexAlpha(TOKEN_COLORS[sel],0.7);
       ctx.textAlign='center';
       ctx.fillText('ANAHTAR (K)',t.cx,t.cy+t.h/2+16);
     }
   });
 
   // Alt mesaj
-  ctx.font='bold 13px Calibri'; ctx.fillStyle=TOKEN_COLORS[sel];
+  ctx.font='bold 16px IBM Plex Sans'; ctx.fillStyle=TOKEN_COLORS[sel];
   ctx.textAlign='center';
   ctx.fillText(`"${SENTENCE[sel]}" diğer kelimelere soruyor: "Beni anlamak için kim bana en çok yardımcı olur?"`,W/2,H*0.88);
-  ctx.font='13px Calibri'; ctx.fillStyle='rgba(100,116,139,0.8)'; ctx.textAlign='center';
+  ctx.font='14px IBM Plex Sans'; ctx.fillStyle='rgba(100,116,139,0.8)'; ctx.textAlign='center';
   ctx.fillText('↑  Herhangi bir kelimeye tıklayın — QKV hesaplamasını görün',W/2,H*0.94);
 }
 
@@ -572,7 +604,7 @@ function drawStep2(){
     ctx.fillStyle=barGrd;
     ctx.fillRect(tx+tw*0.15,barY+barMaxH-barH,tw*0.70,barH);
     // Yüzde
-    ctx.font='bold 12px Calibri'; ctx.fillStyle=TOKEN_COLORS[i];
+    ctx.font='bold 15px IBM Plex Sans'; ctx.fillStyle=TOKEN_COLORS[i];
     ctx.textAlign='center'; ctx.textBaseline='middle';
     ctx.fillText(Math.round(kn*100)+'%',tx+tw/2,barY+barMaxH+14);
     ctx.textBaseline='alphabetic';
@@ -583,7 +615,7 @@ function drawStep2(){
     const tx=margX+i*(tw+gap);
     roundRect(tx+tw/2,tokenY,tw,th,5,
       TOKEN_LIGHT[i],TOKEN_COLORS[i],2);
-    ctx.font=`bold ${Math.min(tw*0.19,13)}px Calibri`;
+    ctx.font=`bold ${Math.min(tw*0.24,17)}px IBM Plex Sans`;
     ctx.fillStyle=TOKEN_COLORS[i];
     ctx.textAlign='center'; ctx.textBaseline='middle';
     ctx.fillText(word,tx+tw/2,tokenY); ctx.textBaseline='alphabetic';
@@ -600,7 +632,7 @@ function drawStep2(){
     ctx.strokeStyle=hexAlpha(stage.color,0.15); ctx.lineWidth=8; ctx.stroke();
     // Ana çizgi
     ctx.beginPath(); ctx.moveTo(x1,arcY); ctx.quadraticCurveTo((x1+x2)/2,arcY-dip,x2,arcY);
-    ctx.strokeStyle=hexAlpha(stage.color,0.70); ctx.lineWidth=2.5; ctx.stroke();
+    ctx.strokeStyle=hexAlpha(stage.color,0.85); ctx.lineWidth=3.5; ctx.stroke();
     // Okbaşı
     const ex=x2,ey=arcY;
     const t2=0.95;
@@ -622,11 +654,11 @@ function drawStep2(){
   ctx.beginPath(); ctx.moveTo(0,bandY); ctx.lineTo(W,bandY); ctx.stroke();
   ctx.beginPath(); ctx.moveTo(0,bandY+bandH); ctx.lineTo(W,bandY+bandH); ctx.stroke();
 
-  ctx.font='bold 11px Calibri'; ctx.fillStyle=hexAlpha(stage.color,0.7);
+  ctx.font='bold 13px IBM Plex Sans'; ctx.fillStyle=hexAlpha(stage.color,0.7);
   ctx.textAlign='left'; ctx.fillText('KATMAN',28,bandY+18);
-  ctx.font='bold 28px Georgia'; ctx.fillStyle=stage.color;
+  ctx.font='bold 34px IBM Plex Sans'; ctx.fillStyle=stage.color;
   ctx.fillText(stage.range,28,bandY+46);
-  ctx.font='bold 16px Georgia'; ctx.fillStyle='#1A202C';
+  ctx.font='bold 20px IBM Plex Sans'; ctx.fillStyle='#1A202C';
   ctx.textAlign='center'; ctx.fillText(stage.name,W/2,bandY+32);
 
   // İlerleme noktaları
@@ -646,7 +678,7 @@ function drawStep2(){
       ctx.strokeStyle='#CBD5E0'; ctx.lineWidth=1.5; ctx.stroke();
     }
   });
-  ctx.font='11px Calibri'; ctx.fillStyle='#94A3B8'; ctx.textAlign='center';
+  ctx.font='14px IBM Plex Sans'; ctx.fillStyle='#94A3B8'; ctx.textAlign='center';
   ctx.fillText(`${currentLayer+1} / ${totalDots}  aşama`,W/2,dotY+20);
 
   // Gezinme butonları
@@ -658,7 +690,7 @@ function drawStep2(){
     const hov=hoverNav==='prev';
     roundRect(W/2-btnW/2-16,btnY,btnW,btnH,8,
       hov?'#F1F5F9':'#FFFFFF','#CBD5E0',1.5);
-    ctx.font='bold 14px Calibri'; ctx.fillStyle='#475569';
+    ctx.font='bold 15px IBM Plex Sans'; ctx.fillStyle='#475569';
     ctx.textAlign='center'; ctx.textBaseline='middle';
     ctx.fillText('← Önceki Aşama',W/2-btnW/2-16,btnY);
     ctx.textBaseline='alphabetic';
@@ -670,7 +702,7 @@ function drawStep2(){
     const hov=hoverNav==='next';
     roundRect(W/2+btnW/2+16,btnY,btnW,btnH,8,
       hov?stage.color:hexAlpha(stage.color,0.85),null,0);
-    ctx.font='bold 14px Calibri'; ctx.fillStyle='#FFFFFF';
+    ctx.font='bold 15px IBM Plex Sans'; ctx.fillStyle='#FFFFFF';
     ctx.textAlign='center'; ctx.textBaseline='middle';
     ctx.fillText('Sonraki Aşama →',W/2+btnW/2+16,btnY);
     ctx.textBaseline='alphabetic';
@@ -679,7 +711,7 @@ function drawStep2(){
 
   // Tamamlandı mesajı
   if(currentLayer===LAYER_STAGES.length-1){
-    ctx.font='bold 14px Calibri'; ctx.fillStyle=hexAlpha('#16A34A',0.85);
+    ctx.font='bold 15px IBM Plex Sans'; ctx.fillStyle=hexAlpha('#16A34A',0.85);
     ctx.textAlign='center';
     ctx.fillText('✓ Tüm katmanlar tamamlandı — model yanıt üretmeye hazır!',W/2,H*0.88);
   }
@@ -691,7 +723,7 @@ function drawStep2(){
   const mGrd=ctx.createLinearGradient(meterX,0,meterX+meterW*avgKn,0);
   mGrd.addColorStop(0,'#1565C0'); mGrd.addColorStop(1,'#16A34A');
   ctx.fillStyle=mGrd; ctx.fillRect(meterX,meterY,meterW*avgKn,meterH);
-  ctx.font='bold 12px Calibri'; ctx.fillStyle='#1A202C'; ctx.textAlign='center';
+  ctx.font='bold 15px IBM Plex Sans'; ctx.fillStyle='#1A202C'; ctx.textAlign='center';
   ctx.fillText(`Ortalama Anlama Derinliği: %${Math.round(avgKn*100)}`,W/2,meterY-8);
 }
 

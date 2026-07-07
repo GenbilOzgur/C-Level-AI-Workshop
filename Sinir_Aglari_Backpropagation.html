@@ -4,10 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Sinir Ağları & Backpropagation — C-Level AI Eğitimi</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
-    font-family: 'Segoe UI', Arial, sans-serif;
+    font-family: 'IBM Plex Sans', 'Segoe UI', Arial, sans-serif;
     background: #FFFFFF;
     color: #1A202C;
     font-size: 16px;
@@ -28,7 +31,11 @@
     font-weight: 700;
     color: #FFFFFF;
     letter-spacing: 0.5px;
+    display: flex;
+    align-items: center;
+    gap: 11px;
   }
+  #top-nav .logo .net-icon { flex-shrink: 0; }
   #top-nav .logo span { color: #63B3ED; }
   .page-tabs {
     display: flex;
@@ -44,6 +51,9 @@
     transition: all 0.18s;
     background: rgba(255,255,255,0.10);
     color: #CBD5E0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
   }
   .page-tab:hover { background: rgba(255,255,255,0.20); color: #FFFFFF; }
   .page-tab.active {
@@ -51,6 +61,7 @@
     color: #FFFFFF;
     border-color: #63B3ED;
   }
+  .page-tab svg { display: block; }
   /* ── PAGES ───────────────────────────────────── */
   .page { display: none; padding: 28px 32px 40px; }
   .page.active { display: block; }
@@ -60,6 +71,9 @@
     color: #1A365D;
     margin-bottom: 6px;
     letter-spacing: -0.3px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
   }
   .page-subtitle {
     font-size: 17px;
@@ -75,11 +89,12 @@
     align-items: flex-start;
   }
   canvas {
-    border: 2px solid #E2E8F0;
-    border-radius: 12px;
-    background: #FAFAFA;
+    border: 1px solid #E2E8F0;
+    border-radius: 14px;
+    background: linear-gradient(180deg,#FCFDFF 0%,#F4F7FB 100%);
     cursor: pointer;
     display: block;
+    box-shadow: 0 4px 20px rgba(26,54,93,0.06);
   }
   /* ── INFO PANEL ──────────────────────────────── */
   .info-panel {
@@ -134,7 +149,7 @@
     padding: 10px 14px;
     border-radius: 8px;
     margin: 10px 0;
-    font-family: 'Courier New', monospace;
+    font-family: 'IBM Plex Mono', 'Courier New', monospace;
     font-size: 13px;
     color: #1A202C;
     line-height: 1.8;
@@ -245,6 +260,34 @@
   }
   .candidate-card:hover { border-color: #3182CE; background: #EBF8FF; }
   .candidate-card.selected { border-color: #3182CE; background: #EBF8FF; }
+  /* labeled state — clear visual confirmation of the user's choice */
+  .candidate-card.labeled-hire {
+    border-color: #38A169;
+    box-shadow: inset 4px 0 0 #38A169, 0 2px 8px rgba(56,161,105,0.18);
+    background: #F5FBF7;
+  }
+  .candidate-card.labeled-nohire {
+    border-color: #E53E3E;
+    box-shadow: inset 4px 0 0 #E53E3E, 0 2px 8px rgba(229,62,62,0.16);
+    background: #FDF6F6;
+  }
+  .cand-badge {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    display: none;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 8px 2px 5px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 700;
+    color: #FFFFFF;
+    line-height: 1.6;
+  }
+  .candidate-card.labeled-hire .cand-badge.badge-hire { display: inline-flex; background: #38A169; }
+  .candidate-card.labeled-nohire .cand-badge.badge-nohire { display: inline-flex; background: #E53E3E; }
+  .cand-badge svg { display: block; }
   .candidate-card .c-name { font-size: 14px; font-weight: 700; color: #1A365D; }
   .candidate-card .c-profile { font-size: 12px; color: #4A5568; margin-top: 2px; }
   .candidate-card .c-bars { margin-top: 6px; }
@@ -369,18 +412,73 @@
   .phase-badge.error   { background: #FED7D7; color: #742A2A; }
   .phase-badge.back    { background: #C6F6D5; color: #22543D; }
   .phase-badge.update  { background: #FEFCBF; color: #744210; }
+  a { color: #2B6CB0; }
+  a:hover { color: #1A365D; }
 </style>
 </head>
 <body>
 
 <!-- NAV -->
 <nav id="top-nav">
-  <div class="logo">🧠 Sinir Ağları &amp; <span>Backpropagation</span></div>
+  <div class="logo">
+    <svg class="net-icon" width="34" height="30" viewBox="0 0 34 30" fill="none">
+      <g stroke="#63B3ED" stroke-width="1.4" opacity="0.75">
+        <line x1="5" y1="7" x2="17" y2="4"/><line x1="5" y1="7" x2="17" y2="15"/><line x1="5" y1="7" x2="17" y2="26"/>
+        <line x1="5" y1="23" x2="17" y2="4"/><line x1="5" y1="23" x2="17" y2="15"/><line x1="5" y1="23" x2="17" y2="26"/>
+        <line x1="17" y1="4" x2="29" y2="15"/><line x1="17" y1="15" x2="29" y2="15"/><line x1="17" y1="26" x2="29" y2="15"/>
+      </g>
+      <g>
+        <circle cx="5" cy="7" r="3" fill="#2B6CB0" stroke="#90CDF4" stroke-width="1.2"/>
+        <circle cx="5" cy="23" r="3" fill="#2B6CB0" stroke="#90CDF4" stroke-width="1.2"/>
+        <circle cx="17" cy="4" r="3" fill="#63B3ED" stroke="#EBF8FF" stroke-width="1.2"/>
+        <circle cx="17" cy="15" r="3" fill="#63B3ED" stroke="#EBF8FF" stroke-width="1.2"/>
+        <circle cx="17" cy="26" r="3" fill="#63B3ED" stroke="#EBF8FF" stroke-width="1.2"/>
+        <circle cx="29" cy="15" r="3.4" fill="#48BB78" stroke="#C6F6D5" stroke-width="1.2"/>
+      </g>
+    </svg>
+    Sinir Ağları &amp; <span>Backpropagation</span>
+  </div>
   <div class="page-tabs">
-    <div class="page-tab active" onclick="showPage(0)">① Ağın Yapısı</div>
-    <div class="page-tab" onclick="showPage(1)">② İleri Geçiş</div>
-    <div class="page-tab" onclick="showPage(2)">③ Backpropagation</div>
-    <div class="page-tab" onclick="showPage(3)">🎮 Ağı Kendin Eğit</div>
+    <div class="page-tab active" onclick="showPage(0)">
+      <svg width="21" height="21" viewBox="0 0 22 22">
+        <g stroke="currentColor" stroke-width="1.5" opacity="0.85">
+          <line x1="4" y1="6" x2="11" y2="4"/><line x1="4" y1="6" x2="11" y2="11"/>
+          <line x1="4" y1="16" x2="11" y2="11"/><line x1="4" y1="16" x2="11" y2="18"/>
+          <line x1="11" y1="4" x2="18" y2="11"/><line x1="11" y1="11" x2="18" y2="11"/><line x1="11" y1="18" x2="18" y2="11"/>
+        </g>
+        <g stroke="none">
+          <circle cx="4" cy="6" r="2.1" fill="currentColor"/><circle cx="4" cy="16" r="2.1" fill="currentColor"/>
+          <circle cx="11" cy="4" r="2.1" fill="currentColor"/><circle cx="11" cy="11" r="2.1" fill="currentColor"/><circle cx="11" cy="18" r="2.1" fill="currentColor"/>
+          <circle cx="18" cy="11" r="2.7" fill="#68D391"/>
+        </g>
+      </svg>
+      Ağın Yapısı
+    </div>
+    <div class="page-tab" onclick="showPage(1)">
+      <svg width="21" height="21" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="4" cy="11" r="2" fill="currentColor" stroke="none"/>
+        <path d="M8 6l5 5-5 5"/>
+        <path d="M14 6l5 5-5 5" stroke="#F6AD55"/>
+      </svg>
+      İleri Geçiş
+    </div>
+    <div class="page-tab" onclick="showPage(2)">
+      <svg width="21" height="21" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M8 6l-5 5 5 5" stroke="#FC8181"/>
+        <path d="M14 6l-5 5 5 5"/>
+        <circle cx="18" cy="11" r="2" fill="currentColor" stroke="none"/>
+      </svg>
+      Backpropagation
+    </div>
+    <div class="page-tab" onclick="showPage(3)">
+      <svg width="21" height="21" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <line x1="4" y1="5" x2="18" y2="5"/><line x1="4" y1="11" x2="18" y2="11"/><line x1="4" y1="17" x2="18" y2="17"/>
+        <circle cx="9" cy="5" r="2.5" fill="currentColor" stroke="none"/>
+        <circle cx="14" cy="11" r="2.5" fill="#68D391" stroke="none"/>
+        <circle cx="7" cy="17" r="2.5" fill="currentColor" stroke="none"/>
+      </svg>
+      Ağı Kendin Eğit
+    </div>
   </div>
 </nav>
 
@@ -389,7 +487,7 @@
   <div class="page-title">Sinir Ağının Anatomisi</div>
   <div class="page-subtitle">Bir yapay sinir ağı nasıl çalışır? Katmanlar ne anlam ifade eder?</div>
   <div class="canvas-wrap">
-    <canvas id="c0" width="660" height="440"></canvas>
+    <canvas id="c0" width="700" height="460"></canvas>
     <div class="info-panel" id="p0-panel">
       <h3>🏗️ Ağın Yapısı</h3>
       <p>Bir sinir ağı, birbirine bağlı <strong>nöronlardan</strong> oluşur. Her nöron önceki katmandan giriş alır, bunları ağırlıklarla çarpar ve bir aktivasyon fonksiyonundan geçirir.</p>
@@ -420,7 +518,7 @@
   </div>
 
   <div class="canvas-wrap">
-    <canvas id="c1" width="660" height="440"></canvas>
+    <canvas id="c1" width="700" height="460"></canvas>
     <div class="info-panel" id="p1-panel">
       <h3>📡 İleri Geçiş</h3>
       <p id="fwd-desc">Sistem bir aday CV'sini alır ve her değeri 0–1 arasında normalize eder.</p>
@@ -438,13 +536,13 @@
   <div class="who-grid">
     <div class="who-card math">
       <div class="who-icon">📐</div>
-      <div class="who-title">HATAY ÖLÇEN</div>
+      <div class="who-title">HATAYI ÖLÇEN</div>
       <div class="who-actor">Kayıp Fonksiyonu</div>
       <div class="who-desc">MSE = ½(tahmin − gerçek)²<br>Matematiksel formül. İnsan yok.</div>
     </div>
     <div class="who-card math">
       <div class="who-icon">🔗</div>
-      <div class="who-title">SUÇU DAĞITAN</div>
+      <div class="who-title">HATA SUÇUNU DAĞITAN</div>
       <div class="who-actor">Zincir Kuralı</div>
       <div class="who-desc">Her bağlantının hataya katkısı calculus ile hesaplanır. İnsan yok.</div>
     </div>
@@ -479,8 +577,8 @@
         <div class="stat-chip">Tahmin: <span class="val" id="bp-pred">—</span></div>
         <div class="stat-chip">Doğruluk: <span class="val" id="bp-acc">—</span></div>
       </div>
-      <canvas id="c2" width="620" height="340"></canvas>
-      <canvas id="c2loss" width="620" height="150" style="margin-top:12px;"></canvas>
+      <canvas id="c2" width="640" height="360"></canvas>
+      <canvas id="c2loss" width="640" height="150" style="margin-top:12px;"></canvas>
     </div>
     <div class="info-panel" id="p2-panel">
       <h3>🔄 Backpropagation Adımları</h3>
@@ -506,7 +604,7 @@
 
 <!-- PAGE 3: GAME -->
 <div class="page" id="page-3">
-  <div class="page-title">🎮 Ağı Kendin Eğit</div>
+  <div class="page-title">Ağı Kendin Eğit</div>
   <div class="page-subtitle">Aday CV'lerini siz etiketleyin — sinir ağı gerçek backpropagation matematiğiyle kendi kendine öğrensin!</div>
 
   <div class="game-layout">
@@ -528,8 +626,8 @@
         <div class="stat-chip">İterasyon: <span class="val" id="g-iter">0</span></div>
         <div class="stat-chip">Kayıp: <span class="val" id="g-loss">—</span></div>
       </div>
-      <canvas id="c3" width="530" height="360"></canvas>
-      <canvas id="c3loss" width="530" height="140" style="margin-top:10px;"></canvas>
+      <canvas id="c3" width="560" height="380"></canvas>
+      <canvas id="c3loss" width="560" height="140" style="margin-top:10px;"></canvas>
       <div class="train-status" id="train-status">Henüz eğitim başlamadı. En az 4 aday etiketleyin.</div>
     </div>
 
@@ -566,12 +664,102 @@ function dsigmoid(y){ return y*(1-y); }
 function lerp(a,b,t){ return a+(b-a)*t; }
 function clamp(v,lo,hi){ return Math.max(lo,Math.min(hi,v)); }
 
+// ── Hi-DPI setup: renders canvas at device resolution so text & lines
+//    stay razor-sharp on retina screens and projectors. Logical drawing
+//    coordinates are preserved via cv.__w / cv.__h. (No simulation logic here.)
+function hidpi(cv){
+  if(cv.__hidpi) return cv.getContext('2d');
+  const dpr = Math.max(2, Math.ceil(window.devicePixelRatio || 1));
+  cv.__w = cv.width; cv.__h = cv.height;
+  cv.style.width = cv.__w + 'px';
+  cv.style.height = cv.__h + 'px';
+  cv.width = cv.__w * dpr;
+  cv.height = cv.__h * dpr;
+  const ctx = cv.getContext('2d');
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  cv.__dpr = dpr; cv.__hidpi = true;
+  return ctx;
+}
+
+// Slightly lighten a hex color for the top of the node gradient (depth).
+function lightenHex(hex, amt){
+  const m = hex.replace('#','');
+  const r = parseInt(m.substring(0,2),16), g = parseInt(m.substring(2,4),16), b = parseInt(m.substring(4,6),16);
+  const f = x => Math.round(x + (255 - x) * amt);
+  return `rgb(${f(r)},${f(g)},${f(b)})`;
+}
+
+// Unified crisp neuron renderer used across all pages.
+function drawNeuron(ctx, x, y, r, color, opts){
+  opts = opts || {};
+  const base = opts.dim ? '#CBD5E0' : color;
+  // soft shadow for separation from connection lines
+  ctx.save();
+  ctx.shadowColor = 'rgba(15,32,60,0.28)';
+  ctx.shadowBlur = 12;
+  ctx.shadowOffsetY = 3;
+  const g = ctx.createRadialGradient(x - r*0.35, y - r*0.4, r*0.15, x, y, r);
+  g.addColorStop(0, opts.dim ? '#E2E8F0' : lightenHex(color, 0.35));
+  g.addColorStop(1, base);
+  ctx.fillStyle = g;
+  ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI*2); ctx.fill();
+  ctx.restore();
+  // activation fill overlay (rises from bottom)
+  if(opts.act != null && !opts.dim){
+    ctx.save();
+    ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI*2); ctx.clip();
+    ctx.fillStyle = 'rgba(255,255,255,0.32)';
+    const fh = r*2*clamp(opts.act,0,1);
+    ctx.fillRect(x - r, y + r - fh, r*2, fh);
+    ctx.restore();
+  }
+  // crisp ring
+  ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI*2);
+  ctx.strokeStyle = opts.ring || (opts.dim ? '#A0AEC0' : '#FFFFFF');
+  ctx.lineWidth = opts.ringW || 3;
+  ctx.stroke();
+  // optional pulse ring
+  if(opts.pulseR){
+    ctx.beginPath(); ctx.arc(x, y, r + opts.pulseR, 0, Math.PI*2);
+    ctx.strokeStyle = opts.pulseColor || 'rgba(229,62,62,0.5)';
+    ctx.lineWidth = 2.5; ctx.stroke();
+  }
+  // label centered
+  if(opts.label){
+    ctx.fillStyle = opts.dim ? '#4A5568' : '#FFFFFF';
+    ctx.font = 'bold ' + (opts.labelSize || Math.round(r*0.52)) + 'px IBM Plex Sans';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText(opts.label, x, y + 0.5);
+    ctx.textBaseline = 'alphabetic';
+  }
+  // value chip below
+  if(opts.value != null){
+    ctx.fillStyle = '#1A202C';
+    ctx.font = 'bold ' + (opts.valueSize || 14) + 'px IBM Plex Sans';
+    ctx.textAlign = 'center';
+    ctx.fillText(opts.value, x, y + r + 18);
+  }
+}
+
+// Crisp connection line between two nodes.
+function drawConn(ctx, a, b, color, width, dash, dashOffset){
+  ctx.save();
+  ctx.lineCap = 'round';
+  if(dash){ ctx.setLineDash(dash); ctx.lineDashOffset = dashOffset || 0; }
+  ctx.strokeStyle = color;
+  ctx.lineWidth = width;
+  ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke();
+  ctx.restore();
+}
+
 // ════════════════════════════════════════════════════════════
 // NETWORK DEFINITION  (3 → 4 → 1)
 // ════════════════════════════════════════════════════════════
 const N_IN=3, N_HID=4, N_OUT=1;
 const INPUT_LABELS=['Deneyim','Liderlik','Teknik'];
 const INPUT_COLORS=['#3182CE','#38A169','#D69E2E'];
+const HID_COLORS=['#6B46C1','#7C3AED','#8B5CF6','#9061F9'];
+const OUT_COLOR='#2F855A';
 
 function makeNetwork(){
   // Xavier init
@@ -643,20 +831,21 @@ let p0AnimId=null;
 const P0_SAMPLE=[0.8,0.7,0.9];
 
 function getNodePos(c, layer, idx, total){
-  const layerX=[90,270,490,630]; // adjust for canvas width 660
-  const canH=440;
+  const layerX=[100,290,510,650]; // for canvas width 700
+  const canH=460;
   const spacing=canH/(total+1);
   return {x:layerX[layer], y:spacing*(idx+1)};
 }
 
 function p0Init(){
   const cv=document.getElementById('c0');
-  const ctx=cv.getContext('2d');
+  const ctx=hidpi(cv);
+  const W=cv.__w, H=cv.__h;
   if(p0AnimId) cancelAnimationFrame(p0AnimId);
   let pulse=0;
   function draw(){
     p0AnimId=requestAnimationFrame(draw);
-    ctx.clearRect(0,0,cv.width,cv.height);
+    ctx.clearRect(0,0,W,H);
     pulse+=0.04;
     const {h,out}=forward(p0Net,P0_SAMPLE);
     const acts=[[...P0_SAMPLE],[...h],[...out]];
@@ -668,57 +857,40 @@ function p0Init(){
           const a=getNodePos(cv,l,i,counts[l]);
           const b=getNodePos(cv,l+1,j,counts[l+1]);
           const w=(l===0)?p0Net.w1[j][i]:p0Net.w2[j][i];
-          const alpha=clamp(Math.abs(w)*0.8,0.08,0.6);
-          ctx.strokeStyle=w>0?`rgba(49,130,206,${alpha})`:`rgba(229,62,62,${alpha})`;
-          ctx.lineWidth=Math.abs(w)*2.5+0.5;
-          ctx.beginPath(); ctx.moveTo(a.x,a.y); ctx.lineTo(b.x,b.y); ctx.stroke();
+          const alpha=clamp(Math.abs(w)*0.9,0.16,0.72);
+          const col=w>0?`rgba(43,108,176,${alpha})`:`rgba(229,62,62,${alpha})`;
+          drawConn(ctx,a,b,col,Math.abs(w)*3.2+0.8);
         }
       }
     }
     // draw nodes
-    const layerColors=[INPUT_COLORS,'#7B4EA6','#2F855A'];
     const allLabels=[INPUT_LABELS,['H₁','H₂','H₃','H₄'],['Sonuç']];
-    const layerTitles=['Girdi','Gizli Katman','Çıktı'];
+    const layerTitles=['GİRDİ','GİZLİ KATMAN','ÇIKTI'];
     for(let l=0;l<3;l++){
       // layer title
       const tp=getNodePos(cv,l,0,counts[l]);
-      ctx.fillStyle='#4A5568'; ctx.font='bold 14px Segoe UI';
+      ctx.fillStyle='#1A365D'; ctx.font='bold 16px IBM Plex Sans';
       ctx.textAlign='center';
-      ctx.fillText(layerTitles[l], tp.x, 22);
+      ctx.fillText(layerTitles[l], tp.x, 26);
 
       for(let i=0;i<counts[l];i++){
         const p=getNodePos(cv,l,i,counts[l]);
         const act=acts[l][i];
-        const r=22;
+        const r=30;
         // glow for active
         if(act>0.5){
-          const glow=ctx.createRadialGradient(p.x,p.y,r*0.3,p.x,p.y,r*1.5);
-          glow.addColorStop(0,'rgba(72,187,120,0.22)');
-          glow.addColorStop(1,'rgba(72,187,120,0)');
-          ctx.fillStyle=glow; ctx.beginPath(); ctx.arc(p.x,p.y,r*1.5,0,Math.PI*2); ctx.fill();
+          const glow=ctx.createRadialGradient(p.x,p.y,r*0.3,p.x,p.y,r*1.7);
+          glow.addColorStop(0,'rgba(56,161,105,0.25)');
+          glow.addColorStop(1,'rgba(56,161,105,0)');
+          ctx.fillStyle=glow; ctx.beginPath(); ctx.arc(p.x,p.y,r*1.7,0,Math.PI*2); ctx.fill();
         }
-        // node
-        ctx.beginPath(); ctx.arc(p.x,p.y,r,0,Math.PI*2);
-        const col=l===0?INPUT_COLORS[i]:(l===1?`hsl(${270+i*15},60%,48%)`:'#2F855A');
-        ctx.fillStyle=col; ctx.fill();
-        ctx.strokeStyle='#FFFFFF'; ctx.lineWidth=2.5; ctx.stroke();
-        // activation fill overlay
-        const fillH=r*2*act;
-        ctx.save(); ctx.beginPath(); ctx.arc(p.x,p.y,r,0,Math.PI*2); ctx.clip();
-        ctx.fillStyle='rgba(255,255,255,0.35)';
-        ctx.fillRect(p.x-r, p.y+r-fillH, r*2, fillH);
-        ctx.restore();
-        // label
-        ctx.fillStyle='#FFFFFF'; ctx.font='bold 11px Segoe UI'; ctx.textAlign='center';
-        ctx.fillText(allLabels[l][i]||'', p.x, p.y+3);
-        // activation value
-        ctx.fillStyle='#2D3748'; ctx.font='11px Segoe UI';
-        ctx.fillText(act.toFixed(2), p.x, p.y+r+14);
+        const col=l===0?INPUT_COLORS[i]:(l===1?HID_COLORS[i]:OUT_COLOR);
+        drawNeuron(ctx,p.x,p.y,r,col,{act:act,label:allLabels[l][i]||'',labelSize:15,value:act.toFixed(2),valueSize:14});
       }
     }
     // legend
-    ctx.fillStyle='#718096'; ctx.font='13px Segoe UI'; ctx.textAlign='left';
-    ctx.fillText('🔵 Pozitif ağırlık   🔴 Negatif ağırlık', 10, cv.height-10);
+    ctx.fillStyle='#4A5568'; ctx.font='13px IBM Plex Sans'; ctx.textAlign='left';
+    ctx.fillText('🔵 Pozitif ağırlık    🔴 Negatif ağırlık    (çizgi kalınlığı = ağırlık gücü)', 14, H-14);
   }
   draw();
   // click handler
@@ -729,7 +901,7 @@ function p0Init(){
     for(let l=0;l<3;l++){
       for(let i=0;i<counts[l];i++){
         const p=getNodePos(cv,l,i,counts[l]);
-        if(Math.hypot(mx-p.x,my-p.y)<26){
+        if(Math.hypot(mx-p.x,my-p.y)<32){
           showNeuronInfo(l,i);
         }
       }
@@ -823,8 +995,9 @@ function p1Init(){
 
 function drawFwd(t=0){
   const cv=document.getElementById('c1');
-  const ctx=cv.getContext('2d');
-  ctx.clearRect(0,0,cv.width,cv.height);
+  const ctx=hidpi(cv);
+  const W=cv.__w, H=cv.__h;
+  ctx.clearRect(0,0,W,H);
   const {h,out}=forward(p0Net,FWD_SAMPLE);
   const acts=[[...FWD_SAMPLE],[...h],[...out]];
   const counts=[N_IN,N_HID,N_OUT];
@@ -838,59 +1011,39 @@ function drawFwd(t=0){
         const b=getNodePos(cv,l+1,j,counts[l+1]);
         const active=(fwdStep===1&&l===0)||(fwdStep===2&&l===1)||(fwdStep===3&&l===1);
         const w=(l===0)?p0Net.w1[j][i]:p0Net.w2[j][i];
-        const base=Math.abs(w)*0.5;
-        const alpha=active?clamp(base+0.3,0.3,0.85):clamp(base,0.05,0.25);
-        ctx.strokeStyle=active?phaseColors[fwdStep]:(w>0?`rgba(49,130,206,${alpha})`:`rgba(229,62,62,${alpha})`);
-        ctx.lineWidth=active?2.5:1;
-        if(active){
-          // animated dash
-          ctx.setLineDash([6,4]);
-          ctx.lineDashOffset=-t*8;
-        } else {
-          ctx.setLineDash([]);
-        }
-        ctx.beginPath(); ctx.moveTo(a.x,a.y); ctx.lineTo(b.x,b.y); ctx.stroke();
+        const base=Math.abs(w)*0.6;
+        const alpha=active?clamp(base+0.35,0.4,0.9):clamp(base,0.1,0.3);
+        const col=active?phaseColors[fwdStep]:(w>0?`rgba(43,108,176,${alpha})`:`rgba(229,62,62,${alpha})`);
+        drawConn(ctx,a,b,col,active?3.2:1.4, active?[7,5]:null, active?-t*8:0);
       }
     }
   }
-  ctx.setLineDash([]);
   // nodes
   const allLabels=[INPUT_LABELS,['H₁','H₂','H₃','H₄'],['Çıktı']];
   for(let l=0;l<3;l++){
     const tp=getNodePos(cv,l,0,counts[l]);
-    ctx.fillStyle='#4A5568'; ctx.font='bold 14px Segoe UI'; ctx.textAlign='center';
-    ctx.fillText(['Girdi','Gizli','Çıktı'][l], tp.x, 22);
+    ctx.fillStyle='#1A365D'; ctx.font='bold 16px IBM Plex Sans'; ctx.textAlign='center';
+    ctx.fillText(['GİRDİ','GİZLİ','ÇIKTI'][l], tp.x, 26);
     for(let i=0;i<counts[l];i++){
       const p=getNodePos(cv,l,i,counts[l]);
       const act=acts[l][i];
-      const r=22;
+      const r=30;
       const highlight=(fwdStep===0&&l===0)||(fwdStep===1&&(l===0||l===1))||(fwdStep===2&&l===1)||(fwdStep===3&&l===2);
-      ctx.beginPath(); ctx.arc(p.x,p.y,r,0,Math.PI*2);
-      const col=l===0?INPUT_COLORS[i]:(l===1?`hsl(${270+i*15},60%,48%)`:'#2F855A');
-      ctx.fillStyle=highlight?col:'#CBD5E0';
-      ctx.fill();
-      ctx.strokeStyle=highlight?'#FFFFFF':'#A0AEC0'; ctx.lineWidth=2.5; ctx.stroke();
-      if(highlight){
-        const fillH=r*2*act;
-        ctx.save(); ctx.beginPath(); ctx.arc(p.x,p.y,r,0,Math.PI*2); ctx.clip();
-        ctx.fillStyle='rgba(255,255,255,0.3)';
-        ctx.fillRect(p.x-r, p.y+r-fillH, r*2, fillH);
-        ctx.restore();
-      }
-      ctx.fillStyle=highlight?'#FFFFFF':'#718096'; ctx.font='bold 11px Segoe UI'; ctx.textAlign='center';
-      ctx.fillText(allLabels[l][i]||'', p.x, p.y+3);
-      if(highlight){
-        ctx.fillStyle='#1A202C'; ctx.font='11px Segoe UI';
-        ctx.fillText(act.toFixed(2), p.x, p.y+r+14);
-      }
+      const col=l===0?INPUT_COLORS[i]:(l===1?HID_COLORS[i]:OUT_COLOR);
+      drawNeuron(ctx,p.x,p.y,r,col,{
+        dim:!highlight,
+        act:highlight?act:null,
+        label:allLabels[l][i]||'', labelSize:15,
+        value:highlight?act.toFixed(2):null, valueSize:14
+      });
     }
   }
-  // input labels
+  // input labels — placed centered above each input neuron so they never truncate
   if(fwdStep===0){
     for(let i=0;i<N_IN;i++){
       const p=getNodePos(cv,0,i,N_IN);
-      ctx.fillStyle='#2D3748'; ctx.font='13px Segoe UI'; ctx.textAlign='right';
-      ctx.fillText(FWD_SAMPLE_LABELS[i], p.x-30, p.y+4);
+      ctx.fillStyle='#2D3748'; ctx.font='bold 13px IBM Plex Sans'; ctx.textAlign='center';
+      ctx.fillText(FWD_SAMPLE_LABELS[i], p.x, p.y-38);
     }
   }
 }
@@ -983,12 +1136,13 @@ function updateBpStats(){
 
 function drawBp(t=0){
   const cv=document.getElementById('c2');
-  const ctx=cv.getContext('2d');
-  ctx.clearRect(0,0,cv.width,cv.height);
-  // simplified layout for smaller canvas
-  const layerX=[70,230,440,590];
+  const ctx=hidpi(cv);
+  const W=cv.__w, H=cv.__h;
+  ctx.clearRect(0,0,W,H);
+  // layout for canvas 640x360
+  const layerX=[80,250,470,600];
   const counts=[N_IN,N_HID,N_OUT];
-  const canH=340;
+  const canH=360;
 
   function gp(l,i,tot){ return {x:layerX[l], y:canH/(tot+1)*(i+1)}; }
 
@@ -996,9 +1150,12 @@ function drawBp(t=0){
   const {h,out}=forward(bpNet,sample.x);
   const acts=[[...sample.x],[...h],[...out]];
 
-  // phase highlight colors
-  const phaseArc=bpPhase===2; // geri yayilim
   const phaseUp=bpPhase===3;  // update
+
+  // phase tint (behind everything)
+  const phaseBg=['rgba(49,130,206,0.06)','rgba(229,62,62,0.06)','rgba(56,161,105,0.06)','rgba(214,158,46,0.06)'];
+  ctx.fillStyle=phaseBg[bpPhase];
+  ctx.fillRect(0,0,W,H);
 
   // connections
   for(let l=0;l<2;l++){
@@ -1008,86 +1165,70 @@ function drawBp(t=0){
         const b=gp(l+1,j,counts[l+1]);
         const w=(l===0)?bpNet.w1[j][i]:bpNet.w2[j][i];
         const abs=Math.abs(w);
-        let color, lw;
+        let color, lw, dash=null, off=0;
         if(bpPhase===0){ // forward
-          color=`rgba(49,130,206,${clamp(abs*0.5,0.05,0.5)})`; lw=1.5;
-          ctx.setLineDash([6,4]); ctx.lineDashOffset=-t*6;
+          color=`rgba(43,108,176,${clamp(abs*0.6,0.12,0.6)})`; lw=1.8; dash=[7,5]; off=-t*6;
         } else if(bpPhase===2&&l===1){ // backward pass layer 2
-          color=`rgba(56,161,105,${clamp(abs*0.7,0.2,0.8)})`; lw=2.5;
-          ctx.setLineDash([6,4]); ctx.lineDashOffset=t*6;
+          color=`rgba(56,161,105,${clamp(abs*0.8,0.28,0.85)})`; lw=3; dash=[7,5]; off=t*6;
         } else if(bpPhase===2&&l===0){
-          color=`rgba(56,161,105,${clamp(abs*0.5,0.1,0.5)})`; lw=1.5;
-          ctx.setLineDash([6,4]); ctx.lineDashOffset=t*5;
+          color=`rgba(56,161,105,${clamp(abs*0.6,0.18,0.6)})`; lw=1.8; dash=[7,5]; off=t*5;
         } else if(phaseUp){
           const changed=Math.abs(w)>0.01;
-          color=changed?`rgba(214,158,46,${clamp(abs*0.7,0.2,0.8)})`:`rgba(160,174,192,0.2)`; lw=changed?2:1;
-          ctx.setLineDash([]);
+          color=changed?`rgba(214,158,46,${clamp(abs*0.8,0.28,0.85)})`:`rgba(160,174,192,0.25)`; lw=changed?2.4:1.2;
         } else {
-          color=`rgba(160,174,192,0.2)`; lw=1;
-          ctx.setLineDash([]);
+          color=`rgba(160,174,192,0.28)`; lw=1.2;
         }
-        ctx.strokeStyle=color; ctx.lineWidth=lw;
-        ctx.beginPath(); ctx.moveTo(a.x,a.y); ctx.lineTo(b.x,b.y); ctx.stroke();
+        drawConn(ctx,a,b,color,lw,dash,off);
       }
     }
   }
-  ctx.setLineDash([]);
 
   // nodes
   const allLabels=[INPUT_LABELS,['H₁','H₂','H₃','H₄'],['Sonuç']];
-  const nodeColors=[INPUT_COLORS,['#7B4EA6','#7B4EA6','#7B4EA6','#7B4EA6'],['#2F855A']];
   for(let l=0;l<3;l++){
     const tp=gp(l,0,counts[l]);
-    ctx.fillStyle='#4A5568'; ctx.font='bold 13px Segoe UI'; ctx.textAlign='center';
-    ctx.fillText(['Girdi','Gizli','Çıktı'][l], tp.x, 18);
+    ctx.fillStyle='#1A365D'; ctx.font='bold 15px IBM Plex Sans'; ctx.textAlign='center';
+    ctx.fillText(['GİRDİ','GİZLİ','ÇIKTI'][l], tp.x, 20);
     for(let i=0;i<counts[l];i++){
       const p=gp(l,i,counts[l]);
       const act=acts[l][i];
-      const r=20;
-      ctx.beginPath(); ctx.arc(p.x,p.y,r,0,Math.PI*2);
-      const col=l===0?INPUT_COLORS[i]:(l===1?`hsl(${270+i*15},55%,48%)`:'#2F855A');
-      ctx.fillStyle=col; ctx.fill();
-      ctx.strokeStyle=bpPhase===1&&l===2?'#E53E3E':'#FFFFFF'; ctx.lineWidth=bpPhase===1&&l===2?3:2; ctx.stroke();
-      if(bpPhase===1&&l===2){
-        ctx.beginPath(); ctx.arc(p.x,p.y,r+5+Math.sin(t*4)*3,0,Math.PI*2);
-        ctx.strokeStyle=`rgba(229,62,62,${0.4+Math.sin(t*4)*0.3})`; ctx.lineWidth=2; ctx.stroke();
-      }
-      const fillH=r*2*act;
-      ctx.save(); ctx.beginPath(); ctx.arc(p.x,p.y,r,0,Math.PI*2); ctx.clip();
-      ctx.fillStyle='rgba(255,255,255,0.3)'; ctx.fillRect(p.x-r,p.y+r-fillH,r*2,fillH);
-      ctx.restore();
-      ctx.fillStyle='#FFFFFF'; ctx.font='bold 10px Segoe UI'; ctx.textAlign='center';
-      ctx.fillText(allLabels[l][i]||'', p.x, p.y+3);
-      ctx.fillStyle='#2D3748'; ctx.font='11px Segoe UI';
-      ctx.fillText(act.toFixed(2), p.x, p.y+r+13);
+      const r=26;
+      const col=l===0?INPUT_COLORS[i]:(l===1?HID_COLORS[i]:OUT_COLOR);
+      const errorPulse=(bpPhase===1&&l===2);
+      drawNeuron(ctx,p.x,p.y,r,col,{
+        act:act,
+        label:allLabels[l][i]||'', labelSize:13,
+        value:act.toFixed(2), valueSize:13,
+        ring:errorPulse?'#E53E3E':'#FFFFFF', ringW:errorPulse?3.5:3,
+        pulseR:errorPulse?(5+Math.sin(t*4)*3):0,
+        pulseColor:`rgba(229,62,62,${0.4+Math.sin(t*4)*0.3})`
+      });
     }
   }
 
   // phase annotation
   const phaseText=['⏩ Veriler ileriye akıyor...','❌ Hata ölçülüyor!','↩️ Gradyanlar geriye yayılıyor...','✅ Ağırlıklar güncellendi!'];
-  const phaseBg=['rgba(49,130,206,0.1)','rgba(229,62,62,0.1)','rgba(56,161,105,0.1)','rgba(214,158,46,0.1)'];
-  ctx.fillStyle=phaseBg[bpPhase];
-  ctx.fillRect(0,0,cv.width,cv.height);
   ctx.fillStyle=bpPhase===0?'#2B6CB0':bpPhase===1?'#C53030':bpPhase===2?'#276749':'#744210';
-  ctx.font='bold 15px Segoe UI'; ctx.textAlign='center';
-  ctx.fillText(phaseText[bpPhase], cv.width/2, cv.height-12);
+  ctx.font='bold 16px IBM Plex Sans'; ctx.textAlign='center';
+  ctx.fillText(phaseText[bpPhase], W/2, H-14);
 }
 
 function drawBpLoss(){
   const cv=document.getElementById('c2loss');
-  const ctx=cv.getContext('2d');
-  ctx.clearRect(0,0,cv.width,cv.height);
+  const ctx=hidpi(cv);
+  const W_=cv.__w, H_=cv.__h;
+  ctx.clearRect(0,0,W_,H_);
   const pad={l:50,r:20,t:15,b:30};
-  const W=cv.width-pad.l-pad.r, H=cv.height-pad.t-pad.b;
+  const W=W_-pad.l-pad.r, H=H_-pad.t-pad.b;
   // axes
   ctx.strokeStyle='#CBD5E0'; ctx.lineWidth=1;
   ctx.beginPath(); ctx.moveTo(pad.l,pad.t); ctx.lineTo(pad.l,pad.t+H); ctx.lineTo(pad.l+W,pad.t+H); ctx.stroke();
   // axis labels
-  ctx.fillStyle='#718096'; ctx.font='12px Segoe UI'; ctx.textAlign='center';
-  ctx.fillText('İterasyon', pad.l+W/2, cv.height-2);
+  ctx.fillStyle='#718096'; ctx.font='12px IBM Plex Sans'; ctx.textAlign='center';
+  ctx.fillText('İterasyon', pad.l+W/2, H_-2);
   ctx.save(); ctx.translate(14, pad.t+H/2); ctx.rotate(-Math.PI/2);
   ctx.fillText('Kayıp (Loss)', 0, 0); ctx.restore();
-  ctx.fillStyle='#4A5568'; ctx.font='bold 12px Segoe UI'; ctx.textAlign='left';
+  ctx.fillStyle='#4A5568'; ctx.font='bold 12px IBM Plex Sans'; ctx.textAlign='left';
   ctx.fillText('📉 Kayıp Eğrisi', pad.l+4, pad.t+12);
   if(bpLossHistory.length<2) return;
   const maxL=Math.max(...bpLossHistory, 0.05);
@@ -1110,7 +1251,7 @@ function drawBpLoss(){
   ctx.fillStyle='rgba(43,108,176,0.10)'; ctx.fill();
   // last val
   const lv=bpLossHistory[bpLossHistory.length-1];
-  ctx.fillStyle='#2B6CB0'; ctx.font='bold 12px Segoe UI'; ctx.textAlign='right';
+  ctx.fillStyle='#2B6CB0'; ctx.font='bold 12px IBM Plex Sans'; ctx.textAlign='right';
   ctx.fillText(`Son kayıp: ${lv.toFixed(4)}`, pad.l+W, pad.t+12);
 }
 
@@ -1174,6 +1315,8 @@ function renderCandidates(){
     d.className='candidate-card';
     d.id='cand-'+i;
     d.innerHTML=`
+      <div class="cand-badge badge-hire"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>İşe Al</div>
+      <div class="cand-badge badge-nohire"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg>Alma</div>
       <div class="c-name">${c.name}</div>
       <div class="c-profile">${c.profile}</div>
       <div class="c-bars">
@@ -1194,6 +1337,9 @@ function renderCandidates(){
 
 function labelCand(i,v){
   gameLabels[i]=v;
+  const card=document.getElementById('cand-'+i);
+  card.classList.remove('labeled-hire','labeled-nohire');
+  card.classList.add(v===1?'labeled-hire':'labeled-nohire');
   document.querySelectorAll(`#hire-${i}, #nohire-${i}`).forEach(b=>b.classList.remove('chosen'));
   document.getElementById(v===1?`hire-${i}`:`nohire-${i}`).classList.add('chosen');
   document.getElementById('g-labeled').textContent=Object.keys(gameLabels).length;
@@ -1234,7 +1380,7 @@ function updateGameStats(){
   const wrows=document.getElementById('w-rows');
   wrows.innerHTML='';
   INPUT_LABELS.forEach((lab,i)=>{
-    const avgW=bpNet.w1.reduce((s,row)=>s+Math.abs(row[i]),0)/N_HID;
+    const avgW=gameNet.w1.reduce((s,row)=>s+Math.abs(row[i]),0)/N_HID;
     const pctW=clamp(avgW*100,5,100);
     wrows.innerHTML+=`<div class="weight-row">
       <div class="weight-label">${lab}</div>
@@ -1265,12 +1411,16 @@ function updateGameStats(){
 
 function drawGame(t=0){
   const cv=document.getElementById('c3');
-  const ctx=cv.getContext('2d');
-  ctx.clearRect(0,0,cv.width,cv.height);
-  const layerX=[70,220,400,510];
+  const ctx=hidpi(cv);
+  const W=cv.__w, H=cv.__h;
+  ctx.clearRect(0,0,W,H);
+  const layerX=[80,235,425,540];
   const counts=[N_IN,N_HID,N_OUT];
-  const canH=360;
+  const canH=380;
   function gp(l,i,tot){ return {x:layerX[l], y:canH/(tot+1)*(i+1)}; }
+
+  const {h,out}=forward(gameNet, gameTrainBatch.length? gameTrainBatch[0].x : CANDIDATES[0].x);
+  const acts=[[...(gameTrainBatch.length? gameTrainBatch[0].x : CANDIDATES[0].x)],[...h],[...out]];
 
   // connections
   for(let l=0;l<2;l++){
@@ -1279,37 +1429,34 @@ function drawGame(t=0){
         const a=gp(l,i,counts[l]); const b=gp(l+1,j,counts[l+1]);
         const w=(l===0)?gameNet.w1[j][i]:gameNet.w2[j][i];
         const abs=Math.abs(w);
-        if(gameTraining){
-          ctx.setLineDash([5,4]); ctx.lineDashOffset=-t*6;
-        } else { ctx.setLineDash([]); }
-        ctx.strokeStyle=w>0?`rgba(49,130,206,${clamp(abs*0.6,0.05,0.55)})`:`rgba(229,62,62,${clamp(abs*0.6,0.05,0.55)})`;
-        ctx.lineWidth=clamp(abs*2,0.5,3);
-        ctx.beginPath(); ctx.moveTo(a.x,a.y); ctx.lineTo(b.x,b.y); ctx.stroke();
+        const dash=gameTraining?[6,5]:null;
+        const off=gameTraining?-t*6:0;
+        const col=w>0?`rgba(43,108,176,${clamp(abs*0.7,0.12,0.6)})`:`rgba(229,62,62,${clamp(abs*0.7,0.12,0.6)})`;
+        drawConn(ctx,a,b,col,clamp(abs*2.6,0.9,3.4),dash,off);
       }
     }
   }
-  ctx.setLineDash([]);
 
   // nodes
   const allLabels=[INPUT_LABELS,['H₁','H₂','H₃','H₄'],['Karar']];
   for(let l=0;l<3;l++){
     const tp=gp(l,0,counts[l]);
-    ctx.fillStyle='#4A5568'; ctx.font='bold 13px Segoe UI'; ctx.textAlign='center';
-    ctx.fillText(['Girdi','Gizli','Çıktı'][l], tp.x, 18);
+    ctx.fillStyle='#1A365D'; ctx.font='bold 15px IBM Plex Sans'; ctx.textAlign='center';
+    ctx.fillText(['GİRDİ','GİZLİ','ÇIKTI'][l], tp.x, 20);
     for(let i=0;i<counts[l];i++){
-      const p=gp(l,i,counts[l]); const r=20;
-      ctx.beginPath(); ctx.arc(p.x,p.y,r,0,Math.PI*2);
-      const col=l===0?INPUT_COLORS[i]:(l===1?`hsl(${270+i*15},55%,48%)`:'#2F855A');
-      ctx.fillStyle=col; ctx.fill();
-      ctx.strokeStyle=gameTraining?'rgba(214,158,46,0.8)':'#FFFFFF'; ctx.lineWidth=2; ctx.stroke();
-      ctx.fillStyle='#FFFFFF'; ctx.font='bold 10px Segoe UI'; ctx.textAlign='center';
-      ctx.fillText(allLabels[l][i]||'', p.x, p.y+3);
+      const p=gp(l,i,counts[l]); const r=26;
+      const col=l===0?INPUT_COLORS[i]:(l===1?HID_COLORS[i]:OUT_COLOR);
+      drawNeuron(ctx,p.x,p.y,r,col,{
+        act:acts[l][i],
+        label:allLabels[l][i]||'', labelSize:13,
+        ring:gameTraining?'rgba(214,158,46,0.9)':'#FFFFFF', ringW:gameTraining?3.5:3
+      });
     }
   }
 
   // training particles
   if(gameTraining && gameIter>0){
-    ctx.fillStyle='rgba(214,158,46,0.7)';
+    ctx.fillStyle='rgba(214,158,46,0.85)';
     for(let p=0;p<6;p++){
       const phase=(t+p*1.0)%3;
       const l=Math.floor(phase);
@@ -1318,28 +1465,29 @@ function drawGame(t=0){
       const from=gp(l, Math.floor(Math.random()*counts[l])%counts[l], counts[l]);
       const to=gp(l+1, Math.floor(Math.random()*counts[l+1])%counts[l+1], counts[l+1]);
       const x=lerp(from.x,to.x,frac); const y=lerp(from.y,to.y,frac);
-      ctx.beginPath(); ctx.arc(x,y,3.5,0,Math.PI*2); ctx.fill();
+      ctx.beginPath(); ctx.arc(x,y,4,0,Math.PI*2); ctx.fill();
     }
   }
 
   // status text
   const statusColor=gameTraining?'#276749':'#4A5568';
-  ctx.fillStyle=statusColor; ctx.font='bold 13px Segoe UI'; ctx.textAlign='center';
-  ctx.fillText(gameTraining?`🔄 Eğitim: ${gameIter} iterasyon`:'Eğitim bekleniyor...', cv.width/2, cv.height-10);
+  ctx.fillStyle=statusColor; ctx.font='bold 14px IBM Plex Sans'; ctx.textAlign='center';
+  ctx.fillText(gameTraining?`🔄 Eğitim: ${gameIter} iterasyon`:'Eğitim bekleniyor...', W/2, H-12);
 }
 
 function drawGameLoss(){
   const cv=document.getElementById('c3loss');
-  const ctx=cv.getContext('2d');
-  ctx.clearRect(0,0,cv.width,cv.height);
+  const ctx=hidpi(cv);
+  const W_=cv.__w, H_=cv.__h;
+  ctx.clearRect(0,0,W_,H_);
   const pad={l:50,r:20,t:15,b:28};
-  const W=cv.width-pad.l-pad.r, H=cv.height-pad.t-pad.b;
+  const W=W_-pad.l-pad.r, H=H_-pad.t-pad.b;
   ctx.strokeStyle='#CBD5E0'; ctx.lineWidth=1;
   ctx.beginPath(); ctx.moveTo(pad.l,pad.t); ctx.lineTo(pad.l,pad.t+H); ctx.lineTo(pad.l+W,pad.t+H); ctx.stroke();
-  ctx.fillStyle='#4A5568'; ctx.font='bold 12px Segoe UI'; ctx.textAlign='left';
+  ctx.fillStyle='#4A5568'; ctx.font='bold 12px IBM Plex Sans'; ctx.textAlign='left';
   ctx.fillText('📉 Kayıp Eğrisi — Öğrenme Süreci', pad.l+4, pad.t+12);
   if(gameLossHistory.length<2){
-    ctx.fillStyle='#A0AEC0'; ctx.font='13px Segoe UI'; ctx.textAlign='center';
+    ctx.fillStyle='#A0AEC0'; ctx.font='13px IBM Plex Sans'; ctx.textAlign='center';
     ctx.fillText('Eğitim başladığında kayıp eğrisi burada görünecek', pad.l+W/2, pad.t+H/2+4);
     return;
   }
@@ -1358,10 +1506,10 @@ function drawGameLoss(){
   ctx.lineTo(pad.l+W,pad.t+H); ctx.lineTo(pad.l,pad.t+H);
   ctx.fillStyle='rgba(229,62,62,0.08)'; ctx.fill();
   const lv=smooth[smooth.length-1];
-  ctx.fillStyle='#C53030'; ctx.font='bold 12px Segoe UI'; ctx.textAlign='right';
+  ctx.fillStyle='#C53030'; ctx.font='bold 12px IBM Plex Sans'; ctx.textAlign='right';
   ctx.fillText(`${lv.toFixed(4)}`, pad.l+W, pad.t+12);
-  ctx.fillStyle='#718096'; ctx.font='12px Segoe UI'; ctx.textAlign='center';
-  ctx.fillText('İterasyon', pad.l+W/2, cv.height-2);
+  ctx.fillStyle='#718096'; ctx.font='12px IBM Plex Sans'; ctx.textAlign='center';
+  ctx.fillText('İterasyon', pad.l+W/2, H_-2);
 }
 
 // ════════════════════════════════════════════════════════════
