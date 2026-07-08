@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Bearnaut — Markdown</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:#050505;min-height:100%;}
+body{display:flex;justify-content:center;padding:48px 24px;font-family:'Share Tech Mono',monospace;}
+.wrap{width:100%;max-width:900px;}
+.bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
+.back{color:#4aff4a;font-size:13px;letter-spacing:1px;text-decoration:none;border:1px solid #1e4a1e;border-radius:4px;padding:6px 12px;}
+.back:hover{background:#062006;color:#00ff41;}
+pre{background:#0a0a0a;border:1px solid #1e3a1e;border-radius:8px;padding:32px 36px;color:#c8f0c8;font-family:'Share Tech Mono',monospace;font-size:14px;line-height:1.7;white-space:pre-wrap;word-wrap:break-word;overflow-x:auto;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="bar"><a class="back" href="bearnaut_instruction_slide.html">← Terminal Görünümüne Dön</a></div>
+  <pre id="md"># BEARNAUT — Mission Briefing
+
+`C:\WORKSHOP\AI_GAME&gt; ./bearnaut --start-mission`
+`LOADING ASTRONAUT BEAR... [ OK ]`
+
+## Görev Tanımı
+
+**Senaryo**
+- Astronot ayı **Bearnaut** yabancı bir gezegende
+- Dünya'dan **10 CAN** ile gönderildi
+- Uzaylılar sağdan sola saldırıyor
+- Kurtulan her Bearnaut'u yeni gezegene taşır
+
+**Kontroller**
+| Tuş | Aksiyon |
+|---|---|
+| `↑` veya `SPACE` | ZIPLA |
+| `↓` | EĞİL |
+
+- Mobil: yukarı kaydır = zıpla
+- Mobil: aşağı tap = eğil
+
+---
+
+## Tehdit Sınıflandırması
+
+**Gelen Saldırılar**
+- 🔴 **ATEŞ TOPU** — 2 can kaybeder
+- 🟡 **BÜYÜK KURŞUN** — 1 can
+- ⚪ **KURŞUN** — 1 can
+
+&gt; Yüksekten gelen = **ZIPLAYARAK** geç
+&gt; Alçaktan gelen = **EĞİLEREK** geç
+
+**Zorluk Artışı**
+- Saldırılar zamanla hızlanır
+- Sıklık giderek artar
+- Gezegen 3'ten itibaren ateş topu sıklaşır
+- Hayatta kalma = **+1 puan**
+- Her 10 hayatta kalışta **+1 CAN**
+
+---
+
+## Gezegen Sistemi
+
+- 10'un katı kurtuluşta **YENİ GEZEGEN**
+- Her gezegen farklı renk ve atmosfer
+- Gezegenler: **ZEPHYRA › KROXUS › IGNARA › VELDOR › OMNYX**
+- Gezegen 10 › 20 › 30... kurtuluşta geçiş
+- Kaç gezegene ulaşabilirsin?
+- **0 can = GAME OVER**
+
+---
+
+*BEARNAUT MISSION CONTROL — AI_TRAINING_MODULE*
+</pre>
+</div>
+</body>
+</html>
