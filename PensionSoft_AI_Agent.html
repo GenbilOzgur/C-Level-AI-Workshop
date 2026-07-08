@@ -952,6 +952,305 @@
     .pcomp::after { display: none; }
     .tech-grid { grid-template-columns: 1fr; }
   }
+
+  /* ===== LLM loop overlay ===== */
+  .llm-overlay {
+    position: fixed; inset: 0; z-index: 1000;
+    background: var(--bg);
+    overflow-y: auto;
+    display: none;
+  }
+  .llm-overlay.open { display: block; }
+  .llm-overlay .page { animation: fade 0.25s ease; }
+
+#llm-overlay .page { max-width: 1480px; margin: 0 auto; padding: 40px 56px 80px; }
+#llm-overlay .backlink {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 12px; color: var(--ink-mute); text-decoration: none;
+    font-family: 'JetBrains Mono', monospace; margin-bottom: 20px;
+    padding: 6px 12px; border: 1px solid var(--line); border-radius: 999px;
+    background: white; transition: all 0.16s ease;
+  }
+#llm-overlay .backlink:hover { color: var(--ink); border-color: var(--line-strong); }
+#llm-overlay .header {
+    display: flex; justify-content: space-between; align-items: flex-end;
+    gap: 32px; padding-bottom: 24px; border-bottom: 1px solid var(--line);
+    margin-bottom: 28px;
+  }
+#llm-overlay .brand { display: flex; align-items: center; gap: 14px; }
+#llm-overlay .brand-mark {
+    width: 38px; height: 38px; border-radius: 10px;
+    background: linear-gradient(135deg, var(--lilac), var(--mint));
+    display: grid; place-items: center; color: var(--lilac-ink);
+    font-weight: 700; font-size: 18px; border: 1px solid var(--line);
+  }
+#llm-overlay .brand .eyebrow {
+    font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--ink-mute); font-weight: 600;
+  }
+#llm-overlay .brand h1 {
+    font-family: 'Instrument Serif', serif; font-weight: 400;
+    font-size: 30px; margin: 2px 0 0; letter-spacing: -0.01em;
+  }
+#llm-overlay .meta { display: flex; gap: 24px; font-size: 12px; color: var(--ink-mute); font-family: 'JetBrains Mono', monospace; }
+#llm-overlay .meta b { color: var(--ink); font-weight: 500; }
+#llm-overlay .intro { max-width: 880px; margin-bottom: 28px; }
+#llm-overlay .intro h2 {
+    font-family: 'Instrument Serif', serif; font-weight: 400;
+    font-size: 36px; line-height: 1.12; letter-spacing: -0.02em;
+    margin: 0 0 12px; text-wrap: balance;
+  }
+#llm-overlay .intro p { font-size: 15px; line-height: 1.55; color: var(--ink-soft); margin: 0; text-wrap: pretty; }
+#llm-overlay .intro em {
+    font-style: normal; color: var(--ink);
+    background: linear-gradient(transparent 60%, var(--butter) 60%); padding: 0 2px;
+  }
+#llm-overlay /* Scenario strip */
+  .scenario {
+    background: white; border: 1px solid var(--line); border-radius: 16px;
+    padding: 20px 24px; margin-bottom: 24px;
+    display: grid; grid-template-columns: auto 1fr; gap: 20px; align-items: center;
+  }
+#llm-overlay .scenario .scn-ico {
+    width: 46px; height: 46px; border-radius: 12px;
+    background: var(--rose); color: var(--rose-ink);
+    display: grid; place-items: center; flex-shrink: 0;
+  }
+#llm-overlay .scenario .scn-body h3 { font-size: 15px; font-weight: 600; margin: 0 0 4px; }
+#llm-overlay .scenario .scn-body p { font-size: 13px; color: var(--ink-soft); margin: 0; line-height: 1.5; }
+#llm-overlay .scenario .scn-body code {
+    font-family: 'JetBrains Mono', monospace; font-size: 12px;
+    background: var(--bg-2); border: 1px solid var(--line);
+    padding: 1px 6px; border-radius: 5px; color: var(--ink);
+  }
+#llm-overlay /* Document-reading layer card */
+  .doclayer {
+    background: white; border: 1px solid var(--line); border-radius: 16px;
+    padding: 22px 24px; margin-bottom: 24px;
+  }
+#llm-overlay .doclayer-head {
+    display: flex; align-items: center; gap: 12px; margin-bottom: 4px;
+  }
+#llm-overlay .doclayer-head .dl-ico {
+    width: 34px; height: 34px; border-radius: 10px; background: var(--sky); color: var(--sky-ink);
+    display: grid; place-items: center; flex-shrink: 0;
+  }
+#llm-overlay .doclayer-head h3 { font-size: 15px; font-weight: 600; margin: 0; }
+#llm-overlay .doclayer > .dl-lead { font-size: 13px; color: var(--ink-soft); margin: 8px 0 18px; line-height: 1.5; max-width: 860px; }
+#llm-overlay .doclayer-grid { display: grid; grid-template-columns: 1fr 1.25fr; gap: 20px; align-items: start; }
+@media (max-width: 1080px) {
+#llm-overlay .doclayer-grid { grid-template-columns: 1fr; }
+}
+#llm-overlay .dl-block .dl-label {
+    font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; font-weight: 700;
+    color: var(--ink-mute); margin-bottom: 10px;
+  }
+#llm-overlay .engine-row { display: flex; flex-wrap: wrap; gap: 8px; }
+#llm-overlay .engine {
+    display: inline-flex; align-items: center; gap: 7px;
+    border: 1px solid var(--line-strong); border-radius: 10px; padding: 8px 12px;
+    background: var(--bg-2); font-size: 12.5px; font-weight: 500;
+  }
+#llm-overlay .engine .e-dot { width: 7px; height: 7px; border-radius: 50%; }
+#llm-overlay .engine.cloud .e-dot { background: var(--sky-ink); }
+#llm-overlay .engine.local .e-dot { background: var(--mint-ink); }
+#llm-overlay .engine .e-tag {
+    font-family: 'JetBrains Mono', monospace; font-size: 9.5px; color: var(--ink-mute);
+    text-transform: uppercase; letter-spacing: 0.04em;
+  }
+#llm-overlay .engine-note { font-size: 11.5px; color: var(--ink-mute); margin: 10px 0 0; line-height: 1.5; }
+#llm-overlay .tpl-card {
+    border: 1px solid color-mix(in oklch, var(--peach), black 12%);
+    background: color-mix(in oklch, var(--peach), white 60%);
+    border-radius: 12px; padding: 14px 16px;
+  }
+#llm-overlay .tpl-flow { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; font-size: 12px; }
+#llm-overlay .tpl-step {
+    background: white; border: 1px solid var(--line); border-radius: 8px; padding: 5px 10px;
+    font-weight: 600; color: var(--ink);
+  }
+#llm-overlay .tpl-step.tool { background: var(--peach-ink); color: white; border-color: var(--peach-ink); font-family: 'JetBrains Mono', monospace; font-size: 11px; }
+#llm-overlay .tpl-arrow { color: var(--ink-mute); }
+#llm-overlay .codeblock-light {
+    font-family: 'JetBrains Mono', monospace; font-size: 11.5px;
+    background: oklch(0.27 0.02 270); color: oklch(0.92 0.02 160);
+    border-radius: 10px; padding: 12px 14px; white-space: pre; overflow-x: auto; line-height: 1.5;
+  }
+#llm-overlay .codeblock-light .k { color: oklch(0.80 0.12 50); }
+#llm-overlay .codeblock-light .s { color: oklch(0.82 0.10 145); }
+#llm-overlay .codeblock-light .c { color: oklch(0.62 0.02 270); }
+#llm-overlay /* Layout: transcript + side */
+  .loop-wrap { display: grid; grid-template-columns: 1.55fr 1fr; gap: 24px; align-items: start; }
+#llm-overlay /* Controls */
+  .controls {
+    display: flex; align-items: center; gap: 10px; margin-bottom: 16px;
+    background: white; border: 1px solid var(--line); border-radius: 14px; padding: 12px 16px;
+  }
+#llm-overlay .controls button {
+    appearance: none; font: inherit; font-size: 13px; font-weight: 500;
+    border: 1px solid var(--line-strong); background: white; color: var(--ink);
+    padding: 8px 16px; border-radius: 9px; cursor: pointer; transition: all 0.14s ease;
+    display: inline-flex; align-items: center; gap: 6px;
+  }
+#llm-overlay .controls button:hover:not(:disabled) { background: var(--bg-2); }
+#llm-overlay .controls button:disabled { opacity: 0.4; cursor: default; }
+#llm-overlay .controls button.primary { background: var(--lilac-ink); color: white; border-color: var(--lilac-ink); }
+#llm-overlay .controls button.primary:hover:not(:disabled) { filter: brightness(1.08); background: var(--lilac-ink); }
+#llm-overlay .controls .progress {
+    margin-left: auto; font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--ink-mute);
+    display: flex; align-items: center; gap: 12px;
+  }
+#llm-overlay .controls .progress b { color: var(--ink); }
+#llm-overlay .controls .loop-badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: var(--lilac); color: var(--lilac-ink);
+    padding: 4px 10px; border-radius: 999px; font-weight: 600; font-size: 11px;
+    letter-spacing: 0.04em; text-transform: uppercase;
+  }
+#llm-overlay .progress-bar { height: 4px; background: var(--bg-2); border-radius: 4px; overflow: hidden; width: 120px; }
+#llm-overlay .progress-bar .pf { height: 100%; background: var(--lilac-ink); border-radius: 4px; transition: width 0.3s ease; }
+#llm-overlay /* Transcript */
+  .transcript {
+    background: white; border: 1px solid var(--line); border-radius: 16px;
+    padding: 24px; max-height: 72vh; overflow-y: auto;
+    display: flex; flex-direction: column; gap: 18px;
+    scroll-behavior: smooth;
+  }
+#llm-overlay .transcript::-webkit-scrollbar { width: 8px; }
+#llm-overlay .transcript::-webkit-scrollbar-thumb { background: var(--line-strong); border-radius: 4px; }
+#llm-overlay .msg { display: flex; flex-direction: column; gap: 6px; max-width: 82%; }
+#llm-overlay .msg.proses { align-self: flex-start; align-items: flex-start; }
+#llm-overlay .msg.model { align-self: flex-end; align-items: flex-end; }
+#llm-overlay .msg.gate { align-self: stretch; max-width: 100%; align-items: stretch; }
+#llm-overlay .msg.hidden { display: none; }
+#llm-overlay .msg.appear { animation: pop 0.34s cubic-bezier(0.2,0.7,0.3,1) both; }
+@keyframes pop { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+#llm-overlay .msg .who {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-size: 11px; font-weight: 600; color: var(--ink-mute);
+    text-transform: uppercase; letter-spacing: 0.06em;
+  }
+#llm-overlay .msg.model .who { flex-direction: row-reverse; }
+#llm-overlay .who .ava {
+    width: 22px; height: 22px; border-radius: 7px; display: grid; place-items: center;
+    font-size: 11px; font-weight: 700; font-family: 'JetBrains Mono', monospace; color: white;
+  }
+#llm-overlay .who .ava.p { background: var(--lilac-ink); }
+#llm-overlay .who .ava.m { background: var(--mint-ink); }
+#llm-overlay .bubble {
+    border: 1.5px solid var(--line); border-radius: 14px; padding: 14px 16px;
+    background: white; position: relative;
+  }
+#llm-overlay .msg.proses .bubble { border-color: color-mix(in oklch, var(--lilac), black 12%); background: color-mix(in oklch, var(--lilac), white 55%); }
+#llm-overlay .msg.model .bubble { border-color: color-mix(in oklch, var(--mint), black 12%); background: color-mix(in oklch, var(--mint), white 55%); }
+#llm-overlay .msg.dim { opacity: 0.55; }
+#llm-overlay .chip {
+    display: inline-flex; align-items: center; gap: 5px;
+    font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em;
+    padding: 3px 9px; border-radius: 999px; margin-bottom: 8px;
+  }
+#llm-overlay .chip.context { background: var(--sky); color: var(--sky-ink); }
+#llm-overlay .chip.reason { background: var(--lilac); color: var(--lilac-ink); }
+#llm-overlay .chip.call { background: var(--peach); color: var(--peach-ink); }
+#llm-overlay .chip.result { background: var(--mint); color: var(--mint-ink); }
+#llm-overlay .chip.decision { background: var(--rose); color: var(--rose-ink); }
+#llm-overlay .bubble p { font-size: 13.5px; line-height: 1.5; margin: 0 0 8px; color: var(--ink); }
+#llm-overlay .bubble p:last-child { margin-bottom: 0; }
+#llm-overlay .bubble ul { margin: 6px 0 0; padding-left: 18px; }
+#llm-overlay .bubble li { font-size: 13px; line-height: 1.55; color: var(--ink); margin-bottom: 3px; }
+#llm-overlay .bubble .docref {
+    font-family: 'JetBrains Mono', monospace; font-size: 11px;
+    background: white; border: 1px solid var(--line); padding: 1px 6px; border-radius: 5px;
+  }
+#llm-overlay .codeblock {
+    font-family: 'JetBrains Mono', monospace; font-size: 12px;
+    background: oklch(0.27 0.02 270); color: oklch(0.92 0.02 160);
+    border-radius: 10px; padding: 12px 14px; margin-top: 8px;
+    white-space: pre; overflow-x: auto; line-height: 1.55;
+  }
+#llm-overlay .codeblock .k { color: oklch(0.80 0.12 50); }
+#llm-overlay /* keys / fn name */
+  .codeblock .s { color: oklch(0.82 0.10 145); }
+#llm-overlay /* strings */
+  .codeblock .n { color: oklch(0.80 0.11 250); }
+#llm-overlay /* numbers */
+  .codeblock .c { color: oklch(0.62 0.02 270); }
+#llm-overlay /* comment */
+  .codeblock .fn { color: oklch(0.86 0.10 95); font-weight: 500; }
+#llm-overlay /* Deterministic gate (full width) */
+  .gate .bubble {
+    background: var(--butter); border-color: color-mix(in oklch, var(--butter), black 24%);
+    border-style: solid;
+  }
+#llm-overlay .gate .who { color: var(--butter-ink); justify-content: center; }
+#llm-overlay .gate .who .ava { background: var(--butter-ink); }
+#llm-overlay .gate .checklist { list-style: none; padding: 0; margin: 8px 0 0; display: flex; flex-direction: column; gap: 6px; }
+#llm-overlay .gate .checklist li {
+    display: grid; grid-template-columns: 20px 1fr; gap: 10px; align-items: start;
+    font-size: 13px; color: var(--ink); margin: 0;
+  }
+#llm-overlay .gate .checklist li .ck {
+    width: 18px; height: 18px; border-radius: 50%; background: var(--mint-ink); color: white;
+    display: grid; place-items: center; font-size: 10px; margin-top: 1px;
+  }
+#llm-overlay .gate .checklist li .ck.x { background: var(--rose-ink); }
+#llm-overlay .gate .checklist li code {
+    font-family: 'JetBrains Mono', monospace; font-size: 11.5px;
+    background: white; border: 1px solid color-mix(in oklch, var(--butter), black 20%);
+    padding: 1px 6px; border-radius: 5px;
+  }
+#llm-overlay /* Outcome banner */
+  .outcome {
+    background: var(--sky); border: 1.5px solid color-mix(in oklch, var(--sky), black 16%);
+    border-radius: 16px; padding: 20px 24px; margin-top: 4px;
+    display: grid; grid-template-columns: auto 1fr; gap: 18px; align-items: center;
+  }
+#llm-overlay .outcome.hidden { display: none; }
+#llm-overlay .outcome .oc-ico {
+    width: 44px; height: 44px; border-radius: 12px; background: white; color: var(--sky-ink);
+    display: grid; place-items: center; border: 1px solid color-mix(in oklch, var(--sky), black 16%);
+  }
+#llm-overlay .outcome h3 { font-family: 'Instrument Serif', serif; font-weight: 400; font-size: 22px; margin: 0 0 2px; color: var(--sky-ink); letter-spacing: -0.01em; }
+#llm-overlay .outcome p { font-size: 13px; color: var(--ink); margin: 0; line-height: 1.5; }
+#llm-overlay /* Side panel */
+  .side { display: flex; flex-direction: column; gap: 18px; position: sticky; top: 24px; }
+#llm-overlay .side-card { background: white; border: 1px solid var(--line); border-radius: 16px; padding: 20px; }
+#llm-overlay .side-card h3 {
+    font-family: 'Instrument Serif', serif; font-weight: 400; font-size: 20px;
+    margin: 0 0 4px; letter-spacing: -0.01em;
+  }
+#llm-overlay .side-card .lead { font-size: 12.5px; color: var(--ink-soft); margin: 0 0 14px; line-height: 1.5; }
+#llm-overlay .vs { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+#llm-overlay .vs-col { border-radius: 12px; padding: 14px; }
+#llm-overlay .vs-col.prob { background: color-mix(in oklch, var(--mint), white 55%); border: 1px solid color-mix(in oklch, var(--mint), black 14%); }
+#llm-overlay .vs-col.det { background: color-mix(in oklch, var(--butter), white 45%); border: 1px solid color-mix(in oklch, var(--butter), black 22%); }
+#llm-overlay .vs-col h4 { font-size: 12px; font-weight: 700; margin: 0 0 8px; text-transform: uppercase; letter-spacing: 0.05em; }
+#llm-overlay .vs-col.prob h4 { color: var(--mint-ink); }
+#llm-overlay .vs-col.det h4 { color: var(--butter-ink); }
+#llm-overlay .vs-col ul { margin: 0; padding-left: 16px; }
+#llm-overlay .vs-col li { font-size: 12px; line-height: 1.5; color: var(--ink); margin-bottom: 4px; }
+#llm-overlay .legend-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 8px; }
+#llm-overlay .legend-list li { display: flex; align-items: center; gap: 10px; font-size: 12.5px; color: var(--ink-soft); }
+#llm-overlay .legend-list li .lchip {
+    font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;
+    padding: 3px 9px; border-radius: 999px; flex-shrink: 0; min-width: 92px; text-align: center;
+  }
+#llm-overlay .lchip.context { background: var(--sky); color: var(--sky-ink); }
+#llm-overlay .lchip.reason { background: var(--lilac); color: var(--lilac-ink); }
+#llm-overlay .lchip.call { background: var(--peach); color: var(--peach-ink); }
+#llm-overlay .lchip.result { background: var(--mint); color: var(--mint-ink); }
+#llm-overlay .lchip.gate { background: var(--butter); color: var(--butter-ink); }
+#llm-overlay .lchip.decision { background: var(--rose); color: var(--rose-ink); }
+#llm-overlay .foot {
+    margin-top: 44px; padding-top: 24px; border-top: 1px solid var(--line);
+    display: flex; justify-content: space-between; font-size: 11px; color: var(--ink-mute);
+    font-family: 'JetBrains Mono', monospace;
+  }
+@media (max-width: 1080px) {
+#llm-overlay .loop-wrap { grid-template-columns: 1fr; }
+#llm-overlay .side { position: static; }
+#llm-overlay .msg { max-width: 92%; }
+}
 </style>
 </head>
 <body>
@@ -1047,7 +1346,7 @@
 
         <!-- CENTER: agent -->
         <div class="col-agent">
-          <a class="llm-block" href="AI Agent - LLM Dongusu.html" title="AI Agent ↔ LLM döngüsünü incele">
+          <a class="llm-block" href="javascript:void(0)" onclick="openLlmOverlay(); return false;" title="AI Agent ↔ LLM döngüsünü incele">
             <div class="llm-card">
               <div class="kicker">LLM Modelleri</div>
               <h3>Pluggable model katmanı</h3>
@@ -1174,9 +1473,9 @@
         <p class="scn-lead">AI Agent talebi anlıyor, müşteriyi doğruluyor ve değişikliği kendi yapıyor. Dispatcher ekranına hiç düşmüyor.</p>
 
         <div class="email-card">
-          <div class="from">Kimden: <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="1d7c646e7833797870746f5d78657c706d7178337e7270">[email&#160;protected]</a></div>
+          <div class="from">Kimden: <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="ed8c949e88c3898880849fad88958c809d8188c38e8280">[email&#160;protected]</a></div>
           <div class="subj">E-posta adres değişikliği talebi</div>
-          <div class="body">"Merhaba, sözleşme no: 4421987. Yeni e-posta adresim <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="9cfde5eff9b2f8dcf9e4fdf1ecf0f9b2fff3f1">[email&#160;protected]</a> olarak güncellenebilir mi? Teşekkürler."</div>
+          <div class="body">"Merhaba, sözleşme no: 4421987. Yeni e-posta adresim <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="c6a7bfb5a3e8a286a3bea7abb6aaa3e8a5a9ab">[email&#160;protected]</a> olarak güncellenebilir mi? Teşekkürler."</div>
         </div>
 
         <ol class="steps">
@@ -1200,7 +1499,7 @@
         <p class="scn-lead">AI Agent çıkış talebini tanıyor; müşteriyi Function Call ile eşleştiriyor; ticket'i doğru kategoriyle açıp ilgili operasyon ekibine yönlendiriyor.</p>
 
         <div class="email-card">
-          <div class="from">Kimden: <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="bad794c3d3d6d7dbc0fadfc2dbd7cad6df94d9d5d7">[email&#160;protected]</a></div>
+          <div class="from">Kimden: <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="7a1754031316171b003a1f021b170a161f54191517">[email&#160;protected]</a></div>
           <div class="subj">Sözleşme iptali</div>
           <div class="body">"Merhaba, BES sözleşmemden ayrılmak istiyorum. Gerekli işlemleri başlatabilir misiniz? TC: 1********8"</div>
         </div>
@@ -1226,7 +1525,7 @@
         <p class="scn-lead">Talep belirsiz, müşteri net eşleşmiyor veya birden fazla niyet birleşmiş. AI Agent emin değil — Dispatcher ekibi mevcut akışla devam eder.</p>
 
         <div class="email-card">
-          <div class="from">Kimden: <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="15777c797c7b78706c707b557278747c793b767a78">[email&#160;protected]</a></div>
+          <div class="from">Kimden: <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="67050e0b0e090a021e020927000a060e0b4904080a">[email&#160;protected]</a></div>
           <div class="subj">Yardım</div>
           <div class="body">"Merhaba, geçen yıl sanırım bir sözleşme yapmıştım, ne durumda olduğuna bakar mısınız? Bir de oğluma da bir tane açtırmak istiyorum…"</div>
         </div>
@@ -1341,6 +1640,167 @@
   </footer>
 </div>
 
+
+<div class="llm-overlay" id="llm-overlay">
+  <div class="page">
+
+
+  <button type="button" class="backlink" onclick="closeLlmOverlay()" style="cursor:pointer;">← Ana diyagrama dön</button>
+
+  <header class="header">
+    <div class="brand">
+      <div class="brand-mark">↻</div>
+      <div>
+        <div class="eyebrow">PensionSoft AI Agent · Derinleştirme</div>
+        <h1>AI Agent ↔ LLM — İteratif Döngü</h1>
+      </div>
+    </div>
+    <div class="meta">
+      <span>Mimari: <b>Function Calling</b></span>
+      <span>Model: <b>Azure OpenAI</b></span>
+    </div>
+  </header>
+
+  <div class="intro">
+    <h2>Proses ve model, tek seferde değil; <em>adım adım, sonuçlara göre</em> konuşur.</h2>
+    <p>AI Agent (proses) deterministik tarafı yönetir: fonksiyonları çalıştırır, doğrular, son kararı verir. LLM olasılıksal tarafı yapar: okur, sınıflandırır, akıl yürütür, sıradaki adımı önerir. Her tur, modelin önerisi + prosesin gerçek sonucu ile ilerler. Aşağıdaki gerçek bir senaryonun tur tur simülasyonudur.</p>
+  </div>
+
+  <div class="scenario">
+    <div class="scn-ico" aria-hidden="true">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16v16H4z"/><path d="M4 8h16M9 4v16"/></svg>
+    </div>
+    <div class="scn-body">
+      <h3>Senaryo — tanınmayan gönderen + ekli dokümanlar</h3>
+      <p>Müşteri e-postası bilinmeyen bir adresten geldi: <code><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="4e2134293b3c292b202d7f7776790e29232f2722602d2123">[email&#160;protected]</a></code>. Gövdede "sözleşmemden ayrılmak istiyorum" yazıyor; ekte <code>3 sayfa</code> görüntü var (nüfus cüzdanı ön/arka + ayrılma talep formu). <code>customer.lookup</code> e-posta ile sonuç getirmedi.</p>
+    </div>
+  </div>
+
+  <div class="doclayer">
+    <div class="doclayer-head">
+      <div class="dl-ico" aria-hidden="true">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3v4a1 1 0 0 0 1 1h4"/><path d="M5 3h9l5 5v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/><path d="M8 13h6M8 17h4"/></svg>
+      </div>
+      <h3>Doküman Okuma Katmanı</h3>
+    </div>
+    <p class="dl-lead">Görüntüden metin/alan çıkarımı, girdinin kalitesine göre seçilebilir bir motorla yapılır. Tanınan <b>şablon dokümanlar</b> (örn. ayrılma talep formu) için ayrı bir tool, o şablona özel <b>JSON çıkarım kurallarını</b> döner — model serbest okumak yerine bu şemaya göre alanları doldurur.</p>
+
+    <div class="doclayer-grid">
+      <div class="dl-block">
+        <div class="dl-label">OCR / Vision motorları</div>
+        <div class="engine-row">
+          <span class="engine cloud"><span class="e-dot"></span> OpenAI GPT-4.x Vision <span class="e-tag">bulut</span></span>
+          <span class="engine local"><span class="e-dot"></span> PaddleOCR <span class="e-tag">on-prem</span></span>
+          <span class="engine local"><span class="e-dot"></span> GLM-OCR <span class="e-tag">on-prem</span></span>
+          <span class="engine local"><span class="e-dot"></span> Chandra OCR <span class="e-tag">on-prem</span></span>
+        </div>
+        <p class="engine-note">Temiz/dijital belgede vision modeli; el yazısı, yoğun foto ya da veri kuruma içinde kalmalı dendiğinde on-prem OCR. Çıkan değer her durumda DB'de çapraz doğrulanır.</p>
+      </div>
+
+      <div class="dl-block">
+        <div class="dl-label">Şablon doküman → çıkarım kuralı tool'u</div>
+        <div class="tpl-card">
+          <div class="tpl-flow">
+            <span class="tpl-step">Doküman tipi: ayrilma_talep_formu</span>
+            <span class="tpl-arrow">→</span>
+            <span class="tpl-step tool">get_extraction_schema()</span>
+            <span class="tpl-arrow">→</span>
+            <span class="tpl-step">JSON kuralları</span>
+          </div>
+          <div class="codeblock-light"><span class="c">// tool, şablona özel çıkarım şemasını döner</span>
+{
+  <span class="k">template</span>: <span class="s">"ayrilma_talep_formu"</span>,
+  <span class="k">fields</span>: [
+    { <span class="k">key</span>: <span class="s">"sozlesme_no"</span>, <span class="k">tip</span>: <span class="s">"regex"</span>, <span class="k">desen</span>: <span class="s">"^\\d{8,12}$"</span>, <span class="k">zorunlu</span>: <span class="s">true</span> },
+    { <span class="k">key</span>: <span class="s">"tckn"</span>, <span class="k">tip</span>: <span class="s">"tckn"</span>, <span class="k">dogrulama</span>: <span class="s">"checksum"</span> },
+    { <span class="k">key</span>: <span class="s">"cikis_nedeni"</span>, <span class="k">tip</span>: <span class="s">"enum"</span> },
+    { <span class="k">key</span>: <span class="s">"islak_imza"</span>, <span class="k">tip</span>: <span class="s">"bool"</span> }
+  ]
+}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="loop-wrap">
+    <!-- LEFT: transcript + controls -->
+    <div>
+      <div class="controls">
+        <button id="btn-prev">← Geri</button>
+        <button id="btn-next" class="primary">İleri →</button>
+        <button id="btn-auto">▶ Otomatik</button>
+        <button id="btn-reset">↺ Baştan</button>
+        <div class="progress">
+          <span class="loop-badge">↻ Tur <b id="loop-n">0</b></span>
+          <span>Adım <b id="step-n">0</b>/<b id="step-tot">0</b></span>
+          <div class="progress-bar"><div class="pf" id="pf"></div></div>
+        </div>
+      </div>
+
+      <div class="transcript" id="transcript"></div>
+
+      <div class="outcome hidden" id="outcome">
+        <div class="oc-ico" aria-hidden="true">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+        </div>
+        <div>
+          <h3>Sonuç — Yol B · Kategorize &amp; Yönlendir</h3>
+          <p>Müşteri dokümanlardan doğrulandı, kategori "Çıkış" olarak belirlendi, ticket doğru kategori &amp; eklerle Çıkış ekibine yönlendirildi. <b>Dispatcher devre dışı.</b> Dokümanlar okunamasa ya da isim teyidi tutmasaydı döngü Yol C — insana devret ile sonlanırdı.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: side panel -->
+    <aside class="side">
+      <div class="side-card">
+        <h3>İki taraf, iki sorumluluk</h3>
+        <p class="lead">Döngünün her turunda roller nettir — güveni model değil, proses verir.</p>
+        <div class="vs">
+          <div class="vs-col prob">
+            <h4>◎ LLM · Olasılıksal</h4>
+            <ul>
+              <li>Doküman okur (vision)</li>
+              <li>Tip sınıflandırır</li>
+              <li>Bilgi çıkarır (TCKN, no)</li>
+              <li>Akıl yürütür</li>
+              <li>Sıradaki adımı <em>önerir</em></li>
+            </ul>
+          </div>
+          <div class="vs-col det">
+            <h4>▣ Proses · Deterministik</h4>
+            <ul>
+              <li>Fonksiyonu çalıştırır</li>
+              <li>Checksum doğrular</li>
+              <li>DB çapraz kontrol</li>
+              <li>İş kurallarını uygular</li>
+              <li>Son kararı <em>verir</em></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="side-card">
+        <h3>Mesaj tipleri</h3>
+        <ul class="legend-list">
+          <li><span class="lchip context">Bağlam</span> Sistem talimatı + araçlar + girdiler</li>
+          <li><span class="lchip reason">Akıl yürütme</span> Modelin düşünmesi</li>
+          <li><span class="lchip call">Fonksiyon</span> Modelin çağrı önerisi</li>
+          <li><span class="lchip result">Araç sonucu</span> Prosesin çalıştırıp döndürdüğü</li>
+          <li><span class="lchip gate">Doğrulama</span> Deterministik kapı (proseste)</li>
+          <li><span class="lchip decision">Karar</span> Nihai aksiyon</li>
+        </ul>
+      </div>
+    </aside>
+  </div>
+
+  <footer class="foot">
+    <span>PENSIONSOFT AI AGENT · İTERATİF DÖNGÜ SİMÜLASYONU</span>
+    <span>Function Calling · Azure OpenAI</span>
+  </footer>
+
+  </div>
+</div>
+
 <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
   // Tab switching
   const tabs = document.querySelectorAll('.tab');
@@ -1353,6 +1813,172 @@
       document.getElementById(t.dataset.target).classList.add('active');
     });
   });
+</script>
+
+<script>
+  function openLlmOverlay() {
+    document.getElementById('llm-overlay').classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeLlmOverlay() {
+    document.getElementById('llm-overlay').classList.remove('open');
+    document.body.style.overflow = '';
+  }
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && document.getElementById('llm-overlay').classList.contains('open')) closeLlmOverlay();
+  });
+</script>
+<script>
+  (function() {
+
+  // ---- Conversation data (each entry = one revealed step) ----
+  const TURNS = [
+    {
+      side: 'proses', who: 'AI Agent · Proses', ava: 'p', chip: ['context','Bağlam'], loop: 1,
+      html: `<p>İlk çağrı. Modele tüm bağlamı ve girdileri tek pakette veriyorum:</p>
+        <ul>
+          <li><b>Sistem talimatı</b> + kullanılabilir araçlar: <span class="docref">customer.lookup · contract.read · email.update · ticket.create · exit.request</span></li>
+          <li><b>Kategori listesi:</b> Adres Değişikliği · Çıkış · Fon Değişikliği · Şikayet · Diğer</li>
+          <li><b>Doküman tipi taksonomisi:</b> nufus_cuzdani · ayrilma_talep_formu · dilekce · imza_sirkuleri · diger</li>
+          <li><b>E-posta gövdesi</b> + <b>3 sayfa görüntü</b> (PNG, <span class="docref">detail: high</span>)</li>
+          <li><b>Görev:</b> "Müşteriyi tanımla, niyeti belirle, gereken aksiyonları öner."</li>
+        </ul>`
+    },
+    {
+      side: 'model', who: 'LLM · Azure OpenAI', ava: 'm', chip: ['reason','Akıl yürütme'], loop: 1,
+      html: `<p>Gönderen adresi tanıdık görünmüyor. Doğru müşteriyi bulmadan hiçbir aksiyon almamalıyım. Önce e-posta adresiyle arayayım.</p>`,
+      code: `<span class="fn">customer.lookup</span>({\n  <span class="k">email</span>: <span class="s">"ozgurgenc1987@gmail.com"</span>\n})`
+    },
+    {
+      side: 'proses', who: 'AI Agent · Proses', ava: 'p', chip: ['result','Araç sonucu'], loop: 1,
+      html: `<p>Fonksiyonu CRM üzerinde çalıştırdım, sonucu modele geri veriyorum:</p>`,
+      code: `{ <span class="k">matches</span>: <span class="n">0</span> }   <span class="c">// e-posta ile eşleşme yok</span>`
+    },
+    {
+      side: 'model', who: 'LLM · Azure OpenAI', ava: 'm', chip: ['reason','Akıl yürütme + Okuma'], loop: 2,
+      html: `<p>E-posta eşleşmedi. Ekteki görüntüleri okuyorum ve sınıflandırıyorum:</p>
+        <ul>
+          <li><span class="docref">Görüntü 1–2</span> → <b>nufus_cuzdani</b> (ön/arka)</li>
+          <li><span class="docref">Görüntü 3</span> → <b>ayrilma_talep_formu</b></li>
+        </ul>
+        <p>Kimlik ve dilekçede TCKN okunuyor. Bununla tekrar müşteri araması öneriyorum.</p>`,
+      code: `<span class="c">// yapısal çıkarım</span>\n{\n  <span class="k">documents</span>: [\n    { <span class="k">tip</span>: <span class="s">"nufus_cuzdani"</span>, <span class="k">sayfalar</span>: [<span class="n">1</span>,<span class="n">2</span>] },\n    { <span class="k">tip</span>: <span class="s">"ayrilma_talep_formu"</span>, <span class="k">sayfalar</span>: [<span class="n">3</span>] }\n  ],\n  <span class="k">extracted</span>: { <span class="k">tckn</span>: <span class="s">"1xxxxxxxx8"</span>, <span class="k">isim</span>: <span class="s">"Özgür Genç"</span> }\n}\n<span class="fn">customer.lookup</span>({ <span class="k">tckn</span>: <span class="s">"1xxxxxxxx8"</span> })`
+    },
+    {
+      side: 'gate', who: 'Proses · Deterministik Doğrulama', ava: 'p', chip: ['gate','Doğrulama kapısı'], loop: 2,
+      html: `<p>Modelin döndüğü TCKN'e <b>körü körüne güvenmiyorum.</b> Proses içinde sırayla doğruluyorum:</p>
+        <ul class="checklist">
+          <li><span class="ck">✓</span><span>TCKN <b>checksum</b> doğrulaması → <code>geçerli</code></span></li>
+          <li><span class="ck">✓</span><span><code>customer.lookup(tckn)</code> → 1 kayıt: <b>Mehmet Özgür Genç</b></span></li>
+          <li><span class="ck">✓</span><span>Çapraz kontrol — e-postadaki <code>Özgür Genç</code> ⊆ <code>Mehmet Özgür Genç</code> → isim teyit edildi</span></li>
+        </ul>`
+    },
+    {
+      side: 'proses', who: 'AI Agent · Proses', ava: 'p', chip: ['result','Araç sonucu'], loop: 2,
+      html: `<p>Doğrulanmış müşteri kaydını modele iletiyorum:</p>`,
+      code: `{\n  <span class="k">match</span>: <span class="n">1</span>,\n  <span class="k">customer_id</span>: <span class="s">"C-44219"</span>,\n  <span class="k">ad</span>: <span class="s">"Mehmet Özgür Genç"</span>,\n  <span class="k">durum</span>: <span class="s">"Aktif"</span>\n}`
+    },
+    {
+      side: 'model', who: 'LLM · Azure OpenAI', ava: 'm', chip: ['decision','Akıl yürütme + Karar'], loop: 3,
+      html: `<p>Müşteri doğrulandı. Ekte <b>ayrılma talep formu</b> var ve e-posta gövdesi de çıkış niyeti taşıyor — iki bağımsız sinyal aynı yöne işaret ediyor. Kategori = <b>Çıkış</b>. Bu işlem otomatik yapılamaz; operasyon ekibi gerektirir, o yüzden ticket açılmasını öneriyorum.</p>`,
+      code: `<span class="fn">ticket.create</span>({\n  <span class="k">kategori</span>: <span class="s">"Çıkış"</span>,\n  <span class="k">customer_id</span>: <span class="s">"C-44219"</span>,\n  <span class="k">ekler</span>: [<span class="s">"nufus_cuzdani"</span>, <span class="s">"ayrilma_talep_formu"</span>],\n  <span class="k">ozet</span>: <span class="s">"Müşteri BES sözleşmesinden çıkış talep ediyor."</span>\n})`
+    },
+    {
+      side: 'gate', who: 'Proses · Karar Kapısı', ava: 'p', chip: ['gate','Deterministik karar'], loop: 3,
+      html: `<p>Güven yüksek + iş kuralı uygulanıyor:</p>
+        <ul class="checklist">
+          <li><span class="ck">✓</span><span>İş kuralı: <code>"Çıkış"</code> otomatik işlenmez → <b>ticket oluştur</b></span></li>
+          <li><span class="ck">✓</span><span>Doğru kategori &amp; müşteriyle <b>Çıkış ekibine</b> yönlendirildi</span></li>
+          <li><span class="ck">✓</span><span>Dokümanlar tipleriyle <b>CRM'e eklendi</b></span></li>
+        </ul>
+        <p style="margin-top:8px"><b>Döngü tamamlandı.</b></p>`
+    }
+  ];
+
+  // ---- Player ----
+  const transcript = document.getElementById('transcript');
+  const outcome = document.getElementById('outcome');
+  let cur = -1; // index of last revealed step
+  let autoTimer = null;
+  const STORE = 'llmloop_step_v1';
+
+  // Build all message nodes once
+  const nodes = TURNS.map((t, i) => {
+    const m = document.createElement('div');
+    m.className = `msg ${t.side} hidden`;
+    const codeHtml = t.code ? `<div class="codeblock">${t.code}</div>` : '';
+    m.innerHTML = `
+      <div class="who"><span class="ava ${t.ava}">${t.ava === 'p' ? 'P' : 'M'}</span>${t.who}</div>
+      <div class="bubble">
+        <span class="chip ${t.chip[0]}">${t.chip[1]}</span>
+        ${t.html}
+        ${codeHtml}
+      </div>`;
+    transcript.appendChild(m);
+    return m;
+  });
+
+  document.getElementById('step-tot').textContent = TURNS.length;
+
+  function update(animateNew) {
+    nodes.forEach((n, i) => {
+      n.classList.remove('appear'); // never let the pre-animation (opacity:0) frame persist
+      if (i <= cur) {
+        n.classList.remove('hidden');
+        n.classList.toggle('dim', i < cur);
+        if (i === cur && animateNew) {
+          void n.offsetWidth; n.classList.add('appear');
+          setTimeout(() => n.classList.remove('appear'), 420); // transient: settles to base opacity
+        }
+      } else {
+        n.classList.add('hidden');
+      }
+    });
+    const shown = cur + 1;
+    document.getElementById('step-n').textContent = shown;
+    document.getElementById('loop-n').textContent = cur >= 0 ? TURNS[cur].loop : 0;
+    document.getElementById('pf').style.width = (shown / TURNS.length * 100) + '%';
+    document.getElementById('btn-prev').disabled = cur < 0;
+    document.getElementById('btn-next').disabled = cur >= TURNS.length - 1;
+    outcome.classList.toggle('hidden', cur < TURNS.length - 1);
+    if (cur >= 0) transcript.scrollTop = transcript.scrollHeight;
+    try { localStorage.setItem(STORE, String(cur)); } catch(e) {}
+  }
+
+  function next() { if (cur < TURNS.length - 1) { cur++; update(true); } }
+  function prev() { if (cur >= 0) { cur--; update(false); } }
+  function reset() { cur = -1; update(false); stopAuto(); }
+
+  function stopAuto() {
+    if (autoTimer) { clearInterval(autoTimer); autoTimer = null; }
+    document.getElementById('btn-auto').textContent = '▶ Otomatik';
+  }
+  function toggleAuto() {
+    if (autoTimer) { stopAuto(); return; }
+    if (cur >= TURNS.length - 1) reset();
+    document.getElementById('btn-auto').textContent = '⏸ Durdur';
+    autoTimer = setInterval(() => {
+      if (cur >= TURNS.length - 1) { stopAuto(); return; }
+      next();
+    }, 2300);
+  }
+
+  document.getElementById('btn-next').addEventListener('click', () => { stopAuto(); next(); });
+  document.getElementById('btn-prev').addEventListener('click', () => { stopAuto(); prev(); });
+  document.getElementById('btn-auto').addEventListener('click', toggleAuto);
+  document.getElementById('btn-reset').addEventListener('click', reset);
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight') { stopAuto(); next(); }
+    if (e.key === 'ArrowLeft') { stopAuto(); prev(); }
+  });
+
+  // Restore position
+  let start = -1;
+  try { const s = localStorage.getItem(STORE); if (s !== null) start = Math.max(-1, Math.min(TURNS.length - 1, parseInt(s, 10))); } catch(e) {}
+  cur = start;
+  update(false);
+
+  })();
 </script>
 </body>
 </html>
