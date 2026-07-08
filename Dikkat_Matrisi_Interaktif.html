@@ -4,12 +4,15 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Vektörler, Örüntüler ve Anlama — AI Eğitimi</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 * { margin:0; padding:0; box-sizing:border-box; }
 
 body {
   background:#F5F7FA; color:#1A202C;
-  font-family:'Segoe UI', Calibri, Arial, sans-serif;
+  font-family:'IBM Plex Sans','Segoe UI',Arial,sans-serif;
   height:100vh; display:flex; flex-direction:column; overflow:hidden;
 }
 
@@ -26,7 +29,7 @@ header {
   padding:5px 12px; border-radius:4px; white-space:nowrap;
 }
 header h1 {
-  font-size:15px; font-family:Georgia,serif;
+  font-size:15px; font-family:'IBM Plex Sans',sans-serif;
   color:#1A202C; font-weight:normal; flex:1;
 }
 .stabs { display:flex; gap:6px; flex-shrink:0; }
@@ -35,7 +38,7 @@ header h1 {
   background:#F5F7FA; color:#4A5568;
   font-size:13px; font-weight:700; border-radius:20px;
   cursor:pointer; transition:all 0.15s;
-  font-family:'Segoe UI',Calibri,Arial,sans-serif;
+  font-family:'IBM Plex Sans','Segoe UI',Arial,sans-serif;
 }
 .stab:hover { border-color:#7C3AED; color:#7C3AED; }
 .stab.active {
@@ -55,8 +58,14 @@ canvas { position:absolute; top:0; left:0; width:100%; height:100%; }
   display:flex; flex-direction:column; gap:14px;
 }
 .kicker { font-size:11px; font-weight:800; letter-spacing:2.5px; text-transform:uppercase; }
-.ptitle { font-size:23px; font-family:Georgia,serif; color:#1A202C; line-height:1.25; font-weight:bold; }
+.ptitle { font-size:23px; font-family:'IBM Plex Sans',sans-serif; color:#1A202C; line-height:1.25; font-weight:bold; }
 .divider { height:2px; background:#E2E8F0; border-radius:1px; }
+
+.panel-image {
+  width:100%; height:150px; border-radius:10px;
+  overflow:hidden; border:2px solid #E2E8F0; flex-shrink:0;
+  background:#EDF2F7;
+}
 
 .body-text { font-size:16px; line-height:1.7; color:#2D3748; }
 .body-text strong { color:#1A202C; }
@@ -111,7 +120,7 @@ canvas { position:absolute; top:0; left:0; width:100%; height:100%; }
 .custom-section input {
   width:100%; padding:11px 15px;
   border:2px solid #CBD5E0; border-radius:8px;
-  font-size:16px; font-family:'Segoe UI',Calibri,Arial,sans-serif;
+  font-size:16px; font-family:'IBM Plex Sans','Segoe UI',Arial,sans-serif;
   color:#1A202C; background:#FAFAFA; outline:none;
   transition:border-color 0.15s;
 }
@@ -120,7 +129,7 @@ canvas { position:absolute; top:0; left:0; width:100%; height:100%; }
 .custom-section button {
   padding:11px 18px; border:none; border-radius:8px;
   font-size:15px; font-weight:700; cursor:pointer;
-  font-family:'Segoe UI',Calibri,Arial,sans-serif;
+  font-family:'IBM Plex Sans','Segoe UI',Arial,sans-serif;
   transition:all 0.15s;
 }
 .btn-p { background:#7C3AED; color:#fff; flex:1; }
@@ -131,26 +140,27 @@ canvas { position:absolute; top:0; left:0; width:100%; height:100%; }
 /* ── NAV ──────────────────────────────────────────────────── */
 .nav {
   display:flex; flex-shrink:0;
-  border-top:2px solid #E2E8F0; background:#fff;
-  box-shadow:0 -2px 8px rgba(0,0,0,0.06);
+  border-bottom:2px solid #E2E8F0; background:#fff;
+  box-shadow:0 2px 8px rgba(0,0,0,0.06);
 }
 .nav button {
   flex:1; padding:14px 8px;
   background:transparent; border:none;
-  border-top:4px solid transparent;
+  border-bottom:4px solid transparent;
   color:#64748B; font-size:14px; font-weight:600;
   cursor:pointer; transition:all 0.2s;
-  font-family:'Segoe UI',Calibri,Arial,sans-serif;
+  font-family:'IBM Plex Sans','Segoe UI',Arial,sans-serif;
   letter-spacing:0.2px;
 }
 .nav button:hover { color:#7C3AED; background:rgba(124,58,237,0.04); }
 .nav button.active {
-  color:#7C3AED; border-top-color:#7C3AED;
+  color:#7C3AED; border-bottom-color:#7C3AED;
   background:rgba(124,58,237,0.06);
 }
 </style>
 </head>
 <body>
+<script src="image-slot.js"></script>
 
 <header>
   <span class="badge">MODÜL 1 · YAPAY ZEKA DEVRİMİ</span>
@@ -161,15 +171,15 @@ canvas { position:absolute; top:0; left:0; width:100%; height:100%; }
   </div>
 </header>
 
-<div class="main">
-  <div class="canvas-wrap"><canvas id="cvs"></canvas></div>
-  <div class="panel" id="panel"></div>
-</div>
-
 <div class="nav">
   <button id="btn0" onclick="setStep(0)">① Vektör Uzayı</button>
   <button id="btn1" onclick="setStep(1)">② Dikkat Matrisi</button>
   <button id="btn2" onclick="setStep(2)">③ Sıra Bağımsızlığı</button>
+</div>
+
+<div class="main">
+  <div class="canvas-wrap"><canvas id="cvs"></canvas></div>
+  <div class="panel" id="panel"></div>
 </div>
 
 <script>
@@ -319,6 +329,19 @@ function rgba(hex, a) { const [r,g,b]=hexToRgb(hex); return `rgba(${r},${g},${b}
 function lighten(hex) {
   const [r,g,b]=hexToRgb(hex);
   return `rgb(${Math.min(r+70,255)},${Math.min(g+70,255)},${Math.min(b+70,255)})`;
+}
+function mixHex(hex1, hex2, t) {
+  const [r1,g1,b1]=hexToRgb(hex1), [r2,g2,b2]=hexToRgb(hex2);
+  const r=Math.round(lerp(r1,r2,t)), g=Math.round(lerp(g1,g2,t)), b=Math.round(lerp(b1,b2,t));
+  return '#'+[r,g,b].map(x=>x.toString(16).padStart(2,'0')).join('');
+}
+function roundRectPath(x,y,w,h,r) {
+  ctx.beginPath();
+  ctx.moveTo(x+r,y); ctx.lineTo(x+w-r,y); ctx.quadraticCurveTo(x+w,y,x+w,y+r);
+  ctx.lineTo(x+w,y+h-r); ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);
+  ctx.lineTo(x+r,y+h); ctx.quadraticCurveTo(x,y+h,x,y+h-r);
+  ctx.lineTo(x,y+r); ctx.quadraticCurveTo(x,y,x+r,y);
+  ctx.closePath();
 }
 
 // Dikkat değerine göre AÇIK TEMA hücre rengi
@@ -476,12 +499,12 @@ function drawVectorSpace() {
     ctx.beginPath(); ctx.ellipse(z.cx,z.cy,z.rx,z.ry,0,0,Math.PI*2);
     ctx.fillStyle=rgba(z.color,0.07); ctx.fill();
     ctx.strokeStyle=rgba(z.color,0.22); ctx.lineWidth=2; ctx.stroke();
-    ctx.font='bold 11px Calibri'; ctx.fillStyle=rgba(z.color,0.75);
+    ctx.font='bold 11px IBM Plex Sans'; ctx.fillStyle=rgba(z.color,0.75);
     ctx.textAlign='center'; ctx.fillText(z.label,z.cx,z.cy-z.ry-8);
   });
 
   // Eksen etiketleri
-  ctx.font='11px Calibri'; ctx.fillStyle='rgba(100,116,139,0.7)'; ctx.textAlign='center';
+  ctx.font='11px IBM Plex Sans'; ctx.fillStyle='rgba(100,116,139,0.7)'; ctx.textAlign='center';
   ctx.fillText('← Dilbilgisel / İşlevsel Kelimeler                                    İçeriksel / Anlamsal Kelimeler →',W/2,H-14);
   ctx.save(); ctx.translate(14,H/2); ctx.rotate(-Math.PI/2);
   ctx.fillText('← Nesne Rolü          Özne Rolü →',0,0); ctx.restore();
@@ -506,10 +529,15 @@ function drawVectorSpace() {
         const t2=0.55;
         const lx=(1-t2)*(1-t2)*from.px+2*(1-t2)*t2*cpx+t2*t2*to.px;
         const ly=(1-t2)*(1-t2)*from.py+2*(1-t2)*t2*cpy+t2*t2*to.py;
-        ctx.font='bold 14px Calibri';
-        ctx.fillStyle=rgba(WORDS[active].color,0.95);
+        const pctLabel=Math.round(sim*100)+'%';
+        ctx.font='bold 13px IBM Plex Sans';
         ctx.textAlign='center'; ctx.textBaseline='middle';
-        ctx.fillText(Math.round(sim*100)+'%',lx,ly);
+        const labelW=ctx.measureText(pctLabel).width+16, labelH=20;
+        roundRectPath(lx-labelW/2,ly-labelH/2,labelW,labelH,labelH/2);
+        ctx.fillStyle='rgba(255,255,255,0.96)'; ctx.fill();
+        ctx.strokeStyle=rgba(WORDS[active].color,0.55); ctx.lineWidth=1.3; ctx.stroke();
+        ctx.fillStyle=WORDS[active].color;
+        ctx.fillText(pctLabel,lx,ly);
         ctx.textBaseline='alphabetic';
       }
     });
@@ -518,8 +546,10 @@ function drawVectorSpace() {
   // Kelime balonları
   WORDS.forEach((w,i)=>{
     const isActive=i===active;
+    const isDim=active>=0&&!isActive;
     const scale=isActive?breath*1.12:(active>=0?0.90:breath);
     const r=w.r*scale;
+    const fillColor=isDim?mixHex(w.color,'#94A3B8',0.45):w.color;
 
     if (isActive) {
       ctx.beginPath(); ctx.arc(w.px,w.py,r+16,0,Math.PI*2);
@@ -529,29 +559,25 @@ function drawVectorSpace() {
     }
 
     const grd=ctx.createRadialGradient(w.px-r*0.25,w.py-r*0.25,r*0.05,w.px,w.py,r);
-    if (isActive) {
-      grd.addColorStop(0,lighten(w.color)); grd.addColorStop(1,w.color);
-    } else {
-      grd.addColorStop(0,rgba(w.color,active>=0?0.35:0.65));
-      grd.addColorStop(1,rgba(w.color,active>=0?0.18:0.45));
-    }
+    grd.addColorStop(0,lighten(fillColor)); grd.addColorStop(1,fillColor);
     ctx.beginPath(); ctx.arc(w.px,w.py,r,0,Math.PI*2);
     ctx.fillStyle=grd;
     if (isActive){ctx.shadowColor=w.color; ctx.shadowBlur=20;}
     ctx.fill(); ctx.shadowBlur=0;
-    ctx.strokeStyle=rgba(w.color,isActive?1.0:(active>=0?0.35:0.75));
+    ctx.strokeStyle=isDim?rgba(fillColor,0.9):w.color;
     ctx.lineWidth=isActive?2.5:1.5; ctx.stroke();
 
-    const alpha=active>=0&&!isActive?0.40:1.0;
-    const fs=Math.max(11,Math.min(r*0.55,16));
-    ctx.font=`${isActive?'bold ':''}${fs}px Calibri`;
-    ctx.fillStyle=`rgba(255,255,255,${alpha})`;
+    const fs=Math.max(12,Math.min(r*0.55,17));
+    ctx.font=`bold ${fs}px IBM Plex Sans`;
+    ctx.shadowColor='rgba(0,0,0,0.4)'; ctx.shadowBlur=4; ctx.shadowOffsetY=1;
+    ctx.fillStyle='#FFFFFF';
     ctx.textAlign='center'; ctx.textBaseline='middle';
-    ctx.fillText(w.label,w.px,w.py); ctx.textBaseline='alphabetic';
+    ctx.fillText(w.label,w.px,w.py);
+    ctx.shadowBlur=0; ctx.shadowOffsetY=0; ctx.textBaseline='alphabetic';
   });
 
   // Alt ipucu
-  ctx.font='13px Calibri'; ctx.fillStyle='rgba(100,116,139,0.8)'; ctx.textAlign='center';
+  ctx.font='13px IBM Plex Sans'; ctx.fillStyle='rgba(100,116,139,0.8)'; ctx.textAlign='center';
   ctx.fillText(
     active>=0 ? `"${WORDS[active].label}" — diğer tüm kelimelerle anlamsal yakınlık` :
                 '↑  Bir kelimeye tıklayın veya üzerine gelin — anlamsal bağlantıları görün',
@@ -580,7 +606,7 @@ function drawAttentionMatrix() {
 
   // Sütun başlıkları
   WORDS.forEach((w,j)=>{
-    ctx.font=`bold ${Math.min(cell*0.24,14)}px Calibri`;
+    ctx.font=`bold ${Math.min(cell*0.24,14)}px IBM Plex Sans`;
     ctx.fillStyle=w.color; ctx.textAlign='center'; ctx.textBaseline='middle';
     ctx.fillText(w.label, x0+j*cell+cell/2, y0-cell*0.55);
     ctx.textBaseline='alphabetic';
@@ -594,7 +620,7 @@ function drawAttentionMatrix() {
     const isSel=i===selected;
 
     // Satır etiketi
-    ctx.font=`bold ${Math.min(cell*0.24,14)}px Calibri`;
+    ctx.font=`bold ${Math.min(cell*0.24,14)}px IBM Plex Sans`;
     ctx.fillStyle=isSel?w.color:rgba(w.color,0.75);
     ctx.textAlign='right'; ctx.textBaseline='middle';
     ctx.fillText(w.label, x0-10, ry+cell/2);
@@ -635,7 +661,7 @@ function drawAttentionMatrix() {
       const revealOk  = selected<0 ? true : ease(attnSweep)>=(j/n);
       if (showLabel && revealOk) {
         const fs=isSel ? Math.min(cell*0.27,15) : Math.min(cell*0.24,13);
-        ctx.font=`${isDiag?'bold ':''}${fs}px Calibri`;
+        ctx.font=`${isDiag?'bold ':''}${fs}px IBM Plex Sans`;
         ctx.fillStyle=cellTextColor(v,isDiag);
         if (!isSel) ctx.globalAlpha=brightness;
         ctx.textAlign='center'; ctx.textBaseline='middle';
@@ -654,7 +680,7 @@ function drawAttentionMatrix() {
 
   // Renk lejandı
   const legX=x0, legY=y0+n*cell+16;
-  ctx.font='12px Calibri'; ctx.fillStyle='#475569'; ctx.textAlign='left';
+  ctx.font='12px IBM Plex Sans'; ctx.fillStyle='#475569'; ctx.textAlign='left';
   ctx.fillText('Dikkat gücü: Zayıf', legX, legY+13);
   ['#F8FAFF','#DBEAFE','#93C5FD','#3B82F6','#1D4ED8','#1E3A8A'].forEach((c,k)=>{
     ctx.fillStyle=c;
@@ -668,7 +694,7 @@ function drawAttentionMatrix() {
   ctx.fillText('= Öz-dikkat', legX+155+6*22+76, legY+13);
 
   if (selected<0) {
-    ctx.font='13px Calibri'; ctx.fillStyle='rgba(100,116,139,0.9)'; ctx.textAlign='center';
+    ctx.font='13px IBM Plex Sans'; ctx.fillStyle='rgba(100,116,139,0.9)'; ctx.textAlign='center';
     ctx.fillText('↑  Soldaki bir kelimeye tıklayın — o kelimenin dikkat örüntüsünü görün', W/2, H-16);
   }
 }
@@ -715,7 +741,7 @@ function drawPositionIndependence() {
   const row2=tokenLayout(scr2.slice(0,n),rowY2);
 
   // Satır etiketleri
-  ctx.font='bold 12px Calibri'; ctx.textAlign='right'; ctx.textBaseline='middle'; ctx.fillStyle='#64748B';
+  ctx.font='bold 12px IBM Plex Sans'; ctx.textAlign='right'; ctx.textBaseline='middle'; ctx.fillStyle='#64748B';
   ctx.fillText('SIRA 1',marginX-8,rowY1); ctx.fillText('SIRA 2',marginX-8,rowY2);
   ctx.textBaseline='alphabetic';
 
@@ -724,7 +750,7 @@ function drawPositionIndependence() {
     const x=tk.x-cellW/2, y=tk.y-th/2;
     ctx.fillStyle=rgba(w.color,0.12); ctx.fillRect(x,y,cellW,th);
     ctx.strokeStyle=w.color; ctx.lineWidth=2; ctx.strokeRect(x,y,cellW,th);
-    ctx.font=`bold ${Math.min(cellW*0.21,14)}px Calibri`;
+    ctx.font=`bold ${Math.min(cellW*0.21,14)}px IBM Plex Sans`;
     ctx.fillStyle=w.color; ctx.textAlign='center'; ctx.textBaseline='middle';
     ctx.fillText(w.label,tk.x,tk.y); ctx.textBaseline='alphabetic';
   }
@@ -745,7 +771,7 @@ function drawPositionIndependence() {
   const pulse=0.5+0.22*Math.sin(frame*0.07);
   ctx.fillStyle='rgba(237,233,254,0.90)'; ctx.fillRect(tfX-tfW/2,tfY-tfH/2,tfW,tfH);
   ctx.strokeStyle=rgba('#7C3AED',0.7+pulse*0.2); ctx.lineWidth=2.5; ctx.strokeRect(tfX-tfW/2,tfY-tfH/2,tfW,tfH);
-  ctx.font='bold 15px Calibri'; ctx.fillStyle='#5B21B6';
+  ctx.font='bold 15px IBM Plex Sans'; ctx.fillStyle='#5B21B6';
   ctx.textAlign='center'; ctx.textBaseline='middle';
   ctx.fillText('⚡  TRANSFORMER  ⚡',tfX,tfY); ctx.textBaseline='alphabetic';
 
@@ -755,7 +781,7 @@ function drawPositionIndependence() {
   ctx.beginPath();
   ctx.moveTo(W/2-7,clusterY-38); ctx.lineTo(W/2,clusterY-28); ctx.lineTo(W/2+7,clusterY-38);
   ctx.fillStyle='rgba(22,163,74,0.8)'; ctx.fill();
-  ctx.font='bold 12px Calibri'; ctx.fillStyle='rgba(22,163,74,0.9)';
+  ctx.font='bold 12px IBM Plex Sans'; ctx.fillStyle='rgba(22,163,74,0.9)';
   ctx.textAlign='center'; ctx.fillText('HEMEN TANINIYOR',W/2,clusterY-42);
 
   // Anlamsal kümeler
@@ -776,18 +802,18 @@ function drawPositionIndependence() {
       const chX=cx+ki*(chW+6)+4, chY=cy+5;
       ctx.fillStyle=rgba(w.color,0.25); ctx.fillRect(chX,chY,chW,20);
       ctx.strokeStyle=w.color; ctx.lineWidth=1; ctx.strokeRect(chX,chY,chW,20);
-      ctx.font='bold 11px Calibri'; ctx.fillStyle=w.color;
+      ctx.font='bold 11px IBM Plex Sans'; ctx.fillStyle=w.color;
       ctx.textAlign='center'; ctx.textBaseline='middle';
       ctx.fillText(w.label,chX+chW/2,chY+10); ctx.textBaseline='alphabetic';
     });
-    ctx.font='10px Calibri'; ctx.fillStyle=rgba(cl.color,0.85); ctx.textAlign='center';
+    ctx.font='10px IBM Plex Sans'; ctx.fillStyle=rgba(cl.color,0.85); ctx.textAlign='center';
     ctx.fillText(cl.label,cx+clW/2,cy+clH+16);
   });
 
   // Altta mesaj
   const d=SENTENCE_DATA[sentenceIdx]||SENTENCE_DATA[0];
   const msg=customMode?'"Kendi cümlende de aynı yöntem çalışır" — anlam her zaman bulunur':d.insight;
-  ctx.font='bold 12px Calibri'; ctx.fillStyle='rgba(22,163,74,0.9)'; ctx.textAlign='center';
+  ctx.font='bold 12px IBM Plex Sans'; ctx.fillStyle='rgba(22,163,74,0.9)'; ctx.textAlign='center';
   ctx.fillText(msg,W/2,H-16);
 }
 
@@ -814,6 +840,9 @@ function buildPanels(sIdx) {
       kColor:'#7C3AED',
       title:'Kelimelerin Yapay Zeka\'daki Anlamsal Koordinatları',
       html:`
+        <div class="panel-image">
+          <image-slot id="imgVectorSpace" shape="rounded" radius="10" placeholder="Görsel: kelime vektör uzayı / embedding haritası örneği"></image-slot>
+        </div>
         <p class="body-text">Yapay zeka her kelimeyi bir <strong>vektöre</strong> dönüştürür — anlamını, rolünü ve bağlamını kodlayan yüzlerce ya da binlerce sayıdan oluşan bir koordinat. Tıpkı GPS'te konumların koordinatlarla ifade edilmesi gibi: <em>benzer anlamlı kelimeler birbirine yakın, ilgisiz kelimeler birbirinden uzak durur.</em></p>
 
         <div class="zone-box zone-gram">
@@ -845,6 +874,9 @@ function buildPanels(sIdx) {
       kColor:'#1D4ED8',
       title:'Dikkat Matrisi — Kim Kime Ne Kadar Dikkat Ediyor?',
       html:`
+        <div class="panel-image">
+          <image-slot id="imgAttentionMatrix" shape="rounded" radius="10" placeholder="Görsel: dikkat mekanizması / attention heatmap örneği"></image-slot>
+        </div>
         <p class="body-text">Her kelime için Transformer, o kelimenin <em>diğer tüm kelimelere</em> ne kadar dikkat göstermesi gerektiğini hesaplar. Bu matris şunu gösterir: <strong>Satırlar = "soran kelime"</strong>, <strong>Sütunlar = "bakılan kelime"</strong>.</p>
 
         <div style="display:flex;flex-direction:column;gap:10px;margin-top:2px">
@@ -898,6 +930,9 @@ function buildPanels(sIdx) {
       kColor:'#16A34A',
       title:'Her Sıra — Aynı Anlama Ulaşılır',
       html:`
+        <div class="panel-image">
+          <image-slot id="imgPositionIndependence" shape="rounded" radius="10" placeholder="Görsel: paralel işleme mimarisi / sıra bağımsız veri örneği"></image-slot>
+        </div>
         <p class="body-text">Transformer soldan sağa okumaz. Tüm kelimeleri <em>eş zamanlı olarak</em> işler ve dikkat matrisini kelime sırasından bağımsız biçimde oluşturur.</p>
         <p class="body-text">Soldaki animasyonda iki farklı kelime sıralaması görüyorsunuz. Her iki sıralama da Transformer'dan geçtikten sonra <strong>hep aynı üç anlamsal kümeyi</strong> üretir.</p>
 
