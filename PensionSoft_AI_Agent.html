@@ -305,7 +305,7 @@
     align-items: center;
     gap: 6px;
   }
-  .crm-link .mcp-pill {
+  .crm-link .fncall-pill {
     font-family: 'JetBrains Mono', monospace;
     font-size: 10px;
     letter-spacing: 0.08em;
@@ -405,7 +405,17 @@
     flex-direction: column;
     align-items: center;
     gap: 8px;
+    text-decoration: none;
+    color: inherit;
+    cursor: pointer;
+    transition: transform 0.16s ease;
   }
+  .llm-block:hover { transform: translateY(-2px); }
+  .llm-block:hover .llm-card {
+    box-shadow: 0 12px 28px -16px color-mix(in oklch, var(--mint-ink), transparent 50%);
+    border-color: var(--mint-ink);
+  }
+  .llm-block:hover .llm-pill { color: var(--ink); }
   .llm-card {
     background: white;
     border: 1.5px solid color-mix(in oklch, var(--mint), black 18%);
@@ -505,13 +515,13 @@
     max-width: 200px;
   }
 
-  /* MCP tool chips orbiting agent */
-  .mcp-ring {
+  /* Function Call tool chips orbiting agent */
+  .fncall-ring {
     position: absolute;
     inset: 0;
     pointer-events: none;
   }
-  .mcp-chip {
+  .fncall-chip {
     position: absolute;
     background: white;
     border: 1px solid var(--line-strong);
@@ -524,16 +534,16 @@
     box-shadow: 0 2px 6px rgba(0,0,0,0.04);
     display: flex; align-items: center; gap: 6px;
   }
-  .mcp-chip::before {
+  .fncall-chip::before {
     content: "";
     width: 6px; height: 6px; border-radius: 50%;
     background: var(--mint-ink);
   }
-  .mcp-chip.c1 { top: 18%;  left: -22%; }
-  .mcp-chip.c2 { top: 50%; left: -18%; }
-  .mcp-chip.c3 { top: 50%; right: -18%; }
-  .mcp-chip.c4 { bottom: 6%; left: 14%; }
-  .mcp-chip.c5 { bottom: 6%; right: 14%; }
+  .fncall-chip.c1 { top: 18%;  left: -22%; }
+  .fncall-chip.c2 { top: 50%; left: -18%; }
+  .fncall-chip.c3 { top: 50%; right: -18%; }
+  .fncall-chip.c4 { bottom: 6%; left: 14%; }
+  .fncall-chip.c5 { bottom: 6%; right: 14%; }
 
   /* Column 3: outcomes */
   .col-out {
@@ -836,6 +846,93 @@
   }
   .pcomp:last-child::after { display: none; }
 
+  /* ===== Technology stack panel ===== */
+  .tech-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 18px;
+  }
+  .tcard {
+    background: white;
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    padding: 22px 22px 24px;
+    position: relative;
+    overflow: hidden;
+    transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+  }
+  .tcard::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 4px;
+  }
+  .tcard:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 16px 34px -22px color-mix(in oklch, var(--ink), transparent 55%);
+  }
+  .tcard .t-ico {
+    width: 40px; height: 40px;
+    border-radius: 11px;
+    display: grid; place-items: center;
+    margin-bottom: 14px;
+  }
+  .tcard .t-ico svg { width: 20px; height: 20px; }
+  .tcard .t-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    font-weight: 500;
+    margin-bottom: 6px;
+  }
+  .tcard h4 {
+    font-size: 18px;
+    font-weight: 600;
+    margin: 0 0 8px;
+    line-height: 1.25;
+    letter-spacing: -0.01em;
+    color: var(--ink);
+  }
+  .tcard p {
+    font-size: 13px;
+    color: var(--ink-soft);
+    margin: 0;
+    line-height: 1.5;
+    text-wrap: pretty;
+  }
+  .tcard code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    background: var(--bg-2);
+    padding: 1px 5px;
+    border-radius: 5px;
+  }
+  .t-mint::before   { background: var(--mint-ink); }
+  .t-mint .t-ico    { background: var(--mint); color: var(--mint-ink); }
+  .t-mint .t-label  { color: var(--mint-ink); }
+  .t-mint:hover     { border-color: var(--mint-ink); }
+  .t-lilac::before  { background: var(--lilac-ink); }
+  .t-lilac .t-ico   { background: var(--lilac); color: var(--lilac-ink); }
+  .t-lilac .t-label { color: var(--lilac-ink); }
+  .t-lilac:hover    { border-color: var(--lilac-ink); }
+  .t-sky::before    { background: var(--sky-ink); }
+  .t-sky .t-ico     { background: var(--sky); color: var(--sky-ink); }
+  .t-sky .t-label   { color: var(--sky-ink); }
+  .t-sky:hover      { border-color: var(--sky-ink); }
+  .t-peach::before  { background: var(--peach-ink); }
+  .t-peach .t-ico   { background: var(--peach); color: var(--peach-ink); }
+  .t-peach .t-label { color: var(--peach-ink); }
+  .t-peach:hover    { border-color: var(--peach-ink); }
+  .t-butter::before { background: var(--butter-ink); }
+  .t-butter .t-ico  { background: var(--butter); color: var(--butter-ink); }
+  .t-butter .t-label{ color: var(--butter-ink); }
+  .t-butter:hover   { border-color: var(--butter-ink); }
+  .t-rose::before   { background: var(--rose-ink); }
+  .t-rose .t-ico    { background: var(--rose); color: var(--rose-ink); }
+  .t-rose .t-label  { color: var(--rose-ink); }
+  .t-rose:hover     { border-color: var(--rose-ink); }
+
   /* Footer */
   .foot {
     margin-top: 48px;
@@ -853,6 +950,7 @@
     .scenarios { grid-template-columns: 1fr; }
     .pipeline-row { grid-template-columns: repeat(2, 1fr); }
     .pcomp::after { display: none; }
+    .tech-grid { grid-template-columns: 1fr; }
   }
 </style>
 </head>
@@ -878,6 +976,7 @@
   <div class="tabs" role="tablist">
     <button class="tab active" data-target="p-flow">Akış Diyagramı</button>
     <button class="tab" data-target="p-story">Senaryo Anlatımı</button>
+    <button class="tab" data-target="p-tech">Teknoloji Yığını</button>
   </div>
 
   <!-- =====================================================
@@ -887,7 +986,7 @@
 
     <div class="intro">
       <h2>Müşteri e-postalarını <em>insan müdahalesi olmadan</em> doğru ekibe ya da doğru aksiyona ulaştırıyoruz.</h2>
-      <p>AI Agent, Dynamics 365 içerisindeki acente, banka ve müşteri e-postalarını sürekli tarar. %100 güvenle anladığı talepleri PensionSoft MCP araçları ile doğrudan uygular; eşleştirebildiği fakat işlem yapamadığı talepleri doğru kategori ve müşteri bilgisiyle ticket'a çevirir. Sadece belirsiz durumlar Dispatcher ekibine düşer.</p>
+      <p>AI Agent, Dynamics 365 içerisindeki acente, banka ve müşteri e-postalarını sürekli tarar. %100 güvenle anladığı talepleri PensionSoft Functions ile doğrudan uygular; eşleştirebildiği fakat işlem yapamadığı talepleri doğru kategori ve müşteri bilgisiyle ticket'a çevirir. Sadece belirsiz durumlar Dispatcher ekibine düşer.</p>
     </div>
 
     <!-- ====== Main flow ====== -->
@@ -949,7 +1048,7 @@
 
         <!-- CENTER: agent -->
         <div class="col-agent">
-          <div class="llm-block" aria-hidden="true">
+          <a class="llm-block" href="AI Agent - LLM Dongusu.html" title="AI Agent ↔ LLM döngüsünü incele">
             <div class="llm-card">
               <div class="kicker">LLM Modelleri</div>
               <h3>Pluggable model katmanı</h3>
@@ -962,8 +1061,8 @@
                 <span class="llm-chip cloud">Claude</span>
               </div>
             </div>
-            <span class="llm-pill">↓ model çağrısı</span>
-          </div>
+            <span class="llm-pill">↓ model çağrısı · döngüyü incele →</span>
+          </a>
           <div class="agent">
             <div class="knowledge-badge" title="Bilgi tabanı">
               <div class="kb-ico" aria-hidden="true">
@@ -974,21 +1073,21 @@
                 <span class="kb-list">MD · Skills · Instructions</span>
               </div>
             </div>
-            <div class="mcp-ring">
-              <span class="mcp-chip c1">customer.lookup</span>
-              <span class="mcp-chip c2">contract.read</span>
-              <span class="mcp-chip c3">email.update</span>
-              <span class="mcp-chip c4">ticket.create</span>
-              <span class="mcp-chip c5">exit.request</span>
+            <div class="fncall-ring">
+              <span class="fncall-chip c1">customer.lookup</span>
+              <span class="fncall-chip c2">contract.read</span>
+              <span class="fncall-chip c3">email.update</span>
+              <span class="fncall-chip c4">ticket.create</span>
+              <span class="fncall-chip c5">exit.request</span>
             </div>
             <div>
               <div class="label">AI Agent</div>
               <h2>Anla · Eşleştir · Karar Ver</h2>
-              <p class="desc">PensionSoft MCP araçlarıyla müşteriyi ve niyeti doğrular, güvenli ise işlemi kendisi yapar.</p>
+              <p class="desc">PensionSoft Functions ile müşteriyi ve niyeti doğrular, güvenli ise işlemi kendisi yapar.</p>
             </div>
           </div>
           <div class="crm-link" aria-hidden="true">
-            <span class="mcp-pill">↑ PensionSoft MCP ↓</span>
+            <span class="fncall-pill">↑ PensionSoft Functions ↓</span>
             <div class="crm-node">
               <div class="kicker">Sistem</div>
               <h3>Dynamics 365 CRM</h3>
@@ -1002,7 +1101,7 @@
           <div>
             <span class="path-label"><span class="dot" style="background: var(--mint-ink)"></span> Yol A · Otomatik İşlem</span>
             <div class="node tinted-mint">
-              <h3>MCP ile doğrudan uygula</h3>
+              <h3>Function Call ile doğrudan uygula</h3>
               <p>Örn. e-posta adresi güncelleme. Ticket <b>kapalı</b> oluşturulur, sadece log amaçlıdır.</p>
             </div>
           </div>
@@ -1010,7 +1109,7 @@
             <span class="path-label"><span class="dot" style="background: var(--sky-ink)"></span> Yol B · Kategorize &amp; Yönlendir</span>
             <div class="node tinted-sky">
               <h3>Doğru kategori ile ticket aç</h3>
-              <p>Müşteri MCP ile eşleşti, kategori belirlendi (örn. <b>Çıkış</b>). Ticket ilgili ekibe otomatik düşer.</p>
+              <p>Müşteri Function Call ile eşleşti, kategori belirlendi (örn. <b>Çıkış</b>). Ticket ilgili ekibe otomatik düşer.</p>
             </div>
           </div>
           <div>
@@ -1038,7 +1137,7 @@
       <div class="legend-card">
         <div class="lbar" style="background: var(--mint-ink)"></div>
         <h4>Yol A — Otomatik İşlem</h4>
-        <p>%100 güven eşiğini geçen, parametrik talepler. Müşteriye dokunulan değişiklik MCP üzerinden anında yapılır.</p>
+        <p>%100 güven eşiğini geçen, parametrik talepler. Müşteriye dokunulan değişiklik Function Call üzerinden anında yapılır.</p>
         <div class="stat">İnsan eforu · <b>0 dakika</b></div>
       </div>
       <div class="legend-card">
@@ -1063,7 +1162,7 @@
 
     <div class="intro">
       <h2>Üç tipik müşteri e-postası, üç farklı sonuç.</h2>
-      <p>Aşağıdaki senaryolar, AI Agent'ın aynı gelen kutusunda nasıl <em>farklı kararlar</em> alabildiğini gösterir. Hepsi aynı mantıkla çalışır: önce müşteriyi MCP ile eşleştir, sonra niyeti anla, sonra güven seviyesine göre yol seç.</p>
+      <p>Aşağıdaki senaryolar, AI Agent'ın aynı gelen kutusunda nasıl <em>farklı kararlar</em> alabildiğini gösterir. Hepsi aynı mantıkla çalışır: önce müşteriyi Function Call ile eşleştir, sonra niyeti anla, sonra güven seviyesine göre yol seç.</p>
     </div>
 
     <div class="scenarios">
@@ -1076,15 +1175,15 @@
         <p class="scn-lead">AI Agent talebi anlıyor, müşteriyi doğruluyor ve değişikliği kendi yapıyor. Dispatcher ekranına hiç düşmüyor.</p>
 
         <div class="email-card">
-          <div class="from">Kimden: <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="eb8a92988ec58f8e868299ab8e938a869b878ec5888486">[email&#160;protected]</a></div>
+          <div class="from">Kimden: <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="86e7fff5e3a8e2e3ebeff4c6e3fee7ebf6eae3a8e5e9eb">[email&#160;protected]</a></div>
           <div class="subj">E-posta adres değişikliği talebi</div>
-          <div class="body">"Merhaba, sözleşme no: 4421987. Yeni e-posta adresim <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="b7d6cec4d299d3f7d2cfd6dac7dbd299d4d8da">[email&#160;protected]</a> olarak güncellenebilir mi? Teşekkürler."</div>
+          <div class="body">"Merhaba, sözleşme no: 4421987. Yeni e-posta adresim <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="63021a10064d0723061b020e130f064d000c0e">[email&#160;protected]</a> olarak güncellenebilir mi? Teşekkürler."</div>
         </div>
 
         <ol class="steps">
           <li><span class="step-n">1</span><span><b>Müşteri eşleştirme.</b> <code>customer.lookup</code> ile sözleşme no doğrulanır.</span></li>
           <li><span class="step-n">2</span><span><b>Niyet anlaşılır.</b> Talep tek değişkenli ve parametrik: <code>e-posta güncelle</code>.</span></li>
-          <li><span class="step-n">3</span><span><b>Güven %100.</b> <code>email.update</code> MCP çağrısı ile değişiklik anında yapılır.</span></li>
+          <li><span class="step-n">3</span><span><b>Güven %100.</b> <code>email.update</code> Function Call çağrısı ile değişiklik anında yapılır.</span></li>
           <li><span class="step-n">4</span><span><b>Kapalı ticket.</b> CRM'e log amaçlı kapalı ticket düşülür.</span></li>
         </ol>
 
@@ -1099,10 +1198,10 @@
         <span class="scn-num">02</span>
         <span class="scn-tag">Yol B · Kategorize &amp; Yönlendir</span>
         <h3>"Sözleşmemden ayrılmak istiyorum"</h3>
-        <p class="scn-lead">AI Agent çıkış talebini tanıyor; müşteriyi MCP ile eşleştiriyor; ticket'i doğru kategoriyle açıp ilgili operasyon ekibine yönlendiriyor.</p>
+        <p class="scn-lead">AI Agent çıkış talebini tanıyor; müşteriyi Function Call ile eşleştiriyor; ticket'i doğru kategoriyle açıp ilgili operasyon ekibine yönlendiriyor.</p>
 
         <div class="email-card">
-          <div class="from">Kimden: <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="ea87c4938386878b90aa8f928b879a868fc4898587">[email&#160;protected]</a></div>
+          <div class="from">Kimden: <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="5c3172253530313d261c39243d312c3039723f3331">[email&#160;protected]</a></div>
           <div class="subj">Sözleşme iptali</div>
           <div class="body">"Merhaba, BES sözleşmemden ayrılmak istiyorum. Gerekli işlemleri başlatabilir misiniz? TC: 1********8"</div>
         </div>
@@ -1128,7 +1227,7 @@
         <p class="scn-lead">Talep belirsiz, müşteri net eşleşmiyor veya birden fazla niyet birleşmiş. AI Agent emin değil — Dispatcher ekibi mevcut akışla devam eder.</p>
 
         <div class="email-card">
-          <div class="from">Kimden: <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="a6c4cfcacfc8cbc3dfc3c8e6c1cbc7cfca88c5c9cb">[email&#160;protected]</a></div>
+          <div class="from">Kimden: <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="90f2f9fcf9fefdf5e9f5fed0f7fdf1f9fcbef3fffd">[email&#160;protected]</a></div>
           <div class="subj">Yardım</div>
           <div class="body">"Merhaba, geçen yıl sanırım bir sözleşme yapmıştım, ne durumda olduğuna bakar mısınız? Bir de oğluma da bir tane açtırmak istiyorum…"</div>
         </div>
@@ -1166,7 +1265,7 @@
         <div class="pcomp p-lilac">
           <div class="pic i-lilac">◎</div>
           <h4>AI Agent</h4>
-          <p>Anla, eşleştir, karar ver — MCP araçlarıyla.</p>
+          <p>Anla, eşleştir, karar ver — Function Call ile.</p>
         </div>
         <div class="pcomp p-mint">
           <div class="pic i-mint">⇄</div>
@@ -1178,6 +1277,61 @@
           <h4>Dispatcher Ekranı</h4>
           <p>Sadece AI Agent emin olmadığında devreye giren mevcut ekip arayüzü.</p>
         </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =====================================================
+       PANEL 3 — TECHNOLOGY STACK
+       ===================================================== -->
+  <section class="panel" id="p-tech">
+
+    <div class="intro">
+      <h2>AI Agent'ı ayakta tutan <em>teknoloji yığını</em>.</h2>
+      <p>Mevcut PensionSoft altyapısına dokunmadan, ayrı bir servis olarak çalışır. Her bileşen değiştirilebilir ve gözlemlenebilir olacak şekilde seçilmiştir.</p>
+    </div>
+
+    <div class="tech-grid">
+      <div class="tcard t-lilac">
+        <div class="t-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3 3 3 0 0 0-3 3 3 3 0 0 0 0 6 3 3 0 0 0 3 3 3 3 0 0 0 6 0 3 3 0 0 0 3-3 3 3 0 0 0 0-6 3 3 0 0 0-3-3 3 3 0 0 0-3-3z"/><path d="M12 5v14"/></svg></div>
+        <div class="t-label">LLM</div>
+        <h4>GPT-5 / Azure OpenAI</h4>
+        <p>Native <b>Function Calling</b> ile çalışan dil modeli. Niyeti anlar, doğru fonksiyonu ve parametreleri seçer.</p>
+      </div>
+
+      <div class="tcard t-mint">
+        <div class="t-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="2.5"/><circle cx="18" cy="6" r="2.5"/><circle cx="12" cy="18" r="2.5"/><path d="M6 8.5v3a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2v-3M12 13.5v2"/></svg></div>
+        <div class="t-label">Agent Framework</div>
+        <h4>LangGraph</h4>
+        <p>Anla → eşleştir → karar ver döngüsünü yöneten graf tabanlı orkestrasyon katmanı.</p>
+      </div>
+
+      <div class="tcard t-sky">
+        <div class="t-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a5 5 0 0 0-7 7l-4 4 2 2 4-4a5 5 0 0 0 7-7l-3 3-2-2 3-3z"/></svg></div>
+        <div class="t-label">Tool Katmanı</div>
+        <h4>Python Function Registry</h4>
+        <p>PensionSoft Functions'ı tanımlayan kayıt defteri — <code>PydanticAI</code> veya <code>LangGraph tools</code> ile şemalanır.</p>
+      </div>
+
+      <div class="tcard t-peach">
+        <div class="t-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v6c0 1.7 3.6 3 8 3s8-1.3 8-3V5M4 11v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6"/></svg></div>
+        <div class="t-label">CRM Entegrasyonu</div>
+        <h4>Dynamics 365</h4>
+        <p><b>REST API</b> veya <b>Dynamics SDK</b> üzerinden e-posta aktiviteleri ve ticket kayıtlarına erişir.</p>
+      </div>
+
+      <div class="tcard t-butter">
+        <div class="t-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8" width="18" height="12" rx="2"/><path d="M7 8V6a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v2M7 13h.01M11 13h.01"/></svg></div>
+        <div class="t-label">Hosting</div>
+        <h4>Ayrı Docker Container</h4>
+        <p>Mevcut sistemden izole, bağımsız ölçeklenebilen ve dağıtılabilen kendi servisi.</p>
+      </div>
+
+      <div class="tcard t-rose">
+        <div class="t-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 15l3-4 3 3 4-6"/></svg></div>
+        <div class="t-label">Observability</div>
+        <h4>OpenTelemetry İzleme</h4>
+        <p>Her <b>tool çağrısı</b>, <b>prompt</b>, <b>token kullanımı</b> ve <b>latency</b> uçtan uca loglanır ve izlenir.</p>
       </div>
     </div>
   </section>
