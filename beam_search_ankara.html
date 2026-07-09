@@ -1,0 +1,1171 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LLM Beam Search Simülatörü</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: #f7f8fc;
+  color: #1a1d27;
+  font-family: 'Inter', sans-serif;
+  min-height: 100vh;
+  padding: 36px 28px 80px;
+  max-width: 1120px;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  margin: 0 auto;
+}
+h1 { font-size: 26px; font-weight: 700; letter-spacing: -0.4px; margin-bottom: 4px; }
+.subtitle { font-size: 14px; color: #3d4257; font-family: 'JetBrains Mono', monospace; margin-bottom: 30px; }
+
+.input-card {
+  background: #fff;
+  border: 1px solid #e4e8f0;
+  border-radius: 14px;
+  padding: 20px 22px;
+  margin-bottom: 16px;
+}
+.input-row {
+  display: flex;
+  gap: 10px;
+  align-items: flex-end;
+  flex-wrap: wrap;
+}
+.input-wrap { flex: 1; min-width: 200px; }
+.input-label { font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.07em; color: #3d4257; font-family: 'JetBrains Mono', monospace; margin-bottom: 6px; }
+input[type=text] {
+  width: 100%;
+  background: #f4f5f8;
+  border: 1px solid #e2e5ed;
+  border-radius: 8px;
+  padding: 10px 13px;
+  font-size: 16px;
+  font-family: 'Inter', sans-serif;
+  color: #1a1d27;
+  outline: none;
+  transition: border-color 0.15s;
+}
+input[type=text]:focus { border-color: #1a56db; }
+.ctrl-wrap { min-width: 200px; }
+.ctrl-row { display: flex; align-items: center; gap: 10px; }
+input[type=range] {
+  flex: 1;
+  -webkit-appearance: none;
+  height: 3px;
+  background: #dde1ec;
+  border-radius: 2px;
+  outline: none;
+  cursor: pointer;
+}
+input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 16px; height: 16px;
+  border-radius: 50%;
+  background: #1a56db;
+  cursor: pointer;
+  border: 2px solid #fff;
+  box-shadow: 0 0 0 1px #1a56db;
+}
+.ctrl-val {
+  font-size: 14px; font-weight: 600;
+  color: #1a56db;
+  font-family: 'JetBrains Mono', monospace;
+  min-width: 44px; text-align: right;
+}
+.beam-ctrl { display: flex; gap: 8px; align-items: center; }
+.beam-btn {
+  width: 28px; height: 28px;
+  border-radius: 6px;
+  border: 1px solid #e2e5ed;
+  background: #f4f5f8;
+  font-size: 16px;
+  font-weight: 700;
+  color: #1a1d27;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.1s;
+  user-select: none;
+}
+.beam-btn:hover { background: #e8f0fe; border-color: #1a56db; color: #1a56db; }
+.beam-val { font-size: 16px; font-weight: 600; color: #1a1d27; min-width: 18px; text-align: center; font-family: 'JetBrains Mono', monospace; }
+
+.run-btn {
+  background: #1a56db;
+  color: #fff;
+  border: none;
+  border-radius: 9px;
+  padding: 11px 26px;
+  font-size: 15px;
+  font-weight: 700;
+  font-family: 'Inter', sans-serif;
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+  align-self: flex-end;
+}
+.run-btn:hover { background: #1648c0; }
+.run-btn:active { transform: scale(0.97); }
+.run-btn:disabled { background: #a0b4e8; cursor: not-allowed; }
+
+.temp-note {
+  font-size: 13px;
+  color: #3d4257;
+  font-family: 'JetBrains Mono', monospace;
+  margin-top: 10px;
+  padding: 8px 10px;
+  background: #f4f5f8;
+  border-radius: 7px;
+  line-height: 1.6;
+}
+.temp-note span { color: #1a1d27; font-weight: 500; }
+
+/* Pipeline şeması */
+.pipeline {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  margin-bottom: 20px;
+  overflow-x: auto;
+  padding: 14px 18px;
+  background: #fff;
+  border: 1px solid #e4e8f0;
+  border-radius: 12px;
+}
+.pipe-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+.pipe-box {
+  padding: 6px 12px;
+  border-radius: 7px;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: 'JetBrains Mono', monospace;
+  border: 1px solid #e2e5ed;
+  background: #f4f5f8;
+  color: #363c55;
+  transition: all 0.3s;
+  white-space: nowrap;
+}
+.pipe-box.active { background: #e8f0fe; border-color: #1a56db; color: #1a56db; }
+.pipe-box.done { background: #e8f7ef; border-color: #0f766e; color: #0f766e; }
+.pipe-arrow {
+  font-size: 16px;
+  color: #6b7292;
+  margin: 0 6px;
+  padding-bottom: 16px;
+  flex-shrink: 0;
+}
+.pipe-sub { font-size: 11px; color: #464c63; font-family: 'JetBrains Mono', monospace; }
+
+/* Step kartları */
+.step-card {
+  background: #fff;
+  border: 1px solid #e4e8f0;
+  border-radius: 12px;
+  padding: 18px 20px;
+  margin-bottom: 12px;
+  opacity: 0;
+  transform: translateY(12px);
+  transition: opacity 0.4s ease, transform 0.4s ease;
+}
+.step-card.visible { opacity: 1; transform: translateY(0); }
+
+.step-header {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-bottom: 14px;
+}
+.step-badge {
+  background: #e8f0fe;
+  color: #1a56db;
+  font-size: 12px;
+  font-weight: 700;
+  font-family: 'JetBrains Mono', monospace;
+  padding: 3px 9px;
+  border-radius: 20px;
+}
+.step-ctx {
+  font-size: 14px;
+  color: #3d4257;
+  font-family: 'JetBrains Mono', monospace;
+}
+.step-ctx b { color: #1a56db; font-weight: 500; }
+
+.section-title {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #464c63;
+  margin-bottom: 10px;
+  font-family: 'JetBrains Mono', monospace;
+}
+.divider { border: none; border-top: 1px solid #eaecf2; margin: 13px 0; }
+
+/* Bar chart */
+.bar-row { margin-bottom: 7px; }
+.bar-meta { display: flex; justify-content: space-between; align-items: center; margin-bottom: 3px; }
+.tok {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 14px; font-weight: 500;
+  padding: 2px 8px; border-radius: 5px;
+  background: #f4f5f8; color: #1a1d27;
+  border: 1px solid #e2e5ed;
+}
+.tok.top { background: #e8f0fe; color: #1a56db; border-color: #b4ccfb; }
+.bar-pct { font-size: 13px; color: #3d4257; font-family: 'JetBrains Mono', monospace; }
+.bar-bg {
+  height: 18px;
+  background: #f4f5f8;
+  border-radius: 4px;
+  overflow: hidden;
+  position: relative;
+}
+.bar-fill {
+  height: 100%;
+  border-radius: 4px;
+  width: 0%;
+  transition: width 0.6s cubic-bezier(.4,0,.2,1);
+}
+.bar-inner {
+  position: absolute; right: 7px; top: 50%;
+  transform: translateY(-50%);
+  font-size: 12px; font-family: 'JetBrains Mono', monospace; font-weight: 500;
+}
+
+/* Beam rows */
+.brow {
+  background: #f8f9fb;
+  border: 1px solid #e2e5ed;
+  border-radius: 9px;
+  padding: 10px 13px;
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 7px; gap: 10px;
+  opacity: 0;
+  transform: translateX(-8px);
+  transition: opacity 0.35s ease, transform 0.35s ease, background 0.4s, border 0.4s;
+}
+.brow.show { opacity: 1; transform: translateX(0); }
+.brow.best { background: #e8f0fe; border: 1.5px solid #1a56db; }
+.brow.pruned { opacity: 0.25 !important; }
+.brow.winner-highlight {
+  background: #e8f7ef !important;
+  border: 2px solid #0f766e !important;
+  animation: pulse-green 0.6s ease;
+}
+@keyframes pulse-green {
+  0% { box-shadow: 0 0 0 0 rgba(15,118,110,0.3); }
+  70% { box-shadow: 0 0 0 8px rgba(15,118,110,0); }
+  100% { box-shadow: none; }
+}
+.bseq {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 15px; color: #2a3050;
+  flex: 1; min-width: 0; word-break: break-word; line-height: 1.5;
+}
+.bseq .nt { color: #1a56db; font-weight: 700; }
+.brow.best .bseq { color: #1a56db; }
+.brow.winner-highlight .bseq { color: #0f766e !important; font-weight: 600; }
+.bsc {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px; color: #3d4257;
+  white-space: nowrap; flex-shrink: 0;
+}
+.brow.best .bsc { color: #1a56db; font-weight: 600; }
+.brow.winner-highlight .bsc { color: #0f766e !important; }
+.bdge {
+  font-size: 12px; padding: 2px 7px;
+  border-radius: 20px; font-weight: 700;
+  font-family: 'JetBrains Mono', monospace;
+  margin-left: 5px; white-space: nowrap;
+}
+.bdge-best { background: #1a56db; color: #fff; }
+.bdge-pruned { background: #f0f0f5; color: #464c63; }
+.bdge-winner { background: #0f766e; color: #fff; }
+
+/* Sonuç */
+.result-card {
+  background: #fff;
+  border: 2px solid #0f766e;
+  border-radius: 14px;
+  padding: 20px 22px;
+  margin-bottom: 14px;
+  opacity: 0;
+  transform: translateY(12px);
+  transition: opacity 0.5s ease, transform 0.5s ease;
+}
+.result-card.visible { opacity: 1; transform: translateY(0); }
+.result-label {
+  font-size: 12px; font-weight: 700;
+  letter-spacing: 0.08em; text-transform: uppercase;
+  color: #0f766e; margin-bottom: 9px;
+  font-family: 'JetBrains Mono', monospace;
+}
+.result-seq { font-size: 21px; font-weight: 700; color: #1a1d27; line-height: 1.6; margin-bottom: 6px; }
+.result-score { font-size: 13px; color: #363c55; font-family: 'JetBrains Mono', monospace; }
+
+.vs-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 14px; }
+.vsbox {
+  background: #f8f9fb; border: 1px solid #e2e5ed;
+  border-radius: 9px; padding: 13px;
+}
+.vsbox.win { background: #e8f7ef; border: 1.5px solid #0f766e; }
+.vsm { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: #3d4257; font-family: 'JetBrains Mono', monospace; margin-bottom: 6px; }
+.vss { font-size: 15px; color: #2a3050; font-family: 'JetBrains Mono', monospace; line-height: 1.5; }
+.vsbox.win .vss { color: #0f766e; font-weight: 500; }
+.vssc { font-size: 13px; color: #3d4257; font-family: 'JetBrains Mono', monospace; margin-top: 4px; }
+.vsw { font-size: 13px; color: #0f766e; font-weight: 600; margin-top: 4px; }
+
+.note {
+  background: #fffbf0; border: 1px solid #f0dfa0;
+  border-radius: 8px; padding: 12px 14px;
+  font-size: 14px; color: #7a6020; margin-top: 13px; line-height: 1.7;
+}
+
+/* ── Tab sistemi ── */
+.exec-note {
+  background: #fff;
+  border: 1.5px solid #1a56db;
+  border-radius: 12px;
+  padding: 16px 20px;
+  margin-bottom: 18px;
+  font-size: 15px;
+  line-height: 1.75;
+  color: #1a1d27;
+}
+.exec-note strong { color: #1a56db; }
+
+.tab-bar {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 20px;
+  background: #fff;
+  border: 1px solid #e4e8f0;
+  border-radius: 12px;
+  padding: 6px;
+}
+.tab-btn {
+  flex: 1;
+  padding: 9px 14px;
+  border-radius: 8px;
+  border: none;
+  background: transparent;
+  font-size: 14px;
+  font-weight: 600;
+  font-family: 'JetBrains Mono', monospace;
+  color: #3d4257;
+  cursor: pointer;
+  transition: all 0.18s;
+  letter-spacing: 0.04em;
+}
+.tab-btn:hover { background: #f4f5f8; color: #1a1d27; }
+.tab-btn.active { background: #1a56db; color: #fff; }
+
+.tab-panel { display: none; }
+.tab-panel.active { display: block; }
+
+/* ── Decision Tree ── */
+.tree-wrap {
+  overflow-x: auto;
+  padding: 8px 0 16px;
+}
+.tree-svg-container {
+  min-width: 860px;
+}
+.dt-node {
+  cursor: default;
+  transition: filter 0.2s;
+}
+.dt-node:hover { filter: brightness(0.93); }
+
+/* node labels */
+.dt-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+  font-weight: 600;
+  text-anchor: middle;
+  dominant-baseline: central;
+}
+.dt-prob {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11.5px;
+  text-anchor: middle;
+  dominant-baseline: central;
+  fill: #363c55;
+}
+.dt-logp {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  text-anchor: middle;
+  fill: #464c63;
+}
+.dt-edge {
+  stroke: #d0d4e4;
+  stroke-width: 1.5;
+  fill: none;
+}
+.dt-edge.greedy { stroke: #dc2626; stroke-width: 2.5; stroke-dasharray: none; }
+.dt-edge.beam   { stroke: #0f766e; stroke-width: 2.5; stroke-dasharray: none; }
+.dt-edge.pruned { stroke: #e2e5ed; stroke-width: 1; stroke-dasharray: 4 3; opacity: 0.5; }
+
+.dt-badge {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  font-weight: 700;
+  text-anchor: middle;
+  dominant-baseline: central;
+}
+
+.legend-item {
+  display: flex; align-items: center; gap: 7px;
+  font-size: 13px; color: #262c44;
+  font-family: 'JetBrains Mono', monospace;
+}
+.legend-line {
+  width: 28px; height: 3px; border-radius: 2px; flex-shrink: 0;
+}
+
+.tree-explain {
+  background: #fff;
+  border: 1px solid #e4e8f0;
+  border-radius: 12px;
+  padding: 18px 20px;
+  margin-bottom: 14px;
+}
+.tree-explain h3 {
+  font-size: 15px; font-weight: 700; margin-bottom: 8px; color: #1a1d27;
+}
+.tree-explain p {
+  font-size: 14.5px; color: #262c44; line-height: 1.7; margin-bottom: 6px;
+}
+.tree-explain p:last-child { margin-bottom: 0; }
+
+.score-compare {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 10px; margin-top: 14px;
+}
+.score-box {
+  border-radius: 9px; padding: 13px 14px;
+  border: 1.5px solid #e2e5ed;
+  background: #f8f9fb;
+}
+.score-box.winner { background: #e8f7ef; border-color: #0f766e; }
+.score-box.loser  { background: #fef2f2; border-color: #dc2626; }
+.score-box-label {
+  font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .07em;
+  font-family: 'JetBrains Mono', monospace; margin-bottom: 5px;
+}
+.score-box.winner .score-box-label { color: #0f766e; }
+.score-box.loser  .score-box-label { color: #dc2626; }
+.score-box-seq {
+  font-family: 'JetBrains Mono', monospace; font-size: 14px;
+  color: #2a3050; line-height: 1.6; margin-bottom: 4px;
+}
+.score-box-val {
+  font-family: 'JetBrains Mono', monospace; font-size: 15px; font-weight: 700;
+}
+.score-box.winner .score-box-val { color: #0f766e; }
+.score-box.loser  .score-box-val { color: #dc2626; }
+.score-breakdown {
+  font-family: 'JetBrains Mono', monospace; font-size: 12px;
+  color: #3d4257; margin-top: 3px; line-height: 1.6;
+}
+
+/* Typing animasyonu */
+.typing::after {
+  content: '▋';
+  animation: blink 0.7s step-end infinite;
+}
+@keyframes blink { 50% { opacity: 0; } }
+
+.progress-bar {
+  height: 3px;
+  background: #e4e8f0;
+  border-radius: 2px;
+  margin-bottom: 16px;
+  overflow: hidden;
+}
+.progress-fill {
+  height: 100%;
+  background: #1a56db;
+  border-radius: 2px;
+  width: 0%;
+  transition: width 0.4s ease;
+}
+</style>
+</head>
+<body>
+
+<h1>LLM Beam Search Simülatörü</h1>
+<p class="subtitle">// token-by-token üretim · kümülatif olasılık optimizasyonu · gerçek zamanlı</p>
+
+<div class="exec-note">
+  <strong>Greedy vs Beam Search — özet:</strong> Greedy Search her adımda o an en olası görünen kelimeyi seçer; hızlıdır ama kısa vadeli düşünür — iyi başlayıp kötü biten cümlelere saplanabilir. Beam Search ise aynı anda birden fazla alternatif cümleyi paralel ilerletir ve sonunda <strong>bütün cümle olarak</strong> en tutarlı olanı seçer. Özetle: Greedy "şu anki en iyi adım", Beam Search "sondaki en iyi toplam sonuç" stratejisidir.
+</div>
+
+<div class="exec-note" style="border-color:#0f766e; margin-top:-6px;">
+  <strong style="color:#0f766e;">Peki bugünün modelleri hangisini kullanıyor?</strong> Seçimi model değil, sistemi kuran ekip yapar — bu bir yapılandırma kararıdır. ChatGPT, Claude, Gemini gibi sohbet modelleri günlük kullanımda genellikle <strong style="color:#0f766e;">sampling</strong> (olasılıksal seçim) kullanır; <strong style="color:#0f766e;">greedy</strong> hız ve deterministik çıktı gereken işlerde (kod tamamlama, sınıflandırma), <strong style="color:#0f766e;">beam search</strong> ise tek doğru cevabın kritik olduğu işlerde (makine çevirisi, konuşma tanıma — örn. Google Translate, Whisper) tercih edilir. Kısacası: teknik, modelin değil görevin özelliğidir.
+</div>
+
+<div class="tab-bar">
+  <button class="tab-btn active" id="tab-sim" onclick="switchTab('sim')">▶ Simülatör</button>
+  <button class="tab-btn" id="tab-tree" onclick="switchTab('tree')">⬡ Greedy vs Beam — Karar Ağacı</button>
+</div>
+
+<div id="panel-sim" class="tab-panel active">
+
+<div class="input-card">
+  <div class="input-row">
+    <div class="input-wrap">
+      <div class="input-label">Prompt</div>
+      <input type="text" id="prompt-in" value="Türkiye'nin başkenti neresidir?" placeholder="Bir soru yaz...">
+    </div>
+    <div class="ctrl-wrap">
+      <div class="input-label">Temperature</div>
+      <div class="ctrl-row">
+        <input type="range" id="temp" min="0.1" max="2.0" step="0.1" value="1.0" oninput="updateTemp()">
+        <span class="ctrl-val" id="temp-val">1.0</span>
+      </div>
+    </div>
+    <div class="ctrl-wrap">
+      <div class="input-label">Beam genişliği (k)</div>
+      <div class="beam-ctrl">
+        <button class="beam-btn" onclick="changeK(-1)">−</button>
+        <span class="beam-val" id="k-val">3</span>
+        <button class="beam-btn" onclick="changeK(+1)">+</button>
+      </div>
+    </div>
+    <button class="run-btn" id="run-btn" onclick="runSim()">&#9654; Çalıştır</button>
+  </div>
+  <div class="temp-note" id="temp-note">
+    Temperature <span>1.0</span> — standart dağılım. Yüksek temperature → rastgelelik artar, düşük → model daha kesin seçimler yapar.
+  </div>
+</div>
+
+<div class="pipeline" id="pipeline">
+  <div class="pipe-step">
+    <div class="pipe-box" id="p0">embedding</div>
+    <div class="pipe-sub">giriş → vektör</div>
+  </div>
+  <div class="pipe-arrow">→</div>
+  <div class="pipe-step">
+    <div class="pipe-box" id="p1">transformer</div>
+    <div class="pipe-sub">attention layers</div>
+  </div>
+  <div class="pipe-arrow">→</div>
+  <div class="pipe-step">
+    <div class="pipe-box" id="p2">MLP</div>
+    <div class="pipe-sub">feed-forward</div>
+  </div>
+  <div class="pipe-arrow">→</div>
+  <div class="pipe-step">
+    <div class="pipe-box" id="p3">unembedding</div>
+    <div class="pipe-sub">→ logitler</div>
+  </div>
+  <div class="pipe-arrow">→</div>
+  <div class="pipe-step">
+    <div class="pipe-box" id="p4">softmax/temp</div>
+    <div class="pipe-sub">olasılıklar</div>
+  </div>
+  <div class="pipe-arrow">→</div>
+  <div class="pipe-step">
+    <div class="pipe-box" id="p5">beam search</div>
+    <div class="pipe-sub">k yol seç</div>
+  </div>
+</div>
+
+<div class="progress-bar"><div class="progress-fill" id="prog"></div></div>
+<div id="steps-out"></div>
+<div id="result-out"></div>
+</div><!-- /panel-sim -->
+
+<!-- ═══ PANEL: KARAR AĞACI ═══ -->
+<div id="panel-tree" class="tab-panel">
+
+  <div class="tree-explain">
+    <h3>Neden Greedy Her Zaman Kazanmaz?</h3>
+    <p>
+      Greedy Search her adımda <strong>en yüksek olasılıklı token</strong>ı seçer. Ama bu lokal optimum bazen global bir tuzaktır:
+      yüksek başlangıç tokeni, sonraki adımlarda düşük olasılıklı yollara sürükleyebilir.
+    </p>
+    <p>
+      Aşağıdaki ağaç bunu somutlaştırır. İlk adımda <strong style="color:#dc2626">"good"</strong> (p=0.72) büyük farkla önde.
+      Ama 5 adım sonrası kümülatif log-p'ye bakıldığında, <strong style="color:#0f766e">"clear"</strong> (p=0.18) üzerinden
+      giden Beam Search yolu kazanıyor. Çünkü "clear" → "vision" → "drives" → "long-term" → "success" zinciri
+      tutarlı; "good" → "idea" → "but" → "hard" → "to" zinciri ise olasılık erir.
+    </p>
+    <div style="display:flex;gap:16px;flex-wrap:wrap;margin-top:10px;">
+      <div class="legend-item"><div class="legend-line" style="background:#dc2626"></div> Greedy yolu (lokal max)</div>
+      <div class="legend-item"><div class="legend-line" style="background:#0f766e"></div> Beam Search kazanan yolu</div>
+      <div class="legend-item"><div class="legend-line" style="background:#d0d4e4;border-top:2px dashed #aaa;height:0"></div> Budanan / alternatif</div>
+    </div>
+  </div>
+
+  <div class="tree-explain" style="padding:14px 20px;">
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+      <span style="font-size:13px;font-weight:700;font-family:'JetBrains Mono',monospace;color:#363c55;text-transform:uppercase;letter-spacing:.06em;">Prompt</span>
+    </div>
+    <div style="font-family:'JetBrains Mono',monospace;font-size:16px;color:#1a1d27;font-weight:600;">
+      "A great business strategy requires…"
+    </div>
+  </div>
+
+  <div class="input-card tree-wrap" style="padding:16px;">
+    <div class="tree-svg-container">
+      <svg id="tree-svg" viewBox="0 0 860 540" style="width:100%;height:auto;display:block" xmlns="http://www.w3.org/2000/svg">
+        <!-- ─── LAYER HEADERS ─── -->
+        <text x="56"  y="18" font-family="JetBrains Mono,monospace" font-size="10.5" fill="#464c63" text-anchor="middle" font-weight="600">START</text>
+        <text x="192" y="18" font-family="JetBrains Mono,monospace" font-size="10.5" fill="#464c63" text-anchor="middle" font-weight="600">T1</text>
+        <text x="346" y="18" font-family="JetBrains Mono,monospace" font-size="10.5" fill="#464c63" text-anchor="middle" font-weight="600">T2</text>
+        <text x="488" y="18" font-family="JetBrains Mono,monospace" font-size="10.5" fill="#464c63" text-anchor="middle" font-weight="600">T3</text>
+        <text x="624" y="18" font-family="JetBrains Mono,monospace" font-size="10.5" fill="#464c63" text-anchor="middle" font-weight="600">T4</text>
+        <text x="776" y="18" font-family="JetBrains Mono,monospace" font-size="10.5" fill="#464c63" text-anchor="middle" font-weight="600">T5 · FINAL</text>
+
+        <!-- Column separator lines -->
+        <line x1="130" y1="24" x2="130" y2="530" stroke="#f0f0f5" stroke-width="1"/>
+        <line x1="270" y1="24" x2="270" y2="530" stroke="#f0f0f5" stroke-width="1"/>
+        <line x1="418" y1="24" x2="418" y2="530" stroke="#f0f0f5" stroke-width="1"/>
+        <line x1="558" y1="24" x2="558" y2="530" stroke="#f0f0f5" stroke-width="1"/>
+        <line x1="700" y1="24" x2="700" y2="530" stroke="#f0f0f5" stroke-width="1"/>
+
+        <!-- ─────────────────────────────────────────────
+             EDGES  (draw first so nodes appear on top)
+        ───────────────────────────────────────────── -->
+
+        <!-- START → T1 -->
+        <!-- → good  (GREEDY path, red) -->
+        <path class="dt-edge greedy" d="M96,270 C140,270 148,160 176,160"/>
+        <!-- → clear (BEAM path, green) -->
+        <path class="dt-edge beam"   d="M96,270 C140,270 148,310 176,310"/>
+        <!-- → solid (pruned) -->
+        <path class="dt-edge pruned" d="M96,270 C140,270 148,420 176,420"/>
+
+        <!-- T1:good → T2 children (GREEDY continues red) -->
+        <!-- → idea  (greedy picks this) -->
+        <path class="dt-edge greedy" d="M222,160 C262,160 270,120 330,120"/>
+        <!-- → plan  (alt, pruned) -->
+        <path class="dt-edge pruned" d="M222,160 C262,160 270,180 330,195"/>
+
+        <!-- T1:clear → T2 children (BEAM continues green) -->
+        <!-- → vision (beam picks this) -->
+        <path class="dt-edge beam"   d="M222,310 C262,310 270,285 330,290"/>
+        <!-- → goals (alt, pruned) -->
+        <path class="dt-edge pruned" d="M222,310 C262,310 270,360 330,380"/>
+
+        <!-- T1:solid → pruned branch -->
+        <path class="dt-edge pruned" d="M222,420 C262,420 270,460 330,470"/>
+
+        <!-- T2:idea → T3 (greedy) -->
+        <!-- → but  (greedy picks) -->
+        <path class="dt-edge greedy" d="M368,120 C408,120 414,115 472,115"/>
+        <!-- → that (alt pruned) -->
+        <path class="dt-edge pruned" d="M368,120 C408,120 414,148 472,155"/>
+
+        <!-- T2:vision → T3 (beam) -->
+        <!-- → drives (beam picks) -->
+        <path class="dt-edge beam"   d="M368,290 C408,290 414,270 472,265"/>
+        <!-- → helps (alt pruned) -->
+        <path class="dt-edge pruned" d="M368,290 C408,290 414,320 472,335"/>
+
+        <!-- T2:plan → pruned -->
+        <path class="dt-edge pruned" d="M368,195 C408,195 414,200 472,205"/>
+        <!-- T2:goals → pruned -->
+        <path class="dt-edge pruned" d="M368,380 C408,380 414,390 472,400"/>
+
+        <!-- T3:but → T4 (greedy sinking) -->
+        <!-- → hard (greedy picks) -->
+        <path class="dt-edge greedy" d="M510,115 C550,115 554,130 608,135"/>
+        <!-- → also (alt pruned) -->
+        <path class="dt-edge pruned" d="M510,115 C550,115 554,155 608,165"/>
+
+        <!-- T3:drives → T4 (beam rising) -->
+        <!-- → long-term (beam picks) -->
+        <path class="dt-edge beam"   d="M510,265 C550,265 554,250 608,248"/>
+        <!-- → strong (alt pruned) -->
+        <path class="dt-edge pruned" d="M510,265 C550,265 554,290 608,300"/>
+
+        <!-- T3:that → pruned -->
+        <path class="dt-edge pruned" d="M510,155 C550,155 554,160 608,168"/>
+        <!-- T3:helps → pruned -->
+        <path class="dt-edge pruned" d="M510,335 C550,335 554,340 608,350"/>
+
+        <!-- T4:hard → T5 (greedy final) -->
+        <path class="dt-edge greedy" d="M648,135 C688,135 694,148 754,152"/>
+
+        <!-- T4:long-term → T5 (beam final) -->
+        <path class="dt-edge beam"   d="M648,248 C688,248 694,262 754,268"/>
+
+        <!-- T4:also → pruned -->
+        <path class="dt-edge pruned" d="M648,165 C688,165 694,170 754,175"/>
+        <!-- T4:strong → pruned -->
+        <path class="dt-edge pruned" d="M648,300 C688,300 694,310 754,318"/>
+
+        <!-- ─────────────────────────────────────────────
+             NODES
+        ───────────────────────────────────────────── -->
+
+        <!-- START node -->
+        <rect class="dt-node" x="20" y="248" width="72" height="44" rx="8" fill="#f4f5f8" stroke="#6b7292" stroke-width="1.5"/>
+        <text class="dt-label" x="56" y="264" fill="#262c44" font-size="11.5">requires</text>
+        <text class="dt-prob"  x="56" y="280" fill="#3d4257" font-size="10.5">context</text>
+
+        <!-- ── T1 nodes ── -->
+        <!-- "good" — GREEDY picks -->
+        <rect class="dt-node" x="154" y="138" width="68" height="44" rx="8" fill="#fef2f2" stroke="#dc2626" stroke-width="2"/>
+        <text class="dt-label" x="188" y="153" fill="#dc2626">"good"</text>
+        <text class="dt-prob"  x="188" y="166" fill="#dc2626" font-size="11">p=0.72</text>
+        <text class="dt-logp"  x="188" y="178" fill="#dc2626" font-size="10">log=−0.33</text>
+
+        <!-- greedy badge -->
+        <rect x="152" y="121" width="54" height="16" rx="5" fill="#dc2626"/>
+        <text class="dt-badge" x="179" y="129.5" fill="#fff">GREEDY</text>
+
+        <!-- "clear" — BEAM picks -->
+        <rect class="dt-node" x="154" y="288" width="68" height="44" rx="8" fill="#e8f7ef" stroke="#0f766e" stroke-width="2"/>
+        <text class="dt-label" x="188" y="303" fill="#0f766e">"clear"</text>
+        <text class="dt-prob"  x="188" y="316" fill="#0f766e" font-size="11">p=0.18</text>
+        <text class="dt-logp"  x="188" y="328" fill="#0f766e" font-size="10">log=−1.71</text>
+
+        <!-- "solid" — pruned -->
+        <rect class="dt-node" x="154" y="398" width="68" height="38" rx="8" fill="#f8f9fb" stroke="#e2e5ed" stroke-width="1" opacity="0.5"/>
+        <text class="dt-label" x="188" y="413" fill="#464c63" font-size="11.5">"solid"</text>
+        <text class="dt-prob"  x="188" y="428" fill="#6b7292" font-size="10.5">p=0.10</text>
+
+        <!-- ── T2 nodes ── -->
+        <!-- "idea" (greedy branch) -->
+        <rect class="dt-node" x="306" y="98" width="68" height="44" rx="8" fill="#fef2f2" stroke="#dc2626" stroke-width="2"/>
+        <text class="dt-label" x="340" y="113" fill="#dc2626">"idea"</text>
+        <text class="dt-prob"  x="340" y="126" fill="#dc2626" font-size="11">p=0.61</text>
+        <text class="dt-logp"  x="340" y="138" fill="#dc2626" font-size="10">Σlog=−0.82</text>
+
+        <!-- "plan" (greedy alt, pruned) -->
+        <rect class="dt-node" x="306" y="173" width="68" height="38" rx="8" fill="#f8f9fb" stroke="#e2e5ed" stroke-width="1" opacity="0.4"/>
+        <text class="dt-label" x="340" y="188" fill="#464c63" font-size="11.5">"plan"</text>
+        <text class="dt-prob"  x="340" y="203" fill="#6b7292" font-size="10.5">p=0.39</text>
+
+        <!-- "vision" (beam branch) -->
+        <rect class="dt-node" x="306" y="268" width="68" height="44" rx="8" fill="#e8f7ef" stroke="#0f766e" stroke-width="2"/>
+        <text class="dt-label" x="340" y="283" fill="#0f766e">"vision"</text>
+        <text class="dt-prob"  x="340" y="296" fill="#0f766e" font-size="11">p=0.78</text>
+        <text class="dt-logp"  x="340" y="308" fill="#0f766e" font-size="10">Σlog=−1.95</text>
+
+        <!-- "goals" (beam alt, pruned) -->
+        <rect class="dt-node" x="306" y="358" width="68" height="38" rx="8" fill="#f8f9fb" stroke="#e2e5ed" stroke-width="1" opacity="0.4"/>
+        <text class="dt-label" x="340" y="373" fill="#464c63" font-size="11.5">"goals"</text>
+        <text class="dt-prob"  x="340" y="388" fill="#6b7292" font-size="10.5">p=0.22</text>
+
+        <!-- ── T3 nodes ── -->
+        <!-- "but" (greedy — bad token, p drops) -->
+        <rect class="dt-node" x="448" y="93" width="68" height="44" rx="8" fill="#fef2f2" stroke="#dc2626" stroke-width="2"/>
+        <text class="dt-label" x="482" y="108" fill="#dc2626">"but"</text>
+        <text class="dt-prob"  x="482" y="121" fill="#dc2626" font-size="11">p=0.35</text>
+        <text class="dt-logp"  x="482" y="133" fill="#dc2626" font-size="10">Σlog=−1.87</text>
+
+        <!-- "that" alt -->
+        <rect class="dt-node" x="448" y="133" width="68" height="36" rx="8" fill="#f8f9fb" stroke="#e2e5ed" stroke-width="1" opacity="0.4"/>
+        <text class="dt-label" x="482" y="148" fill="#464c63" font-size="11.5">"that"</text>
+        <text class="dt-prob"  x="482" y="162" fill="#6b7292" font-size="10.5">p=0.65</text>
+
+        <!-- "drives" (beam — strong p) -->
+        <rect class="dt-node" x="448" y="243" width="68" height="44" rx="8" fill="#e8f7ef" stroke="#0f766e" stroke-width="2"/>
+        <text class="dt-label" x="482" y="258" fill="#0f766e">"drives"</text>
+        <text class="dt-prob"  x="482" y="271" fill="#0f766e" font-size="11">p=0.69</text>
+        <text class="dt-logp"  x="482" y="283" fill="#0f766e" font-size="10">Σlog=−2.32</text>
+
+        <!-- "helps" alt -->
+        <rect class="dt-node" x="448" y="313" width="68" height="36" rx="8" fill="#f8f9fb" stroke="#e2e5ed" stroke-width="1" opacity="0.4"/>
+        <text class="dt-label" x="482" y="328" fill="#464c63" font-size="11.5">"helps"</text>
+        <text class="dt-prob"  x="482" y="343" fill="#6b7292" font-size="10.5">p=0.31</text>
+
+        <!-- ── T4 nodes ── -->
+        <!-- "hard" (greedy — p eroding fast) -->
+        <rect class="dt-node" x="584" y="113" width="68" height="44" rx="8" fill="#fef2f2" stroke="#dc2626" stroke-width="2"/>
+        <text class="dt-label" x="618" y="128" fill="#dc2626">"hard"</text>
+        <text class="dt-prob"  x="618" y="141" fill="#dc2626" font-size="11">p=0.28</text>
+        <text class="dt-logp"  x="618" y="153" fill="#dc2626" font-size="10">Σlog=−3.14</text>
+
+        <!-- "also" alt -->
+        <rect class="dt-node" x="584" y="143" width="68" height="36" rx="8" fill="#f8f9fb" stroke="#e2e5ed" stroke-width="1" opacity="0.4"/>
+        <text class="dt-label" x="618" y="158" fill="#464c63" font-size="11.5">"also"</text>
+        <text class="dt-prob"  x="618" y="173" fill="#6b7292" font-size="10.5">p=0.72</text>
+
+        <!-- "long-term" (beam — high p recovery) -->
+        <rect class="dt-node" x="580" y="226" width="76" height="44" rx="8" fill="#e8f7ef" stroke="#0f766e" stroke-width="2"/>
+        <text class="dt-label" x="618" y="241" fill="#0f766e">"long-</text>
+        <text class="dt-label" x="618" y="254" fill="#0f766e">term"</text>
+        <text class="dt-logp"  x="618" y="266" fill="#0f766e" font-size="10">Σlog=−2.69</text>
+
+        <!-- "strong" alt -->
+        <rect class="dt-node" x="584" y="278" width="68" height="36" rx="8" fill="#f8f9fb" stroke="#e2e5ed" stroke-width="1" opacity="0.4"/>
+        <text class="dt-label" x="618" y="293" fill="#464c63" font-size="11.5">"strong"</text>
+        <text class="dt-prob"  x="618" y="308" fill="#6b7292" font-size="10.5">p=0.31</text>
+
+        <!-- ── T5 FINAL nodes ── -->
+        <!-- GREEDY final — "to" (very low p, total bad) -->
+        <rect class="dt-node" x="730" y="130" width="110" height="44" rx="8" fill="#fef2f2" stroke="#dc2626" stroke-width="2.5"/>
+        <text class="dt-label" x="785" y="145" fill="#dc2626" font-size="12">"to"  p=0.19</text>
+        <text class="dt-logp"  x="785" y="158" fill="#b04040" font-size="10">Σlog = −4.81</text>
+        <text class="dt-logp"  x="785" y="170" fill="#b04040" font-size="9.5">[greedy total]</text>
+
+        <!-- BEAM final — "success" (high p, wins) -->
+        <rect class="dt-node" x="730" y="246" width="110" height="44" rx="8" fill="#e8f7ef" stroke="#0f766e" stroke-width="2.5"/>
+        <text class="dt-label" x="785" y="261" fill="#0f766e" font-size="12">"success"</text>
+        <text class="dt-logp"  x="785" y="274" fill="#0f766e" font-size="10">Σlog = −3.12</text>
+        <text class="dt-logp"  x="785" y="286" fill="#0f766e" font-size="9.5">[beam total ✓]</text>
+
+        <!-- WINNER crown -->
+        <text x="843" y="243" font-size="16" text-anchor="middle">🏆</text>
+
+        <!-- Probability drop annotation (greedy) -->
+        <path d="M490,93 Q530,60 582,78" stroke="#dc2626" stroke-width="1" fill="none" stroke-dasharray="3 2" opacity="0.5"/>
+        <text x="530" y="56" font-family="JetBrains Mono,monospace" font-size="10" fill="#dc2626" text-anchor="middle" opacity="0.75">p her adımda</text>
+        <text x="530" y="66" font-family="JetBrains Mono,monospace" font-size="10" fill="#dc2626" text-anchor="middle" opacity="0.75">düşüyor →</text>
+
+        <!-- Recovery annotation (beam) -->
+        <path d="M490,287 Q530,380 582,318" stroke="#0f766e" stroke-width="1" fill="none" stroke-dasharray="3 2" opacity="0.5"/>
+        <text x="534" y="380" font-family="JetBrains Mono,monospace" font-size="10" fill="#0f766e" text-anchor="middle" opacity="0.75">↑ p yükseliyor</text>
+        <text x="534" y="390" font-family="JetBrains Mono,monospace" font-size="10" fill="#0f766e" text-anchor="middle" opacity="0.75">zincir tutarlı</text>
+
+      </svg>
+    </div>
+  </div>
+
+  <!-- Score comparison -->
+  <div class="tree-explain">
+    <h3>Kümülatif log-p Karşılaştırması — 5 Token Sonrası</h3>
+    <div class="score-compare">
+      <div class="score-box loser">
+        <div class="score-box-label">🔴 Greedy Search</div>
+        <div class="score-box-seq">"good" → "idea" → "but" → "hard" → "to"</div>
+        <div class="score-box-val">Σ log-p = −4.81</div>
+        <div class="score-breakdown">
+          log(0.72) + log(0.61) + log(0.35) + log(0.28) + log(0.19)<br>
+          = −0.33 − 0.49 − 1.05 − 1.27 − 1.66 = −4.81
+        </div>
+      </div>
+      <div class="score-box winner">
+        <div class="score-box-label">🏆 Beam Search</div>
+        <div class="score-box-seq">"clear" → "vision" → "drives" → "long-term" → "success"</div>
+        <div class="score-box-val">Σ log-p = −3.12</div>
+        <div class="score-breakdown">
+          log(0.18) + log(0.78) + log(0.69) + log(0.84) + log(0.91)<br>
+          = −1.71 − 0.25 − 0.37 − 0.17 − 0.09 = −3.12 ✓
+        </div>
+      </div>
+    </div>
+    <div class="note" style="margin-top:12px;">
+      <strong>Ana ders:</strong> "good" (p=0.72) ile başlamak lokal olarak akıllıca görünür —
+      ama bu token, zayıf devam olasılıklarına sahip bir yola hapseder.
+      "clear" (p=0.18) düşük başlar ama ardından <em>yüksek olasılıklı, tutarlı bir zincir</em> açar.
+      Beam Search bu alternatifi keşfeder; Greedy asla görmez.
+    </div>
+  </div>
+
+</div><!-- /panel-tree -->
+
+<script>
+// ── Veri tabanı: farklı promptlar için logitler ──────────────────────────────
+const PROMPT_DATA = {
+  default: {
+    label: "Türkiye'nin başkenti neresidir?",
+    steps: [
+      { candidates: [
+        { token: "Ankara",       logit: 4.8 },
+        { token: "Türkiye'nin",  logit: 2.9 },
+        { token: "Başkent",      logit: 2.1 },
+        { token: "Cevabı",       logit: 0.8 },
+        { token: "Şehir",        logit: 0.2 },
+      ]},
+      { candidates: [
+        { token: "Türkiye'nin",  logit: 4.5 },
+        { token: "şehridir",     logit: 2.8 },
+        { token: "ili",          logit: 1.9 },
+        { token: "kenti",        logit: 1.2 },
+        { token: "bölgesi",      logit: 0.5 },
+      ]},
+      { candidates: [
+        { token: "resmî",        logit: 4.2 },
+        { token: "başkentidir",  logit: 3.1 },
+        { token: "büyük",        logit: 1.8 },
+        { token: "önemli",       logit: 1.0 },
+        { token: "tek",          logit: 0.3 },
+      ]},
+      { candidates: [
+        { token: "başkentidir",  logit: 5.5 },
+        { token: "merkezi",      logit: 2.2 },
+        { token: "şehridir",     logit: 1.5 },
+        { token: "kentidir",     logit: 0.8 },
+        { token: "yeridir",      logit: 0.2 },
+      ]},
+    ],
+    beams: [
+      { tokens: ["Ankara",      "Türkiye'nin", "resmî",        "başkentidir"],  full: "Ankara Türkiye'nin resmî başkentidir" },
+      { tokens: ["Türkiye'nin", "başkenti",    "Ankara'dır",   "kesinlikle"],   full: "Türkiye'nin başkenti Ankara'dır kesinlikle" },
+      { tokens: ["Başkent",     "Ankara'dır",  "Türkiye'de",   "bilinir"],      full: "Başkent Ankara'dır Türkiye'de bilinir" },
+      { tokens: ["Cevabı",      "Ankara",      "olarak",       "verilebilir"],  full: "Cevabı Ankara olarak verilebilir" },
+    ]
+  }
+};
+
+// ── State ────────────────────────────────────────────────────────────────────
+let K = 3;
+let currentTemp = 1.0;
+let running = false;
+
+// ── Tab switcher ──────────────────────────────────────────────────────────────
+function switchTab(name) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('panel-' + name).classList.add('active');
+  document.getElementById('tab-' + name).classList.add('active');
+}
+
+function updateTemp() {
+  currentTemp = parseFloat(document.getElementById('temp').value);
+  const t = currentTemp.toFixed(1);
+  document.getElementById('temp-val').textContent = t;
+  let note = '';
+  if (currentTemp <= 0.3)      note = `Temperature <span>${t}</span> — çok düşük: model neredeyse her zaman aynı tokeni seçer (greedy'ye yakın).`;
+  else if (currentTemp <= 0.7) note = `Temperature <span>${t}</span> — düşük: yüksek olasılıklı tokenlar çok baskın, az çeşitlilik.`;
+  else if (currentTemp <= 1.2) note = `Temperature <span>${t}</span> — standart dağılım. Olasılıklar ham logitlerden hesaplanır.`;
+  else if (currentTemp <= 1.6) note = `Temperature <span>${t}</span> — yüksek: dağılım yayılıyor, düşük olasılıklı tokenlar şans kazanıyor.`;
+  else                          note = `Temperature <span>${t}</span> — çok yüksek: dağılım neredeyse düz, her token benzer olasılıkla seçilebilir.`;
+  document.getElementById('temp-note').innerHTML = note;
+}
+
+function changeK(d) {
+  K = Math.max(2, Math.min(4, K + d));
+  document.getElementById('k-val').textContent = K;
+}
+
+// ── Softmax with temperature ──────────────────────────────────────────────────
+function softmaxTemp(logits, temp) {
+  const scaled = logits.map(l => l / Math.max(temp, 0.01));
+  const maxV = Math.max(...scaled);
+  const exps = scaled.map(l => Math.exp(l - maxV));
+  const sum = exps.reduce((a,b) => a+b, 0);
+  return exps.map(e => e/sum);
+}
+
+function lp(p) { return Math.log(Math.max(p, 1e-9)); }
+
+// ── Pipeline animasyonu ──────────────────────────────────────────────────────
+const PIPE_IDS = ['p0','p1','p2','p3','p4','p5'];
+async function animatePipeline() {
+  PIPE_IDS.forEach(id => { document.getElementById(id).className = 'pipe-box'; });
+  for (let i = 0; i < PIPE_IDS.length; i++) {
+    await sleep(260);
+    if (i > 0) document.getElementById(PIPE_IDS[i-1]).className = 'pipe-box done';
+    document.getElementById(PIPE_IDS[i]).className = 'pipe-box active';
+  }
+  await sleep(300);
+  document.getElementById(PIPE_IDS[PIPE_IDS.length-1]).className = 'pipe-box done';
+}
+
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+function setProgress(pct) {
+  document.getElementById('prog').style.width = pct + '%';
+}
+
+// ── Render helpers ────────────────────────────────────────────────────────────
+function renderBars(candidates, probs) {
+  return candidates.map((c, i) => {
+    const col = ['#1a56db','#0f766e','#7c3aed','#b45309','#dc2626'][i % 5];
+    const pct = (probs[i] * 100).toFixed(1);
+    return `<div class="bar-row" id="bar-${c.token.replace(/[^a-zA-Z]/g,'')}">
+      <div class="bar-meta">
+        <span class="tok ${i===0?'top':''}">${c.token}</span>
+        <span class="bar-pct">${pct}%</span>
+      </div>
+      <div class="bar-bg">
+        <div class="bar-fill" id="fill-${i}" style="background:${col}22;border-right:2.5px solid ${col};width:0%"></div>
+        <span class="bar-inner" style="color:${col}">${pct}%</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── Ana simülasyon ────────────────────────────────────────────────────────────
+async function runSim() {
+  if (running) return;
+  running = true;
+  const btn = document.getElementById('run-btn');
+  btn.disabled = true; btn.textContent = '⏳ Çalışıyor...';
+
+  document.getElementById('steps-out').innerHTML = '';
+  document.getElementById('result-out').innerHTML = '';
+  setProgress(0);
+
+  const promptVal = document.getElementById('prompt-in').value.trim() || "Türkiye'nin başkenti neresidir?";
+  const data = PROMPT_DATA.default;
+  const steps = data.steps;
+  const beamDefs = data.beams.slice(0, Math.max(K + 1, 4));
+
+  // Pipeline animasyonu
+  await animatePipeline();
+  await sleep(300);
+
+  // Her beam için kümülatif log-p hesapla (temperature'a göre)
+  const beams = beamDefs.map((b, id) => {
+    let cumLogP = 0;
+    b.tokens.forEach((tok, si) => {
+      if (si >= steps.length) return;
+      const cands = steps[si].candidates;
+      const logits = cands.map(c => c.logit);
+      const probs = softmaxTemp(logits, currentTemp);
+      const ti = cands.findIndex(c => c.token === tok);
+      cumLogP += lp(ti >= 0 ? probs[ti] : 0.01);
+    });
+    return { ...b, id, cumLogP };
+  }).sort((a,b) => b.cumLogP - a.cumLogP);
+
+  const stepsOut = document.getElementById('steps-out');
+  const totalSteps = steps.length;
+
+  for (let s = 0; s < totalSteps; s++) {
+    setProgress(((s) / totalSteps) * 85);
+
+    const si = steps[s];
+    const logits = si.candidates.map(c => c.logit);
+    const probs = softmaxTemp(logits, currentTemp);
+    const ctx = beams[0].tokens.slice(0, s).join(' ');
+
+    // Kart oluştur
+    const card = document.createElement('div');
+    card.className = 'step-card';
+    card.innerHTML = `
+      <div class="step-header">
+        <span class="step-badge">adım ${s+1} / ${totalSteps}</span>
+        <span class="step-ctx">bağlam: "<b>${promptVal}${ctx?' → '+ctx:''}</b>"</span>
+      </div>
+      <div class="section-title">token adayları — temperature=${currentTemp.toFixed(1)}</div>
+      <div id="bars-${s}">${renderBars(si.candidates, probs)}</div>
+      <div class="divider"></div>
+      <div class="section-title">beam yolları · kümülatif log-olasılık</div>
+      <div id="beams-${s}"></div>`;
+    stepsOut.appendChild(card);
+
+    // Görünür yap
+    await sleep(80);
+    card.classList.add('visible');
+    await sleep(150);
+
+    // Bar animasyonu
+    probs.forEach((p, i) => {
+      const fill = card.querySelector(`#fill-${i}`);
+      if (fill) fill.style.width = (p * 100).toFixed(1) + '%';
+    });
+    await sleep(500);
+
+    // Beam satırları birer birer
+    const beamsDiv = card.querySelector(`#beams-${s}`);
+    for (let bi = 0; bi < beams.length; bi++) {
+      const beam = beams[bi];
+      const safeLen = Math.min(s+1, beam.tokens.length);
+      const partialLogP = beam.tokens.slice(0, safeLen).reduce((acc, tok, ti) => {
+        if (ti >= steps.length) return acc;
+        const cands = steps[ti].candidates;
+        const lgs = cands.map(c => c.logit);
+        const ps = softmaxTemp(lgs, currentTemp);
+        const idx = cands.findIndex(c => c.token === tok);
+        return acc + lp(idx >= 0 ? ps[idx] : 0.01);
+      }, 0);
+
+      const prev = beam.tokens.slice(0, s).join(' ');
+      const nt = beam.tokens[s] || '…';
+      const isBest = bi === 0;
+      const isPruned = bi >= K;
+
+      const row = document.createElement('div');
+      row.className = `brow ${isBest?'best':''} ${isPruned?'pruned':''}`;
+      row.innerHTML = `
+        <div class="bseq">${prev?prev+' ':''}<span class="nt">${nt}</span></div>
+        <div style="display:flex;align-items:center;flex-shrink:0">
+          <span class="bsc">log-p: ${partialLogP.toFixed(3)}</span>
+          ${isBest?'<span class="bdge bdge-best">en iyi</span>':''}
+          ${isPruned?'<span class="bdge bdge-pruned">budandı</span>':''}
+        </div>`;
+      beamsDiv.appendChild(row);
+      await sleep(60);
+      row.classList.add('show');
+      await sleep(90);
+    }
+
+    await sleep(400);
+  }
+
+  setProgress(90);
+  await sleep(300);
+
+  // Sonuç kartı
+  const winner = beams[0];
+  const greedyTokens = steps.map(st => {
+    const lgs = st.candidates.map(c => c.logit);
+    const ps = softmaxTemp(lgs, currentTemp);
+    return st.candidates[ps.indexOf(Math.max(...ps))].token;
+  });
+  const greedyLogP = steps.reduce((acc, st, si) => {
+    const lgs = st.candidates.map(c => c.logit);
+    const ps = softmaxTemp(lgs, currentTemp);
+    return acc + lp(Math.max(...ps));
+  }, 0);
+  const beamWins = winner.cumLogP > greedyLogP;
+
+  // Winner beam'i highlight et
+  const allBrows = document.querySelectorAll('.brow.best');
+  allBrows.forEach(el => {
+    el.classList.add('winner-highlight');
+    el.querySelector('.bsc').textContent = `log-p: ${winner.cumLogP.toFixed(3)}`;
+    const badge = el.querySelector('.bdge-best');
+    if (badge) { badge.className = 'bdge bdge-winner'; badge.textContent = 'kazanan'; }
+  });
+
+  const resultCard = document.createElement('div');
+  resultCard.className = 'result-card';
+  resultCard.innerHTML = `
+    <div class="result-label">Kazanan dizi — en yüksek kümülatif log-olasılık</div>
+    <div class="result-seq">${winner.full}</div>
+    <div class="result-score">kümülatif log-p: ${winner.cumLogP.toFixed(4)} &nbsp;·&nbsp; temperature: ${currentTemp.toFixed(1)} &nbsp;·&nbsp; beam-k: ${K}</div>
+    <div class="vs-grid">
+      <div class="vsbox ${!beamWins?'win':''}">
+        <div class="vsm">Greedy · her adımda max token</div>
+        <div class="vss">${greedyTokens.join(' ')}</div>
+        <div class="vssc">log-p: ${greedyLogP.toFixed(4)}</div>
+        ${!beamWins?'<div class="vsw">bu senaryoda kazandı</div>':''}
+      </div>
+      <div class="vsbox ${beamWins?'win':''}">
+        <div class="vsm">Beam search · kümülatif max</div>
+        <div class="vss">${winner.full}</div>
+        <div class="vssc">log-p: ${winner.cumLogP.toFixed(4)}</div>
+        ${beamWins?'<div class="vsw">bu senaryoda kazandı</div>':''}
+      </div>
+    </div>
+    <div class="note">
+      <strong>Temperature etkisi:</strong> Temperature logitleri ölçekler —
+      düşük temperature (&lt;0.7) baskın tokeni daha da öne çıkarır, beam yolları birbirine benzer.
+      Yüksek temperature (&gt;1.3) dağılımı düzleştirir, alternatif beam yolları daha rekabetçi hale gelir.
+      Tekrar çalıştır ve temperature'ı değiştir — kümülatif log-p skorlarının nasıl değiştiğini gözlemle.
+    </div>`;
+  document.getElementById('result-out').appendChild(resultCard);
+  await sleep(100);
+  resultCard.classList.add('visible');
+  setProgress(100);
+
+  await sleep(400);
+  btn.disabled = false; btn.textContent = '▶ Tekrar Çalıştır';
+  running = false;
+}
+
+updateTemp();
+</script>
+</body>
+</html>
