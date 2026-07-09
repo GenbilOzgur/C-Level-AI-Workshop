@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Bankada Agentic AI — Otonom Hizmet ve Sorun Yönetimi</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --bg:#FFFFFF; --paper:#FFFFFF;
+    --ink:#151A33; --ink-3:#5B6178; --ink-4:#8A90A6;
+    --line:#E3E6F0;
+
+    --navy:#233A99;      --navy-tint:#EEF1FC;
+    --purple:#7C4DE0;    --purple-tint:#F2ECFE;
+    --blue:#2E6BE0;      --blue-tint:#EAF1FE;
+    --gray-dash:#9CA3BE;
+
+    --radius:14px;
+    --shadow-sm:0 1px 3px rgba(21,26,51,.08);
+  }
+  *{ box-sizing:border-box; }
+  .node, .agent{ transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease; }
+  .node:hover, .agent:hover{ transform: translateY(-3px); }
+  .node.navy:hover{ border-color: var(--navy); box-shadow: 0 10px 24px rgba(35,58,153,.18); }
+  .node.purple:hover, .agent.purple:hover{ box-shadow: 0 10px 24px rgba(124,77,224,.22); }
+  .agent.blue:hover{ box-shadow: 0 10px 24px rgba(46,107,224,.22); }
+  html,body{ margin:0; padding:0; }
+  body{
+    font-family:'Plus Jakarta Sans',system-ui,-apple-system,'Segoe UI',sans-serif;
+    background:var(--bg); color:var(--ink); line-height:1.4; -webkit-font-smoothing:antialiased;
+  }
+  a{ color:var(--navy); }
+  a:hover{ color:var(--purple); }
+  .page{ max-width:1560px; margin:0 auto; padding:44px 48px 60px; }
+
+  h1{
+    font-size:27px; font-weight:800; letter-spacing:.01em; text-transform:uppercase;
+    color:var(--navy); text-align:center; margin:0 0 34px;
+  }
+
+  /* ===== node ===== */
+  .node{
+    background:var(--paper); border:1.5px solid var(--line); border-radius:var(--radius);
+    overflow:hidden; box-shadow:var(--shadow-sm); display:flex; flex-direction:column;
+  }
+  .node-bar{ padding:10px 16px; color:#fff; font-size:12.5px; font-weight:700; letter-spacing:.03em; text-transform:uppercase; }
+  .node.navy .node-bar{ background:var(--navy); }
+  .node.purple .node-bar{ background:var(--purple); }
+  .node-body{ padding:14px 16px 16px; display:flex; flex-direction:column; gap:9px; flex:1; }
+  .node-sub{ font-size:11.5px; font-style:italic; color:var(--ink-4); margin:-2px 0 2px; }
+  .node-list{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:8px; }
+  .node-list li{ display:flex; align-items:flex-start; gap:8px; font-size:13px; color:var(--ink); line-height:1.35; }
+  .node-list li svg{ width:15px; height:15px; flex-shrink:0; margin-top:1px; }
+  .node.navy .node-list li svg{ color:var(--navy); }
+  .node.purple .node-list li svg{ color:var(--purple); }
+
+  /* dotted list for orchestrator satellites */
+  .node-list.dot li::before{ content:'•'; color:var(--navy); font-weight:700; margin-right:2px; }
+  .node-list.dot.alert li::before{ color:var(--purple); }
+  .node-list.dot li svg{ display:none; }
+
+  /* ===== agent card (Callie / Codie / Qualitie) ===== */
+  .agent{
+    background:var(--paper); border-radius:var(--radius); padding:18px 20px; box-shadow:var(--shadow-sm);
+    display:flex; flex-direction:column; gap:12px; height:100%;
+  }
+  .agent.purple{ border:1.5px solid var(--purple); background:linear-gradient(180deg,#fff,#FBF9FF); }
+  .agent.blue{ border:1.5px solid var(--blue); background:linear-gradient(180deg,#fff,#F8FBFF); }
+  .agent-head{ display:flex; align-items:flex-start; gap:12px; }
+  .mascot{ width:52px; height:52px; border-radius:12px; flex-shrink:0; display:flex; align-items:center; justify-content:center; }
+  .agent.purple .mascot{ background:var(--purple-tint); color:var(--purple); }
+  .agent.blue .mascot{ background:var(--blue-tint); color:var(--blue); }
+  .mascot svg{ width:32px; height:32px; }
+  .agent-title{ font-size:14.5px; font-weight:800; letter-spacing:.02em; text-transform:uppercase; }
+  .agent.purple .agent-title{ color:var(--purple); }
+  .agent.blue .agent-title{ color:var(--blue); }
+  .agent-sub{ font-size:11.5px; font-style:italic; color:var(--ink-4); margin-top:2px; }
+  .agent-list{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:8px; }
+  .agent-list li{ display:flex; align-items:flex-start; gap:8px; font-size:13px; color:var(--ink); line-height:1.35; }
+  .agent-list li svg{ width:15px; height:15px; flex-shrink:0; margin-top:1px; }
+  .agent.purple .agent-list li svg{ color:var(--purple); }
+  .agent.blue .agent-list li svg{ color:var(--blue); }
+  .agent-note{ font-size:11.5px; font-style:italic; color:var(--ink-3); padding-top:10px; border-top:1px dashed var(--line); }
+
+  .memory-box{
+    margin-top:auto; background:var(--purple-tint); border:1.5px dashed var(--purple);
+    border-radius:10px; padding:10px 12px; display:flex; flex-direction:column; gap:7px;
+  }
+  .memory-title{
+    display:flex; align-items:center; gap:7px; font-size:11px; font-weight:800;
+    letter-spacing:.04em; text-transform:uppercase; color:var(--purple);
+  }
+  .memory-title svg{ width:15px; height:15px; flex-shrink:0; }
+  .memory-box ul{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:5px; }
+  .memory-box li{ font-size:12.5px; font-weight:600; color:var(--ink); line-height:1.35; display:flex; gap:7px; align-items:flex-start; }
+  .memory-box li::before{ content:'•'; color:var(--purple); font-weight:800; }
+
+  /* ===== rows / arrows ===== */
+  .row5{ display:grid; grid-template-columns:1fr 30px 1fr 30px 1fr 30px 1fr 30px 1fr; align-items:stretch; }
+  .row3{ display:grid; grid-template-columns:1fr 30px 1fr 30px 1fr; align-items:stretch; }
+  .arrow-h{ display:flex; align-items:center; justify-content:center; position:relative; color:var(--navy); }
+  .arrow-h.blue{ color:var(--blue); }
+  .arrow-h .lbl{
+    position:absolute; top:-24px; left:50%; transform:translateX(-50%);
+    font-size:10px; font-weight:700; color:inherit; white-space:nowrap; text-align:center; max-width:150px;
+    background:var(--bg); padding:0 4px;
+  }
+
+  .split-row{ display:grid; grid-template-columns:0.6fr 1.62fr; gap:36px; align-items:start; }
+
+  .canvas{ position:relative; }
+  #flow-overlay{ position:absolute; left:0; top:0; margin:0 !important; pointer-events:none; overflow:visible; z-index:3; }
+  .flow-label{
+    position:absolute; margin:0 !important; transform:translate(-50%,-50%); z-index:4; background:#fff;
+    border-radius:999px; padding:5px 14px; font-size:11px; font-weight:800;
+    white-space:nowrap; box-shadow:var(--shadow-sm); pointer-events:none;
+  }
+  .flow-label.purple{ color:var(--purple); border:1.5px solid var(--purple); }
+  .flow-label.blue{ color:var(--blue); border:1.5px solid var(--blue); }
+  .canvas > .split-row{ margin-top:96px; }
+
+  .stack-pair{ display:flex; flex-direction:column; gap:14px; height:100%; }
+  .stack-pair .node{ flex:1; }
+
+  .orch-row{ display:grid; grid-template-columns:1fr 1fr 1.3fr 1fr 1fr; gap:18px; align-items:start; }
+  .orch-row .node{ position:relative; }
+  .tick{ height:26px; display:flex; align-items:center; justify-content:center; color:var(--gray-dash); }
+  .tick svg{ width:13px; height:22px; }
+  .tick.empty{ visibility:hidden; }
+
+  .hub-center{ display:flex; flex-direction:column; align-items:center; text-align:center; padding-top:4px; }
+  .hub-center h3{ margin:0; font-size:16px; font-weight:800; color:var(--navy); letter-spacing:.01em; text-transform:uppercase; }
+  .hub-center .hub-sub{ font-size:11.5px; font-style:italic; color:var(--ink-4); margin:3px 0 10px; }
+  .mascot-hub{
+    width:132px; height:132px; border-radius:28px; background:var(--navy-tint);
+    display:flex; align-items:center; justify-content:center; margin:2px 0 6px;
+    box-shadow:0 10px 26px rgba(35,58,153,.22), inset 0 0 0 1.5px rgba(35,58,153,.15);
+  }
+  .hub-center .mascot-lg{ width:94px; height:94px; color:var(--navy); }
+
+  /* ===== legend + assurance ===== */
+  .bottom-bar{ display:flex; align-items:center; justify-content:space-between; gap:24px; margin-top:30px; flex-wrap:wrap; }
+  .legend{ display:flex; flex-wrap:wrap; gap:8px 22px; font-size:12px; color:var(--ink-3); }
+  .legend-item{ display:inline-flex; align-items:center; gap:8px; }
+  .legend-line{ width:26px; height:0; border-top:2px solid currentColor; display:inline-block; position:relative; }
+  .legend-line.dashed{ border-top-style:dashed; }
+  .legend-item.navy{ color:var(--navy); }
+  .legend-item.blue{ color:var(--blue); }
+  .legend-item.purple{ color:var(--purple); }
+  .legend-item.gray{ color:var(--gray-dash); }
+
+  .assurance{
+    display:flex; align-items:center; gap:9px; background:var(--blue-tint); border:1px solid var(--blue);
+    border-radius:999px; padding:10px 18px; font-size:12.5px; font-weight:600; color:var(--navy);
+  }
+  .assurance svg{ width:16px; height:16px; color:var(--blue); flex-shrink:0; }
+
+  .canvas > * + *{ margin-top:26px; }
+
+  .page{ min-width:1400px; }
+  body{ overflow-x:auto; }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <h1>Bankada Agentic AI İle Otonom Hizmet ve Sorun Yönetimi</h1>
+
+  <div class="canvas">
+
+    <!-- ROW 1 -->
+    <div class="row3">
+      <div class="node navy">
+        <div class="node-bar">Müşteri Kanalları ve İletişimi</div>
+        <div class="node-body">
+          <ul class="node-list">
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2"/></svg>Mobil Uygulama</li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg>İnternet Sitesi</li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15v-2a8 8 0 0 1 16 0v2"/><rect x="2.5" y="15" width="4" height="5" rx="1.5"/><rect x="17.5" y="15" width="4" height="5" rx="1.5"/></svg>IVR (Sesli Yanıt Sistemi)</li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m4 7 8 6 8-6"/></svg>E-posta</li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 4h3l1.8 4.5-2 1.5a12 12 0 0 0 6.7 6.7l1.5-2 4.5 1.8v3c0 1-1 1.8-2 1.7A17 17 0 0 1 3 6c0-1 .7-2 1.5-2z"/></svg>Call Center</li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.4 8.4 0 0 1-8.9 8.4 8.6 8.6 0 0 1-3.8-.9L3 20l1.1-5.3A8.4 8.4 0 1 1 21 11.5z"/></svg>Diğer Kanallar (Chat, Form vb.)</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="arrow-h"><svg width="28" height="14" viewBox="0 0 28 14" fill="none"><path d="M0 7h24" stroke="currentColor" stroke-width="2"/><path d="M18 1l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+
+      <div class="agent purple" id="callie-card">
+        <div class="agent-head">
+          <div class="mascot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="8" width="12" height="10" rx="3"/><circle cx="9.6" cy="12.3" r="1.1" fill="currentColor" stroke="none"/><circle cx="14.4" cy="12.3" r="1.1" fill="currentColor" stroke="none"/><path d="M10 15.2c.7.5 3.3.5 4 0"/><path d="M4.8 11V9.8a7.2 7.2 0 0 1 14.4 0V11"/><rect x="3.2" y="11" width="3" height="4.6" rx="1.3"/><rect x="17.8" y="11" width="3" height="4.6" rx="1.3"/><path d="M4.7 15.6v.6a2.8 2.8 0 0 0 2.8 2.8h2.1"/><circle cx="10.6" cy="19" r="1" fill="currentColor" stroke="none"/></svg></div>
+          <div>
+            <div class="agent-title">AI Agent: Callie</div>
+            <div class="agent-sub">Müşteri Deneyimi ve Destek Agentı</div>
+          </div>
+        </div>
+        <ul class="agent-list">
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m4 7 8 6 8-6"/></svg>E-postaları Okur</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 4h3l1.8 4.5-2 1.5a12 12 0 0 0 6.7 6.7l1.5-2 4.5 1.8v3c0 1-1 1.8-2 1.7A17 17 0 0 1 3 6c0-1 .7-2 1.5-2z"/></svg>Aramaları Karşılar ve Konuşur</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.4 8.4 0 0 1-8.9 8.4 8.6 8.6 0 0 1-3.8-.9L3 20l1.1-5.3A8.4 8.4 0 1 1 21 11.5z"/></svg>Sorunu Anlar ve Sınıflandırır</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5V5.6c0-.9.7-1.6 1.6-1.6h9.8L20 8.3V19.5a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 19.5z"/><path d="M14 4v4.5H19"/></svg>Bilgi Tabanını ve Geçmiş Kayıtları İnceler</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m9 12 2 2 4-4"/><circle cx="12" cy="12" r="9"/></svg>Çözüm Üretir veya Yönlendirir</li>
+        </ul>
+        <div class="memory-box">
+          <div class="memory-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="6" width="12" height="12" rx="2"/><path d="M9 6V3M15 6V3M9 21v-3M15 21v-3M6 9H3M6 15H3M21 9h-3M21 15h-3"/></svg>
+            İnsandan Farkı: Kalıcı Hafıza
+          </div>
+          <ul>
+            <li>Müşterinin Son 5 Konuşmasını Hafızasına Alır</li>
+            <li>Bundan Önceki Talep ve İstekleri Hafızasına Alır</li>
+          </ul>
+        </div>
+        <div class="agent-note">Çözebileceği sorunları çözer ve müşteriye bilgi verir. Çözemediği veya ekip gerektiren durumlarda ticket açar.</div>
+      </div>
+
+      <div class="arrow-h"><span class="lbl">Callie'nin Kararına Göre</span><svg width="28" height="14" viewBox="0 0 28 14" fill="none"><path d="M0 7h24" stroke="currentColor" stroke-width="2"/><path d="M18 1l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+
+      <div class="stack-pair">
+        <div class="node navy">
+          <div class="node-bar">Ekiplere Yönlendirme</div>
+          <div class="node-body">
+            <div class="node-sub">Ekip Gerektiren Durumlarda</div>
+            <ul class="node-list">
+              <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m9 12 2 2 4-4"/><circle cx="12" cy="12" r="9"/></svg>Ticket'i İnceler</li>
+              <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m9 12 2 2 4-4"/><circle cx="12" cy="12" r="9"/></svg>Teyit Edilmiş Bankacılık İşlemlerini Direkt Uygular</li>
+              <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m9 12 2 2 4-4"/><circle cx="12" cy="12" r="9"/></svg>Teyit Gerektiren İşlerde Kişi Onayı Sonrası İşlemi Yapar</li>
+              <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.4 8.4 0 0 1-8.9 8.4 8.6 8.6 0 0 1-3.8-.9L3 20l1.1-5.3A8.4 8.4 0 1 1 21 11.5z"/></svg>Çözümü Tamamlar ve Callie'ye Bildirir</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="node navy">
+          <div class="node-bar">Direkt İşlemi Yapma</div>
+          <div class="node-body">
+            <div class="node-sub">Callie'nin Doğrudan Çözebileceği Durumlarda</div>
+            <ul class="node-list">
+              <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m9 12 2 2 4-4"/><circle cx="12" cy="12" r="9"/></svg>Talebi Değerlendirir</li>
+              <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m9 12 2 2 4-4"/><circle cx="12" cy="12" r="9"/></svg>İşlemi Kendisi Uygular</li>
+              <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.4 8.4 0 0 1-8.9 8.4 8.6 8.6 0 0 1-3.8-.9L3 20l1.1-5.3A8.4 8.4 0 1 1 21 11.5z"/></svg>Müşteriye Sonucu Bildirir</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FLOW CONNECTORS (drawn by JS) -->
+    <svg id="flow-overlay" aria-hidden="true">
+      <defs>
+        <marker id="arr-purple" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#7C4DE0"></path></marker>
+        <marker id="arr-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#2E6BE0"></path></marker>
+      </defs>
+      <path id="flow-purple" fill="none" stroke="#7C4DE0" stroke-width="2.5" stroke-linecap="round" marker-end="url(#arr-purple)"></path>
+      <path id="flow-blue" fill="none" stroke="#2E6BE0" stroke-width="2.5" stroke-linecap="round" marker-end="url(#arr-blue)"></path>
+    </svg>
+    <div class="flow-label purple" id="lbl-purple">Müşteriyi Bilgilendirir</div>
+    <div class="flow-label blue" id="lbl-blue">Aynı Sorun Birden Fazla Kullanıcıdan Geliyorsa veya Kodsal Hata Şüphesi Varsa</div>
+
+    <!-- ROW 2 -->
+    <div class="split-row">
+      <div class="node purple" id="geri-donus">
+        <div class="node-bar">Müşteriye Geri Dönüş</div>
+        <div class="node-body">
+          <ul class="node-list">
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="3" width="12" height="18" rx="2"/><path d="M10 18h4"/></svg>SMS Gönderir</li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m4 7 8 6 8-6"/></svg>E-posta Gönderir</li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 4h3l1.8 4.5-2 1.5a12 12 0 0 0 6.7 6.7l1.5-2 4.5 1.8v3c0 1-1 1.8-2 1.7A17 17 0 0 1 3 6c0-1 .7-2 1.5-2z"/></svg>Telefon ile Arar</li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2"/></svg>Uygulama İçi Bildirim Gönderir</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="row3">
+        <div class="agent blue" id="codie-card">
+          <div class="agent-head">
+            <div class="mascot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="8" width="16" height="12" rx="4"/><path d="M12 8V5"/><circle cx="12" cy="3.5" r="1.4" fill="currentColor" stroke="none"/><circle cx="9" cy="12" r="1.2" fill="currentColor" stroke="none"/><circle cx="15" cy="12" r="1.2" fill="currentColor" stroke="none"/><path d="m9.3 15.2-1.6 1.7 1.6 1.7"/><path d="m14.7 15.2 1.6 1.7-1.6 1.7"/><path d="m13 14.9-2 4"/><path d="M2 12v4M22 12v4"/></svg></div>
+            <div>
+              <div class="agent-title">AI Agent: Codie</div>
+              <div class="agent-sub">Yazılım Analiz ve Geliştirme Agentı</div>
+            </div>
+          </div>
+          <ul class="agent-list">
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m8 6-5 6 5 6M16 6l5 6-5 6"/></svg>Kod Reposuna Erişir</li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="6"/><path d="M12 6V3M12 21v-3M6 12H3M21 12h-3"/></svg>Bug ve Logları İnceler</li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.4 8.4 0 0 1-8.9 8.4 8.6 8.6 0 0 1-3.8-.9L3 20l1.1-5.3A8.4 8.4 0 1 1 21 11.5z"/></svg>Kullanıcı Bildirimlerini Analiz Eder</li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 0 1 4.7 1.2c0 1.7-2.2 1.8-2.2 3.3"/><path d="M12 17h.01"/></svg>Kök Nedeni Bulur</li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m14.7 3.3 6 6-2.4 2.4-6-6z"/><path d="m3 21 5-1.3 8.4-8.4-3.7-3.7L4.3 16z"/></svg>Kodu Düzeltir (Fix)</li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M10 8.5v7l6-3.5z" fill="currentColor" stroke="none"/></svg>Testleri Çalıştırır</li>
+          </ul>
+        </div>
+
+        <div class="arrow-h blue"><span class="lbl">Değişiklikleri Test İçin Gönderir</span><svg width="28" height="14" viewBox="0 0 28 14" fill="none"><path d="M0 7h24" stroke="currentColor" stroke-width="2"/><path d="M18 1l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+
+        <div class="agent blue">
+          <div class="agent-head">
+            <div class="mascot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="8" width="16" height="12" rx="4"/><path d="M12 8V5"/><circle cx="12" cy="3.5" r="1.4" fill="currentColor" stroke="none"/><circle cx="9" cy="12.5" r="1.2" fill="currentColor" stroke="none"/><circle cx="14.8" cy="12.5" r="1.2" fill="currentColor" stroke="none"/><path d="M9.5 15.3c.8.6 3 .6 3.6.2"/><circle cx="16.8" cy="16.8" r="3.4" fill="#EAF1FE"/><path d="m15.4 16.9 1 1 1.9-2"/><path d="m19.3 19.3 2.2 2.2"/><path d="M2 12v4"/></svg></div>
+            <div>
+              <div class="agent-title">AI Agent: Qualitie</div>
+              <div class="agent-sub">Test ve Kalite Doğrulama Agentı</div>
+            </div>
+          </div>
+          <ul class="agent-list">
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3h6l1 3h3v2H5V6h3z"/><path d="M6 8v11a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V8"/></svg>Test Senaryolarını Çalıştırır</li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m9 12 2 2 4-4"/><circle cx="12" cy="12" r="9"/></svg>Fonksiyonel Testleri Yapar</li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 4v5c0 4-3 7-7 9-4-2-7-5-7-9V7l7-4z"/></svg>Performans ve Güvenlik Testlerini Yapar</li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5V5.6c0-.9.7-1.6 1.6-1.6h9.8L20 8.3V19.5a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 19.5z"/><path d="M14 4v4.5H19"/></svg>Sonucu Raporlar</li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m9 12 2 2 4-4"/><circle cx="12" cy="12" r="9"/></svg>Onaylarsa Yayın Akışını Başlatır</li>
+          </ul>
+        </div>
+
+        <div class="arrow-h blue"><span class="lbl">Onaylanan Değişiklik Yayın Akışına Gönderilir</span><svg width="28" height="14" viewBox="0 0 28 14" fill="none"><path d="M0 7h24" stroke="currentColor" stroke-width="2"/><path d="M18 1l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+
+        <div class="node navy">
+          <div class="node-bar">Otonom Yayın ve Bilgilendirme Süreci</div>
+          <div class="node-body">
+            <ul class="node-list">
+              <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5V5.6c0-.9.7-1.6 1.6-1.6h9.8L20 8.3V19.5a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 19.5z"/><path d="M14 4v4.5H19"/></svg>Prosedür Dokümanını Günceller</li>
+              <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.4 8.4 0 0 1-8.9 8.4 8.6 8.6 0 0 1-3.8-.9L3 20l1.1-5.3A8.4 8.4 0 1 1 21 11.5z"/></svg>İlgili Ekipleri Bilgilendirir</li>
+              <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.5"/><path d="M5 21a7 7 0 0 1 14 0"/></svg>Teknik Mimar(lar)dan Onay Alır</li>
+              <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 18a4.5 4.5 0 0 1-1-8.9 5.5 5.5 0 0 1 10.7-2A4.5 4.5 0 0 1 17 18z"/><path d="M12 12v6M9.5 15.5 12 13l2.5 2.5"/></svg>Production'a Deployment Yapar</li>
+              <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m9 12 2 2 4-4"/><circle cx="12" cy="12" r="9"/></svg>Yayını Doğrular ve Kayıtları Günceller</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ORCHESTRATOR ROW -->
+    <div class="orch-row">
+      <div class="tick"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M12 6 8 10M12 6l4 4M12 18l-4-4M12 18l4-4" stroke-dasharray="2.5 2.5"/></svg></div>
+      <div class="tick"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M12 6 8 10M12 6l4 4M12 18l-4-4M12 18l4-4" stroke-dasharray="2.5 2.5"/></svg></div>
+      <div class="tick empty"></div>
+      <div class="tick"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M12 6 8 10M12 6l4 4M12 18l-4-4M12 18l4-4" stroke-dasharray="2.5 2.5"/></svg></div>
+      <div class="tick"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M12 6 8 10M12 6l4 4M12 18l-4-4M12 18l4-4" stroke-dasharray="2.5 2.5"/></svg></div>
+    </div>
+
+    <div class="orch-row">
+      <div class="node navy">
+        <div class="node-bar">Süreç Orkestrasyonu</div>
+        <div class="node-body"><ul class="node-list dot">
+          <li>Tüm Agent'ları Yönlendirir</li>
+          <li>Görevleri Dağıtır</li>
+          <li>Süreç Akışını Yönetir</li>
+          <li>Önceliklendirme Yapar</li>
+        </ul></div>
+      </div>
+
+      <div class="node navy">
+        <div class="node-bar">İzleme ve Log Kayıtları</div>
+        <div class="node-body"><ul class="node-list dot">
+          <li>Tüm İşlemleri Loglar</li>
+          <li>Gerçek Zamanlı İzleme Yapar</li>
+          <li>SLA Sürelerini Kontrol Eder</li>
+          <li>Performans Metriklerini Takip Eder</li>
+        </ul></div>
+      </div>
+
+      <div class="hub-center">
+        <h3>AI Orkestratör Agent: Bankie</h3>
+        <div class="hub-sub">Süreç Orkestra, İzleme ve Yönetim Agentı</div>
+        <div class="mascot-hub">
+          <svg class="mascot-lg" viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="18" y="20" width="28" height="24" rx="8"/>
+            <path d="M32 20v-6"/><circle cx="32" cy="11.5" r="2.8" fill="currentColor" stroke="none"/>
+            <circle cx="26" cy="30" r="2.3" fill="currentColor" stroke="none"/><circle cx="38" cy="30" r="2.3" fill="currentColor" stroke="none"/>
+            <path d="M27 37c2 1.6 8 1.6 10 0"/>
+            <path d="M18 28H10"/><circle cx="7.5" cy="28" r="2.5"/>
+            <path d="M46 28h8"/><circle cx="56.5" cy="28" r="2.5"/>
+            <path d="m18 38-6 5"/><circle cx="10" cy="44.5" r="2.5"/>
+            <path d="m46 38 6 5"/><circle cx="54" cy="44.5" r="2.5"/>
+            <path d="m22 20-5.5-6"/><circle cx="15" cy="12" r="2.5"/>
+            <path d="m42 20 5.5-6"/><circle cx="49" cy="12" r="2.5"/>
+            <path d="M32 44v6"/><path d="M25 50h14"/>
+          </svg>
+        </div>
+      </div>
+
+      <div class="node navy">
+        <div class="node-bar">Evaluation ve Kontrol</div>
+        <div class="node-body"><ul class="node-list dot">
+          <li>Agent Performanslarını Değerlendirir</li>
+          <li>Doğruluk ve Başarı Oranlarını Ölçer</li>
+          <li>Geri Bildirimlerle Süreçleri İyileştirir</li>
+          <li>Risk ve Hata Analizi Yapar</li>
+        </ul></div>
+      </div>
+
+      <div class="node navy">
+        <div class="node-bar">Alert ve İnsan Bilgilendirme</div>
+        <div class="node-body"><ul class="node-list dot alert">
+          <li>SLA İhlallerinde Uyarı Verir</li>
+          <li>Agent Hatalarında Bildirim Gönderir</li>
+          <li>İnsan Onayı Gereken Durumları Yükseltir</li>
+          <li>Raporları İlgililere Sunar</li>
+        </ul></div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="bottom-bar">
+    <div class="legend">
+      <span class="legend-item navy"><span class="legend-line"></span>Ana Süreç Akışı</span>
+      <span class="legend-item blue"><span class="legend-line"></span>Teknik / Geliştirme Akışı</span>
+      <span class="legend-item purple"><span class="legend-line dashed"></span>Geri Bildirim Akışı</span>
+      <span class="legend-item gray"><span class="legend-line dashed"></span>İzleme ve Kontrol Akışı</span>
+    </div>
+    <div class="assurance">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 4v5c0 4-3 7-7 9-4-2-7-5-7-9V7l7-4z"/><path d="m9 12 2 2 4-4"/></svg>
+      Tüm süreçler güvenli, izlenebilir ve denetlenebilir şekilde yürütülür.
+    </div>
+  </div>
+
+</div>
+<script>
+  function drawFlows(){
+    var canvas = document.querySelector('.canvas');
+    var cb = canvas.getBoundingClientRect();
+    function rel(el){
+      var b = el.getBoundingClientRect();
+      return { l:b.left-cb.left, t:b.top-cb.top, r:b.right-cb.left, b:b.bottom-cb.top, cx:b.left-cb.left+b.width/2, w:b.width };
+    }
+    var callie = rel(document.getElementById('callie-card'));
+    var geri = rel(document.getElementById('geri-donus'));
+    var codie = rel(document.getElementById('codie-card'));
+    var svg = document.getElementById('flow-overlay');
+    svg.setAttribute('width', canvas.scrollWidth);
+    svg.setAttribute('height', canvas.scrollHeight);
+
+    var gapTop = callie.b;
+    var gapBot = Math.min(geri.t, codie.t);
+    var laneP = gapTop + (gapBot-gapTop)*0.30;
+    var laneB = gapTop + (gapBot-gapTop)*0.72;
+    var px = callie.l + callie.w*0.30;
+    var bx = callie.l + callie.w*0.70;
+    var R = 12;
+
+    function elbow(x1, y1, lane, x2, y2){
+      var d = x2 < x1 ? -1 : 1;
+      return 'M '+x1+' '+y1+' L '+x1+' '+(lane-R)+' Q '+x1+' '+lane+' '+(x1+d*R)+' '+lane+
+             ' L '+(x2-d*R)+' '+lane+' Q '+x2+' '+lane+' '+x2+' '+(lane+R)+' L '+x2+' '+(y2-2);
+    }
+    document.getElementById('flow-purple').setAttribute('d', elbow(px, callie.b, laneP, geri.cx, geri.t));
+    document.getElementById('flow-blue').setAttribute('d', elbow(bx, callie.b, laneB, codie.cx, codie.t));
+
+    var lp = document.getElementById('lbl-purple');
+    var lb = document.getElementById('lbl-blue');
+    lp.style.left = ((px+geri.cx)/2)+'px'; lp.style.top = laneP+'px';
+    lb.style.left = bx+'px'; lb.style.top = ((callie.b+laneB)/2+6)+'px';
+  }
+  window.addEventListener('load', drawFlows);
+  window.addEventListener('resize', drawFlows);
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(function(){ drawFlows(); });
+  if (window.ResizeObserver) new ResizeObserver(function(){ drawFlows(); }).observe(document.querySelector('.canvas'));
+  setTimeout(drawFlows, 600);
+  if (document.readyState === 'complete') drawFlows();
+</script>
+</body>
+</html>
