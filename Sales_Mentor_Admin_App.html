@@ -1,0 +1,1124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sales Mentor Intelligence — SaaS Admin Panel</title>
+<link rel="stylesheet" href="colors_and_type.css">
+
+<template id="__bundler_thumbnail" data-bg-color="#0F172A">
+  <svg viewBox="0 0 1200 800" xmlns="http://www.w3.org/2000/svg">
+    <rect width="1200" height="800" fill="#0F172A"/>
+    <rect x="60" y="100" width="1080" height="600" rx="14" fill="#1E293B"/>
+    <rect x="60" y="100" width="240" height="600" rx="14" fill="#0F172A"/>
+    <rect x="340" y="140" width="760" height="40" rx="6" fill="#334155"/>
+    <rect x="340" y="210" width="760" height="120" rx="8" fill="#1E293B"/>
+    <rect x="340" y="350" width="360" height="80" rx="8" fill="#1E293B"/>
+    <rect x="720" y="350" width="380" height="80" rx="8" fill="#1E293B"/>
+    <text x="600" y="760" font-family="Inter,sans-serif" font-size="28" font-weight="700" fill="#94A3B8" text-anchor="middle">SaaS Admin</text>
+  </svg>
+</template>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+<style>
+*, *::before, *::after { box-sizing: border-box; }
+html, body, #root { height: 100%; margin: 0; }
+:root { --sm: #7C3AED; --sm-deep: #5B21B6; --sm-tint: #EDE9FE; --sm-tint2: #DDD6FE; --nav-w: 240px; }
+@keyframes fade-in { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:translateY(0); } }
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes overlay-in { from { opacity:0; } to { opacity:1; } }
+@keyframes modal-in { from { opacity:0; transform: translateY(12px) scale(.985); } to { opacity:1; transform:translateY(0) scale(1); } }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useRef, useMemo } = React;
+
+/* ── MOCK DATA ── */
+const INIT_PLATFORM_DOCS = [
+  { id:'pd1', name:'MEDDIC Sales Methodology', active:true, date:'2026-06-10', content:`# MEDDIC Sales Methodology
+
+A qualification framework for complex B2B sales, used to assess deal health and coach reps toward a rigorous, evidence-based close.
+
+## M — Metrics
+What quantifiable business outcome will the customer achieve? Push the rep to get a number (cost saved, uptime gained, defects reduced) — not a vague "efficiency improvement."
+
+## E — Economic Buyer
+Who has the budget authority to approve this purchase? Confirm the rep has met, or has a credible path to, the Economic Buyer — not just a technical champion.
+
+## D — Decision Criteria
+What formal and informal criteria will the customer use to evaluate vendors? Get the rep to list these explicitly and map Teknosin's strengths against each one.
+
+## D — Decision Process
+What are the concrete steps, approvers, and timeline between "interested" and "signed"? A vague process is a red flag — ask for dates and names.
+
+## I — Identify Pain
+What specific operational or financial pain triggered this evaluation? The pain must be strong enough to justify budget and urgency — surface it in the customer's own words.
+
+## C — Champion
+Who inside the account is actively selling on Teknosin's behalf when the rep isn't in the room? Confirm this person has influence and a personal stake in the outcome, not just enthusiasm.
+
+## Coaching Use
+When reviewing a deal, walk the rep through each letter and flag any that are unanswered or answered with a guess rather than a fact. A deal missing more than one or two MEDDIC elements is at real risk regardless of how positive the meeting felt.` },
+  { id:'pd2', name:'SPIN Selling Principles', active:true, date:'2026-06-12', content:`# SPIN Selling Principles
+
+A questioning framework (Neil Rackham) for larger, more considered sales, built around four question types asked in sequence.
+
+## Situation Questions
+Establish facts about the customer's current setup (equipment, volumes, shifts, current supplier). Use sparingly — too many feels like an interrogation and adds no perceived value.
+
+## Problem Questions
+Surface dissatisfaction with the current situation: difficulties, malfunctions, complaints. These get the customer articulating a problem in their own words rather than the rep asserting one.
+
+## Implication Questions
+Explore the consequences of the problem if left unsolved: cost, delay, risk, downstream impact on other departments. This is where the pain becomes bigger and harder to ignore than the price of a solution.
+
+## Need-Payoff Questions
+Ask the customer to state the value of solving the problem themselves: "If downtime dropped by 30%, what would that mean for your plant?" Customer-articulated value is far more persuasive than rep-stated value.
+
+## Coaching Use
+Most under-trained reps over-ask Situation Questions and skip Implication and Need-Payoff entirely — this produces a technically accurate but commercially flat conversation. When coaching, check whether the rep got the customer to state the size of the problem and the value of solving it in their own words, not just describe their setup.` },
+  { id:'pd3', name:'Challenger Sale Framework', active:false, date:'2026-06-15', content:`# Challenger Sale Framework
+
+Based on research by Matthew Dixon and Brent Adamson, this model argues the highest-performing reps "teach, tailor, and take control" rather than simply building relationships or servicing requests.
+
+## Teach for Differentiation
+Bring the customer a new, commercially relevant insight about their business they hadn't considered — not a product pitch. The goal is to reframe how they think about their problem in a way that favors Teknosin's strengths.
+
+## Tailor the Message
+Adapt the insight and the framing to the specific stakeholder in the room — a plant manager and a procurement lead need different angles on the same insight.
+
+## Take Control
+Be comfortable discussing money, pushing back on unreasonable asks, and creating constructive tension rather than avoiding conflict to preserve harmony.
+
+## Coaching Use
+This approach works best with informed, complex-buying-committee accounts and can backfire with early-stage or price-sensitive relationships — use judgement on when to apply it. When coaching, check whether the rep is leading with an insight the customer didn't already have, or simply confirming what the customer already believes.` },
+];
+const INIT_PLATFORM_PROMPT = `You are a sales coach supporting a rep before and after their customer meetings.
+
+Session opening: at the very start of every meeting-based session, before asking anything else, confirm the rep is ready to talk — for example "Are you ready to talk? Shall we begin?" Do not ask the first real coaching question, and do not start coaching content, until the rep gives a clear positive confirmation (voice or text — "yes", "ready", "let's go", "sure", etc.). If their response is unclear, hesitant, or negative, ask what they'd prefer instead of proceeding — never assume readiness.
+
+Language: Always respond in the user's preferred language, as set on their account (Turkish or English) — regardless of the language of any product, policy, or market reference material in context. Never mix languages within a single reply; if the user explicitly switches language mid-conversation, follow their lead for the rest of the session.`;
+
+const INIT_GENERAL_PROMPT = `You are a sales coach available for general, on-demand consultation — this session is not tied to any specific scheduled meeting.
+
+Language: Always respond in the user's preferred language, as set on their account (Turkish or English) — regardless of the language of any product, policy, or market reference material in context. Never mix languages within a single reply; if the user explicitly switches language mid-conversation, follow their lead for the rest of the session.
+
+Start by asking the seller what they need help with. Determine first:
+- First meeting
+- Follow-up meeting
+- Negotiation
+- Deal recovery
+- Account planning
+- Something else
+
+Ask ONE question at a time. Wait for the answer. If the answer is weak or vague, ask ONE follow-up to push deeper — then move on regardless. Be direct and concise.
+
+Once the situation is clear, coach using the same underlying principles as a meeting-prep session: identify the trigger and cost of inaction, quantify the pain, validate the Champion, clarify Economic Buyer access, map internal risk, connect to the account's top priorities, and define the Next Best Action.
+
+If the seller has no specific deal in mind, help them think through general skill areas instead — prospecting, objection handling, negotiation tactics, or account strategy — drawing on the frameworks in your knowledge base (SPIN, Challenger, SNAP, Voss / Fisher-Ury for negotiation).`;
+
+const INIT_GLOBAL_CONFIG = {
+  deployment_model: 'saas',
+  active_provider: 'azure_openai_realtime',
+  // Gemini Live
+  gemini_api_key_ref:     '',
+  gemini_model:           'gemini-2.5-flash-native-audio-preview-12-2025',
+  gemini_voice:           'Aoede',
+  gemini_language:        'tr-TR',
+  gemini_temperature:     1.0,
+  gemini_max_tokens:      2048,
+  // Azure OpenAI Realtime
+  aoai_rt_endpoint:       'https://salesmentor-prod.openai.azure.com/',
+  aoai_rt_api_key_ref:    'https://sm-keyvault.vault.azure.net/secrets/aoai-realtime-key',
+  aoai_rt_deployment:     'gpt-realtime',
+  aoai_rt_voice:          'alloy',
+  aoai_rt_temperature:    0.8,
+  aoai_rt_max_tokens:     4096,
+  // Azure Voice Live API
+  avl_endpoint:           'https://salesmentor.services.ai.azure.com/',
+  avl_api_key_ref:        'https://sm-keyvault.vault.azure.net/secrets/voice-live-key',
+  avl_model:              'gpt-realtime',
+  avl_voice_type:         'azure-standard',
+  avl_voice_name:         'en-US-EmmaNeural',
+  avl_voice_endpoint_id:  '',
+  avl_stt_languages:      'en-US,tr-TR',
+  avl_temperature:        0.8,
+  avl_max_tokens:         4096,
+  // Document limits
+  doc_count_limit:        10,
+  doc_max_chars_per_file: 8000,
+  doc_max_chars_total:    100000,
+  // Session limits
+  max_session_minutes:    5,
+};
+
+/* ── ICONS ── */
+const Icon = ({ name, size=16, color='currentColor' }) => {
+  const paths = {
+    upload:  <><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></>,
+    trash:   <><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/></>,
+    file:    <><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></>,
+    check:   <polyline points="20 6 9 17 4 12"/>,
+    x:       <><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></>,
+    save:    <><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></>,
+    sliders: <><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></>,
+    key:     <><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 110 7.78 5.5 5.5 0 010-7.78m0 0L15.5 7.5m-7.11 1.11L2 22"/></>,
+    lock:    <><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></>,
+    alert:   <><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></>,
+    db:      <><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></>,
+    file2:   <><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></>,
+    rocket:  <><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 00-2.91-.09z"/><path d="M12 15l-3-3a22 22 0 012-3.95A12.88 12.88 0 0122 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 01-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/></>,
+    users:   <><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></>,
+    building:<><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="9" y1="6" x2="9" y2="6"/><line x1="15" y1="6" x2="15" y2="6"/><line x1="9" y1="10" x2="9" y2="10"/><line x1="15" y1="10" x2="15" y2="10"/><line x1="9" y1="14" x2="9" y2="14"/><line x1="15" y1="14" x2="15" y2="14"/><path d="M9 22v-4h6v4"/></>,
+    terminal:<><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></>,
+    package: <><line x1="16.5" y1="9.4" x2="7.5" y2="4.21"/><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></>,
+    arrowR:  <><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></>,
+    arrowL:  <><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></>,
+    plus:    <><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></>,
+    spark:   <><path d="M12 3l1.9 5.8L20 10.7l-6.1 1.9L12 18.4l-1.9-5.8L4 10.7l6.1-1.9z"/></>,
+    mail:    <><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M22 7l-10 6L2 7"/></>,
+    loader:  <><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="4.93" y1="4.93" x2="7.76" y2="7.76"/><line x1="16.24" y1="16.24" x2="19.07" y2="19.07"/><line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/><line x1="4.93" y1="19.07" x2="7.76" y2="16.24"/><line x1="16.24" y1="7.76" x2="19.07" y2="4.93"/></>,
+  };
+  return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">{paths[name]}</svg>;
+};
+
+/* ── PRIMITIVES ── */
+const fmtSize = b => b>=1048576 ? (b/1048576).toFixed(1)+' MB' : (b/1024).toFixed(0)+' KB';
+
+const Toast = ({ msg }) => (
+  <div style={{ position:'fixed', bottom:28, right:28, zIndex:999, background:'#166534', color:'#fff', borderRadius:10, padding:'12px 18px', display:'flex', alignItems:'center', gap:10, font:'500 13px/1 var(--font-sans)', boxShadow:'0 8px 24px rgba(0,0,0,.2)', animation:'fade-in .25s ease-out' }}>
+    <Icon name="check" size={15} />{msg}
+  </div>
+);
+
+const Chip = ({ label, color }) => {
+  const map = { green:{bg:'#DCFCE7',fg:'#166534'}, red:{bg:'#FEE2E2',fg:'#991B1B'}, slate:{bg:'#F1F5F9',fg:'#475569'}, amber:{bg:'#FEF3C7',fg:'#92400E'} };
+  const s = map[color]||map.slate;
+  return <span style={{ background:s.bg, color:s.fg, font:'600 10px/1 var(--font-sans)', letterSpacing:'.04em', textTransform:'uppercase', padding:'3px 8px', borderRadius:4, whiteSpace:'nowrap' }}>{label}</span>;
+};
+
+const Card = ({ children, style }) => (
+  <div style={{ background:'#fff', border:'1px solid var(--genbil-line)', borderRadius:12, padding:'22px 24px', ...style }}>{children}</div>
+);
+
+const Field = ({ label, hint, required, children }) => (
+  <div>
+    <div style={{ display:'flex', alignItems:'center', gap:6, marginBottom: hint?2:6 }}>
+      <label style={{ font:'500 12px/1 var(--font-sans)', color:'var(--genbil-ink-2)' }}>{label}</label>
+      {required && <span style={{ font:'600 10px/1 var(--font-sans)', color:'#B45309', background:'#FEF3C7', padding:'2px 6px', borderRadius:3, letterSpacing:'.04em' }}>REQUIRED</span>}
+    </div>
+    {hint && <div style={{ font:'400 11px/1.4 var(--font-sans)', color:'var(--genbil-ink-4)', marginBottom:6 }}>{hint}</div>}
+    {children}
+  </div>
+);
+
+const iStyle = (extra={}) => ({ width:'100%', border:'1px solid var(--genbil-line-2)', borderRadius:6, padding:'8px 10px', font:'400 13px/1 var(--font-sans)', outline:'none', background:'#fff', ...extra });
+
+const KVInput = ({ value, onChange }) => (
+  <div style={{ position:'relative' }}>
+    <input value={value} onChange={onChange} style={iStyle({fontFamily:'var(--font-mono)',fontSize:12,paddingRight:36})} />
+    <div style={{ position:'absolute', right:10, top:'50%', transform:'translateY(-50%)', color:'var(--genbil-ink-4)', pointerEvents:'none' }}><Icon name="key" size={13} /></div>
+  </div>
+);
+
+/* ── PRIMITIVES continued ── */
+
+/* ── POLICY ROW ── */
+const PolicyRow = ({ doc, onToggle, onEdit, onDelete, maxChars }) => {
+  const chars = doc.content.length;
+  const over = chars > maxChars;
+  const preview = doc.content.replace(/^#.*\n+/,'').replace(/[#*`]/g,'').slice(0,120).trim();
+  return (
+    <div style={{ display:'flex', alignItems:'flex-start', gap:14, padding:'12px 16px', borderRadius:8, border:'1px solid var(--genbil-line)', background:doc.active?'#fff':'var(--genbil-paper-2)', opacity:doc.active?1:0.65 }}>
+      <div style={{ color:'var(--genbil-ink-4)', marginTop:2 }}><Icon name="file" size={18} /></div>
+      <div style={{ flex:1, minWidth:0 }}>
+        <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:3 }}>
+          <span style={{ font:'600 13px/1 var(--font-sans)', color:'var(--genbil-ink)', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>{doc.name}</span>
+          <Chip label={doc.active?'Active':'Inactive'} color={doc.active?'green':'slate'} />
+          {over && <Chip label="Limit exceeded" color="red" />}
+        </div>
+        <div style={{ font:'400 12px/1.4 var(--font-sans)', color:'var(--genbil-ink-3)', marginBottom:4, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{preview}…</div>
+        <div style={{ font:'400 11px/1 var(--font-sans)', color:'var(--genbil-ink-4)', display:'flex', gap:12 }}>
+          <span style={{ color:over?'var(--danger)':'var(--genbil-ink-4)' }}>{chars.toLocaleString()} / {maxChars.toLocaleString()} chars</span>
+          <span>{doc.date}</span>
+        </div>
+      </div>
+      <button onClick={()=>onEdit(doc.id)} style={{ padding:'6px 12px', borderRadius:6, border:'1px solid var(--genbil-line)', background:'transparent', cursor:'pointer', font:'600 12px/1 var(--font-sans)', color:'var(--genbil-ink-2)', flexShrink:0 }}>Edit</button>
+      <button onClick={()=>onToggle(doc.id)} style={{ width:36, height:20, borderRadius:10, border:'none', cursor:'pointer', padding:0, position:'relative', background:doc.active?'var(--sm)':'#CBD5E1', transition:'background .2s', flexShrink:0, marginTop:6 }}>
+        <div style={{ position:'absolute', top:3, left:doc.active?19:3, width:14, height:14, borderRadius:'50%', background:'#fff', transition:'left .2s' }} />
+      </button>
+      <button onClick={()=>onDelete(doc.id)} style={{ width:32, height:32, borderRadius:6, border:'1px solid var(--genbil-line)', background:'transparent', cursor:'pointer', color:'var(--danger)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+        <Icon name="trash" size={14} />
+      </button>
+    </div>
+  );
+};
+
+const PolicyEditorModal = ({ policy, maxChars, onSave, onClose }) => {
+  const [name, setName] = useState(policy.name);
+  const [content, setContent] = useState(policy.content);
+  const pct = content.length/maxChars;
+  return (
+    <div style={{ position:'fixed', inset:0, zIndex:500, display:'flex', alignItems:'center', justifyContent:'center', padding:24 }}>
+      <div style={{ position:'absolute', inset:0, background:'rgba(15,23,42,.45)' }} onClick={onClose} />
+      <div style={{ position:'relative', background:'#fff', borderRadius:14, width:'100%', maxWidth:640, maxHeight:'90vh', display:'flex', flexDirection:'column', boxShadow:'0 24px 64px rgba(15,23,42,.18)' }}>
+        <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'18px 22px', borderBottom:'1px solid var(--genbil-line)', font:'600 15px/1 var(--font-sans)', color:'var(--genbil-ink)' }}>
+          <span>{policy.id ? 'Edit Policy' : 'Add Policy'}</span>
+          <button onClick={onClose} style={{ width:28, height:28, borderRadius:6, border:'1px solid var(--genbil-line)', background:'transparent', cursor:'pointer' }}>✕</button>
+        </div>
+        <div style={{ padding:'20px 22px', flex:1, overflowY:'auto', display:'flex', flexDirection:'column', gap:14 }}>
+          <div>
+            <label style={{ font:'600 12px/1 var(--font-sans)', color:'var(--genbil-ink-2)', display:'block', marginBottom:6 }}>Policy Name *</label>
+            <input value={name} onChange={e=>setName(e.target.value)} placeholder="e.g. MEDDIC Sales Methodology" style={iStyle()} />
+          </div>
+          <div>
+            <div style={{ display:'flex', justifyContent:'space-between', alignItems:'baseline', marginBottom:8 }}>
+              <label style={{ font:'600 12px/1 var(--font-sans)', color:'var(--genbil-ink-2)' }}>Content (Markdown) *</label>
+              <span style={{ font:'500 11px/1 var(--font-sans)', color:pct>0.9?'var(--danger)':'var(--genbil-ink-4)' }}>{content.length.toLocaleString()} / {maxChars.toLocaleString()}</span>
+            </div>
+            <textarea value={content} onChange={e=>e.target.value.length<=maxChars&&setContent(e.target.value)} rows={14}
+              style={{ width:'100%', resize:'vertical', border:`1px solid ${pct>0.9?'var(--danger)':'var(--genbil-line-2)'}`, borderRadius:8, padding:'12px 14px', font:'400 12.5px/1.6 var(--font-mono)', color:'var(--genbil-ink)', outline:'none', background:'#fff' }} />
+          </div>
+        </div>
+        <div style={{ padding:'14px 22px', borderTop:'1px solid var(--genbil-line)', display:'flex', justifyContent:'flex-end', gap:10 }}>
+          <button onClick={onClose} style={{ padding:'9px 20px', borderRadius:8, border:'1px solid var(--genbil-line-2)', background:'transparent', cursor:'pointer', font:'600 13px/1 var(--font-sans)', color:'var(--genbil-ink-2)' }}>Cancel</button>
+          <button onClick={()=>{ if(!name.trim()||!content.trim())return; onSave({ ...policy, name:name.trim(), content }); }} style={{ padding:'9px 20px', borderRadius:8, border:'none', background:'var(--sm)', color:'#fff', cursor:'pointer', font:'600 13px/1 var(--font-sans)' }}>Save</button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const PromptEditor = ({ value, onChange, maxChars, label }) => {
+  const pct = value.length/maxChars;
+  return (
+    <div>
+      <div style={{ display:'flex', justifyContent:'space-between', alignItems:'baseline', marginBottom:8 }}>
+        <label style={{ font:'600 13px/1 var(--font-sans)', color:'var(--genbil-ink)' }}>{label}</label>
+        <span style={{ font:'500 11px/1 var(--font-sans)', color:pct>0.9?'var(--danger)':'var(--genbil-ink-4)' }}>{value.length.toLocaleString()} / {maxChars.toLocaleString()}</span>
+      </div>
+      <textarea value={value} onChange={e=>e.target.value.length<=maxChars&&onChange(e.target.value)} rows={8}
+        style={{ width:'100%', resize:'vertical', border:`1px solid ${pct>0.9?'var(--danger)':'var(--genbil-line-2)'}`, borderRadius:8, padding:'12px 14px', font:'400 13px/1.6 var(--font-sans)', color:'var(--genbil-ink)', outline:'none', background:'#fff' }} />
+      <div style={{ height:3, background:'var(--genbil-line)', borderRadius:2, marginTop:6, overflow:'hidden' }}>
+        <div style={{ height:'100%', borderRadius:2, width:`${Math.min(pct*100,100)}%`, background:pct>0.9?'var(--danger)':pct>0.7?'var(--warn-deep)':'var(--sm)', transition:'width .1s' }} />
+      </div>
+    </div>
+  );
+};
+
+const StatsBar = ({ docs, maxTotal, maxCount }) => {
+  const totalChars = docs.filter(d=>d.active).reduce((s,d)=>s+d.content.length,0);
+  const pct = totalChars/maxTotal;
+  return (
+    <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12, marginBottom:16 }}>
+      {[
+        { label:'Policies',     val:`${docs.length} / ${maxCount}`,                            warn:docs.length>=maxCount },
+        { label:'Prompt chars', val:`${totalChars.toLocaleString()} / ${maxTotal.toLocaleString()}`, warn:pct>0.85 },
+      ].map(({label,val,warn})=>(
+        <div key={label} style={{ background:warn?'#FEF2F2':'var(--genbil-paper-2)', border:`1px solid ${warn?'#FECACA':'var(--genbil-line)'}`, borderRadius:8, padding:'10px 14px' }}>
+          <div style={{ font:'400 11px/1 var(--font-sans)', color:warn?'var(--danger)':'var(--genbil-ink-4)', marginBottom:4 }}>{label}</div>
+          <div style={{ font:'600 14px/1 var(--font-sans)', color:warn?'var(--danger)':'var(--genbil-ink)' }}>{val}</div>
+        </div>
+      ))}
+    </div>
+  );
+};
+
+/* ── PLATFORM DOCUMENTS PANEL ── */
+const PlatformDocsPanel = ({ config, showToast }) => {
+  const [docs, setDocs] = useState(INIT_PLATFORM_DOCS);
+  const [editing, setEditing] = useState(null); // null | policy object being added/edited
+  const promptMaxChars = config.doc_max_chars_per_file;
+  const [promptMode, setPromptMode] = useState('meeting'); // 'meeting' | 'general'
+  const [meetingPrompt, setMeetingPrompt] = useState(INIT_PLATFORM_PROMPT);
+  const [generalPrompt, setGeneralPrompt] = useState(INIT_GENERAL_PROMPT);
+  const [promptSaved, setPromptSaved] = useState(true);
+  const prompt = promptMode === 'meeting' ? meetingPrompt : generalPrompt;
+  const setPrompt = promptMode === 'meeting' ? setMeetingPrompt : setGeneralPrompt;
+  return (
+    <div style={{ display:'flex', flexDirection:'column', gap:24, animation:'fade-in .2s ease-out' }}>
+      <Card>
+        <div style={{ font:'600 15px/1 var(--font-sans)', color:'var(--genbil-ink)', marginBottom:4 }}>Platform Sales Policies</div>
+        <div style={{ font:'400 12px/1.5 var(--font-sans)', color:'var(--genbil-ink-3)', marginBottom:16 }}>Applied to all tenants. Injected into every agent session prompt. Authored directly as Markdown — max {promptMaxChars.toLocaleString()} characters per policy.</div>
+        <StatsBar docs={docs} maxTotal={config.doc_max_chars_total} maxCount={config.doc_count_limit} />
+        <div style={{ display:'flex', flexDirection:'column', gap:8, marginBottom:16 }}>
+          {docs.map(d=><PolicyRow key={d.id} doc={d}
+            onToggle={id=>setDocs(prev=>prev.map(x=>x.id===id?{...x,active:!x.active}:x))}
+            onEdit={id=>setEditing(docs.find(x=>x.id===id))}
+            onDelete={id=>{setDocs(prev=>prev.filter(x=>x.id!==id));showToast('Policy deleted');}}
+            maxChars={promptMaxChars} />)}
+          {docs.length===0&&<div style={{ textAlign:'center', padding:'28px 0', color:'var(--genbil-ink-4)', font:'400 13px/1 var(--font-sans)' }}>No policies yet.</div>}
+        </div>
+        <button onClick={()=>setEditing(docs.length>=config.doc_count_limit?null:{ id:null, name:'', content:'', active:true })}
+          disabled={docs.length>=config.doc_count_limit}
+          style={{ width:'100%', padding:'11px 0', borderRadius:8, border:`1.5px dashed ${docs.length>=config.doc_count_limit?'var(--genbil-line)':'var(--genbil-line-2)'}`, background:'transparent', cursor:docs.length>=config.doc_count_limit?'not-allowed':'pointer', font:'600 13px/1 var(--font-sans)', color:docs.length>=config.doc_count_limit?'var(--genbil-ink-4)':'var(--sm)' }}>
+          {docs.length>=config.doc_count_limit ? 'Policy limit reached' : '+ Add Policy'}
+        </button>
+        {editing && <PolicyEditorModal policy={editing} maxChars={promptMaxChars}
+          onClose={()=>setEditing(null)}
+          onSave={saved=>{
+            setDocs(prev => saved.id
+              ? prev.map(x=>x.id===saved.id?{...x,name:saved.name,content:saved.content}:x)
+              : [...prev, { ...saved, id:'pd'+Date.now(), date:new Date().toISOString().slice(0,10) }]);
+            setEditing(null);
+            showToast(saved.id ? 'Policy updated' : 'Policy added');
+          }} />}
+      </Card>
+      <Card>
+        <div style={{ font:'600 15px/1 var(--font-sans)', color:'var(--genbil-ink)', marginBottom:4 }}>Platform System Prompt</div>
+        <div style={{ font:'400 12px/1.5 var(--font-sans)', color:'var(--genbil-ink-3)', marginBottom:16 }}>The agent uses one of two prompts per session, selected deterministically by the app based on whether a task/meeting is attached — never inferred by the model itself. Meeting-Based Session max 8,000 characters; General Consultation max 3,000.</div>
+        <div style={{ display:'flex', gap:8, marginBottom:20, borderBottom:'1px solid var(--genbil-line)' }}>
+          {[['meeting','Meeting-Based Session'],['general','General Consultation']].map(([id,label])=>(
+            <button key={id} onClick={()=>setPromptMode(id)}
+              style={{ padding:'9px 4px', marginBottom:-1, border:'none', borderBottom:'2px solid '+(promptMode===id?'var(--sm)':'transparent'), background:'transparent', cursor:'pointer', font: (promptMode===id?'700':'500')+' 13px/1 var(--font-sans)', color: promptMode===id?'var(--sm)':'var(--genbil-ink-3)' }}>{label}</button>
+          ))}
+        </div>
+        <div style={{ font:'400 12px/1.5 var(--font-sans)', color:'var(--genbil-ink-3)', marginBottom:20 }}>
+          {promptMode==='meeting'
+            ? 'Used by Start Session on a Mentor Task — a task_id is present, so customer/opportunity/product/market context is already resolved and injected alongside this prompt.'
+            : 'Used by the “Sales Consultant” button — no task_id, no meeting context. The agent asks the rep what they need help with before coaching.'}
+        </div>
+        <PromptEditor value={prompt} onChange={v=>{setPrompt(v);setPromptSaved(false);}} maxChars={promptMode==='meeting'?8000:3000} label={promptMode==='meeting'?'Meeting-Based Session Prompt':'General Consultation Prompt'} />
+        <div style={{ display:'flex', justifyContent:'flex-end', marginTop:14 }}>
+          <button onClick={()=>{setPromptSaved(true);showToast('Saved');}} disabled={promptSaved}
+            style={{ display:'flex', alignItems:'center', gap:6, padding:'9px 20px', borderRadius:8, border:'none', background:promptSaved?'var(--genbil-line)':'var(--sm)', color:promptSaved?'var(--genbil-ink-4)':'#fff', cursor:promptSaved?'default':'pointer', font:'600 13px/1 var(--font-sans)', transition:'all .15s' }}>
+            <Icon name={promptSaved?'check':'save'} size={13} color={promptSaved?'var(--genbil-ink-4)':'#fff'} />{promptSaved?'Saved':'Save'}
+          </button>
+        </div>
+      </Card>
+    </div>
+  );
+};
+
+/* ── GLOBAL CONFIG PANEL ── */
+const GlobalConfigPanel = ({ config, setConfig, showToast }) => {
+  const [tab, setTab] = useState('provider');
+  const [draft, setDraft] = useState({...config});
+  const [dirty, setDirty] = useState(false);
+  const [testState, setTestState] = useState('idle'); // idle | testing | success | failed
+  const set = (k,v) => { setDraft(d=>({...d,[k]:v})); setDirty(true); setTestState('idle'); };
+  const save = () => { setConfig(draft); setDirty(false); showToast('Configuration saved'); };
+  const cancel = () => { setDraft({...config}); setDirty(false); setTestState('idle'); };
+  const p = draft.active_provider;
+
+  const runTest = async () => {
+    setTestState('testing');
+    await new Promise(r => setTimeout(r, 1800));
+    // Simulate: succeed if an API key field is non-empty for the selected provider
+    const hasKey = p === 'gemini_live' ? !!draft.gemini_api_key_ref
+      : p === 'azure_openai_realtime' ? (!!draft.aoai_endpoint && !!draft.aoai_api_key_ref)
+      : (!!draft.azure_voice_endpoint && !!draft.azure_voice_api_key_ref);
+    if (hasKey) {
+      setTestState('success');
+      showToast('Test connection succeeded');
+    } else {
+      setTestState('failed');
+      showToast('Test connection failed — check credentials', false);
+    }
+  };
+
+  const testBtn = () => {
+    if (testState === 'testing') return <button disabled style={{ padding:'8px 18px', borderRadius:8, border:'1px solid var(--genbil-line)', background:'#F8FAFC', font:'500 12.5px/1 var(--font-sans)', color:'var(--genbil-ink-4)', cursor:'not-allowed' }}>Testing…</button>;
+    if (testState === 'success') return <button onClick={runTest} style={{ padding:'8px 18px', borderRadius:8, border:'1px solid #22C55E', background:'#F0FDF4', font:'600 12.5px/1 var(--font-sans)', color:'#166534', cursor:'pointer' }}>✓ Connected — Re-test</button>;
+    if (testState === 'failed') return <button onClick={runTest} style={{ padding:'8px 18px', borderRadius:8, border:'1px solid #FCA5A5', background:'#FEF2F2', font:'600 12.5px/1 var(--font-sans)', color:'#DC2626', cursor:'pointer' }}>✗ Failed — Retry</button>;
+    return <button onClick={runTest} style={{ padding:'8px 18px', borderRadius:8, border:'none', background:'var(--genbil-ink)', font:'500 12.5px/1 var(--font-sans)', color:'#fff', cursor:'pointer' }}>Test Connection</button>;
+  };
+
+  const providerStatus = () => {
+    if (testState === 'success') return <div style={{ display:'flex', alignItems:'center', gap:6, padding:'8px 14px', borderRadius:8, background:'#F0FDF4', border:'1px solid #BBF7D0' }}><span style={{ fontSize:13 }}>✓</span><span style={{ font:'600 12px/1 var(--font-sans)', color:'#166534' }}>AI Provider Selection Complete</span></div>;
+    return <div style={{ display:'flex', alignItems:'center', gap:6, padding:'8px 14px', borderRadius:8, background:'#FFFBEB', border:'1px solid #FDE68A' }}><span style={{ fontSize:13 }}>⚠</span><span style={{ font:'600 12px/1 var(--font-sans)', color:'#92400E' }}>AI Provider Selection Incomplete — test connection required</span></div>;
+  };
+
+  /* Provider selector card */
+  const providers = [
+    { id:'gemini_live', label:'Gemini Live', vendor:'Google', badge:'#4285F4', desc:'Native multimodal audio — no separate STT/TTS pipeline. Voices powered by Chirp 3.' },
+    { id:'azure_openai_realtime', label:'Azure OpenAI Realtime', vendor:'Microsoft Azure', badge:'#0078D4', desc:'GPT Realtime API. Native speech-to-speech with OpenAI voices over WebSocket/WebRTC.' },
+    { id:'azure_voice_live', label:'Azure Voice Live API', vendor:'Microsoft Azure', badge:'#7B38B2', desc:'Unified Azure AI Foundry API — Azure Speech STT + configurable LLM + Azure Neural TTS.' },
+  ];
+
+  const grid2 = { display:'grid', gridTemplateColumns:'1fr 1fr', gap:14 };
+  const sectionHead = (title, subtitle) => (
+    <div style={{ marginBottom:16 }}>
+      <div style={{ font:'600 14px/1 var(--font-sans)', color:'var(--genbil-ink)' }}>{title}</div>
+      {subtitle && <div style={{ font:'400 12px/1.4 var(--font-sans)', color:'var(--genbil-ink-4)', marginTop:3 }}>{subtitle}</div>}
+    </div>
+  );
+
+  return (
+    <div style={{ display:'flex', flexDirection:'column', gap:20, animation:'fade-in .2s ease-out' }}>
+
+      {/* Tab bar */}
+      <div style={{ display:'flex', borderBottom:'1px solid var(--genbil-line)' }}>
+        {[['provider','AI Provider'],['limits','Session & Document Limits']].map(([t,lbl])=>(
+          <button key={t} onClick={()=>setTab(t)} style={{ padding:'10px 20px', border:'none', background:'none', cursor:'pointer', borderBottom:`2px solid ${tab===t?'var(--sm)':'transparent'}`, font:`${tab===t?'600':'400'} 13px/1 var(--font-sans)`, color:tab===t?'var(--sm)':'var(--genbil-ink-3)', marginBottom:-1, transition:'color .12s' }}>{lbl}</button>
+        ))}
+      </div>
+
+      {/* ── AI PROVIDER TAB ── */}
+      {tab==='provider' && (
+        <div style={{ display:'flex', flexDirection:'column', gap:16 }}>
+
+          {/* Deployment model badge */}
+          <div style={{ display:'flex', alignItems:'center', gap:10 }}>
+            <Icon name="lock" size={13} color="var(--sm)" />
+            <span style={{ font:'400 12px/1 var(--font-sans)', color:'var(--genbil-ink-3)' }}>Deployment model:</span>
+            <span style={{ font:'600 12px/1 var(--font-sans)', color:'var(--sm)', textTransform:'uppercase', letterSpacing:'.06em' }}>{draft.deployment_model}</span>
+          </div>
+
+          {/* Provider selector */}
+          <Card>
+            {sectionHead('Active Provider', 'LLM and Voice are always paired. Changing this restarts all active agent sessions.')}
+            <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
+              {providers.map(pr=>(
+                <div key={pr.id} onClick={()=>set('active_provider',pr.id)}
+                  style={{ display:'flex', alignItems:'flex-start', gap:14, padding:'14px 16px', borderRadius:10, border:`2px solid ${p===pr.id?pr.badge:'var(--genbil-line)'}`, background:p===pr.id?`${pr.badge}08`:'#fff', cursor:'pointer', transition:'all .15s' }}>
+                  <div style={{ width:18, height:18, borderRadius:'50%', border:`2px solid ${p===pr.id?pr.badge:'#CBD5E1'}`, background:p===pr.id?pr.badge:'#fff', flexShrink:0, marginTop:1, display:'flex', alignItems:'center', justifyContent:'center' }}>
+                    {p===pr.id && <div style={{ width:7, height:7, borderRadius:'50%', background:'#fff' }} />}
+                  </div>
+                  <div style={{ flex:1 }}>
+                    <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:3 }}>
+                      <span style={{ font:'600 13px/1 var(--font-sans)', color:'var(--genbil-ink)' }}>{pr.label}</span>
+                      <span style={{ font:'500 10px/1 var(--font-sans)', color:pr.badge, background:`${pr.badge}15`, padding:'2px 8px', borderRadius:4, letterSpacing:'.04em' }}>{pr.vendor}</span>
+                    </div>
+                    <div style={{ font:'400 12px/1.4 var(--font-sans)', color:'var(--genbil-ink-4)' }}>{pr.desc}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginTop:16, paddingTop:14, borderTop:'1px solid var(--genbil-line)', flexWrap:'wrap', gap:10 }}>
+              {providerStatus()}
+              {testBtn()}
+            </div>
+          </Card>
+
+          {/* ── GEMINI LIVE CONFIG ── */}
+          {p==='gemini_live' && (
+            <Card>
+              {sectionHead('Gemini Live Configuration')}
+              <div style={{ display:'flex', flexDirection:'column', gap:14 }}>
+                <Field label="Google API Key" hint="Azure Key Vault secret URI — retrieved at runtime via Managed Identity." required>
+                  <KVInput value={draft.gemini_api_key_ref} onChange={e=>set('gemini_api_key_ref',e.target.value)} />
+                </Field>
+                <div style={grid2}>
+                  <Field label="Model" hint="Use a native-audio model for best quality." required>
+                    <select value={draft.gemini_model} onChange={e=>set('gemini_model',e.target.value)} style={iStyle({background:'#fff'})}>
+                      <option value="gemini-2.5-flash-native-audio-preview-12-2025">gemini-2.5-flash-native-audio-preview-12-2025</option>
+                      <option value="gemini-live-2.5-flash-native-audio">gemini-live-2.5-flash-native-audio</option>
+                      <option value="gemini-3.1-flash-live-preview">gemini-3.1-flash-live-preview</option>
+                    </select>
+                  </Field>
+                  <Field label="Voice" hint="Chirp 3 HD voices. Default: Puck." required>
+                    <select value={draft.gemini_voice} onChange={e=>set('gemini_voice',e.target.value)} style={iStyle({background:'#fff'})}>
+                      {['Puck','Charon','Kore','Fenrir','Aoede','Leda','Orus','Zephyr'].map(v=><option key={v} value={v}>{v}</option>)}
+                    </select>
+                  </Field>
+                  <Field label="Language Code" hint="Native audio models auto-detect; set to restrict. e.g. en-US, tr-TR" required>
+                    <input value={draft.gemini_language} onChange={e=>set('gemini_language',e.target.value)} placeholder="en-US" style={iStyle({fontFamily:'var(--font-mono)',fontSize:12})} />
+                  </Field>
+                </div>
+                <div style={{ height:1, background:'var(--genbil-line)', margin:'4px 0' }} />
+                <div style={{ font:'500 11px/1 var(--font-sans)', color:'var(--genbil-ink-4)', letterSpacing:'.06em', textTransform:'uppercase' }}>Optional Inference Parameters</div>
+                <div style={grid2}>
+                  <Field label="Temperature" hint="0.0 – 2.0. Default: 1.0">
+                    <input type="number" step="0.05" min="0" max="2" value={draft.gemini_temperature} onChange={e=>set('gemini_temperature',parseFloat(e.target.value))} style={iStyle()} />
+                  </Field>
+                  <Field label="Max Output Tokens">
+                    <input type="number" step="128" min="256" max="8192" value={draft.gemini_max_tokens} onChange={e=>set('gemini_max_tokens',parseInt(e.target.value))} style={iStyle()} />
+                  </Field>
+                </div>
+              </div>
+            </Card>
+          )}
+
+          {/* ── AZURE OPENAI REALTIME CONFIG ── */}
+          {p==='azure_openai_realtime' && (
+            <Card>
+              {sectionHead('Azure OpenAI Realtime Configuration', 'GA endpoint — no api-version parameter required.')}
+              <div style={{ display:'flex', flexDirection:'column', gap:14 }}>
+                <Field label="Azure OpenAI Endpoint" hint="https://<resource>.openai.azure.com/" required>
+                  <input value={draft.aoai_rt_endpoint} onChange={e=>set('aoai_rt_endpoint',e.target.value)} style={iStyle({fontFamily:'var(--font-mono)',fontSize:12})} />
+                </Field>
+                <Field label="API Key" hint="Azure Key Vault secret URI — retrieved via Managed Identity." required>
+                  <KVInput value={draft.aoai_rt_api_key_ref} onChange={e=>set('aoai_rt_api_key_ref',e.target.value)} />
+                </Field>
+                <div style={grid2}>
+                  <Field label="Deployment Name" hint="The gpt-realtime model deployment." required>
+                    <select value={draft.aoai_rt_deployment} onChange={e=>set('aoai_rt_deployment',e.target.value)} style={iStyle({background:'#fff'})}>
+                      <option value="gpt-realtime">gpt-realtime</option>
+                      <option value="gpt-realtime-mini">gpt-realtime-mini</option>
+                      <option value="gpt-realtime-1.5">gpt-realtime-1.5</option>
+                    </select>
+                  </Field>
+                  <Field label="Voice" hint="OpenAI built-in voices." required>
+                    <select value={draft.aoai_rt_voice} onChange={e=>set('aoai_rt_voice',e.target.value)} style={iStyle({background:'#fff'})}>
+                      {['alloy','echo','shimmer','verse','ballad','coral','sage','ash'].map(v=><option key={v} value={v}>{v}</option>)}
+                    </select>
+                  </Field>
+                </div>
+                <div style={{ height:1, background:'var(--genbil-line)', margin:'4px 0' }} />
+                <div style={{ font:'500 11px/1 var(--font-sans)', color:'var(--genbil-ink-4)', letterSpacing:'.06em', textTransform:'uppercase' }}>Optional Inference Parameters</div>
+                <div style={grid2}>
+                  <Field label="Temperature" hint="0.0 – 2.0. Default: 0.8">
+                    <input type="number" step="0.05" min="0" max="2" value={draft.aoai_rt_temperature} onChange={e=>set('aoai_rt_temperature',parseFloat(e.target.value))} style={iStyle()} />
+                  </Field>
+                  <Field label="Max Response Output Tokens" hint="Supports 'inf'. Default: 4096.">
+                    <input type="number" step="128" min="256" max="32000" value={draft.aoai_rt_max_tokens} onChange={e=>set('aoai_rt_max_tokens',parseInt(e.target.value))} style={iStyle()} />
+                  </Field>
+                </div>
+              </div>
+            </Card>
+          )}
+
+          {/* ── AZURE VOICE LIVE API CONFIG ── */}
+          {p==='azure_voice_live' && (
+            <Card>
+              {sectionHead('Azure Voice Live API Configuration', 'Single unified endpoint — Azure Speech STT + LLM + Azure Neural TTS.')}
+              <div style={{ display:'flex', flexDirection:'column', gap:14 }}>
+                <Field label="Azure AI Foundry Endpoint" hint="https://<resource>.services.ai.azure.com/ — endpoint is the same for all models." required>
+                  <input value={draft.avl_endpoint} onChange={e=>set('avl_endpoint',e.target.value)} style={iStyle({fontFamily:'var(--font-mono)',fontSize:12})} />
+                </Field>
+                <Field label="API Key" hint="Azure Key Vault secret URI — retrieved via Managed Identity." required>
+                  <KVInput value={draft.avl_api_key_ref} onChange={e=>set('avl_api_key_ref',e.target.value)} />
+                </Field>
+                <Field label="Model" hint="The generative AI model to power the voice agent. gpt-realtime uses native OpenAI audio; others use Azure Speech TTS." required>
+                  <select value={draft.avl_model} onChange={e=>set('avl_model',e.target.value)} style={iStyle({background:'#fff'})}>
+                    <option value="gpt-realtime">gpt-realtime</option>
+                    <option value="gpt-realtime-mini">gpt-realtime-mini</option>
+                    <option value="phi4-mm-realtime">phi4-mm-realtime</option>
+                    <option value="gpt-4.1">gpt-4.1</option>
+                    <option value="gpt-4o">gpt-4o</option>
+                  </select>
+                </Field>
+
+                {/* Voice section */}
+                <div style={{ background:'var(--genbil-paper-2)', borderRadius:8, padding:'14px 16px' }}>
+                  <div style={{ font:'500 12px/1 var(--font-sans)', color:'var(--genbil-ink-2)', marginBottom:10, display:'flex', alignItems:'center', gap:6 }}>
+                    Voice Output Configuration
+                    <span style={{ font:'600 10px/1 var(--font-sans)', color:'#B45309', background:'#FEF3C7', padding:'2px 6px', borderRadius:3, letterSpacing:'.04em' }}>REQUIRED</span>
+                  </div>
+                  <Field label="Voice Type" hint="azure-standard: 400+ Azure Neural voices. azure-custom: custom-trained voices.">
+                    <div style={{ display:'flex', gap:8, marginBottom:10 }}>
+                      {[['azure-standard','Azure Standard'],['azure-custom','Azure Custom']].map(([v,l])=>(
+                        <button key={v} onClick={()=>set('avl_voice_type',v)}
+                          style={{ flex:1, padding:'8px 12px', borderRadius:6, border:`2px solid ${draft.avl_voice_type===v?'var(--sm)':'var(--genbil-line-2)'}`, background:draft.avl_voice_type===v?'var(--sm-tint)':'#fff', cursor:'pointer', font:`${draft.avl_voice_type===v?'600':'400'} 12px/1 var(--font-sans)`, color:draft.avl_voice_type===v?'var(--sm)':'var(--genbil-ink-2)', transition:'all .12s' }}>{l}</button>
+                      ))}
+                    </div>
+                  </Field>
+                  <div style={grid2}>
+                    <Field label="Voice Name" hint={draft.avl_voice_type==='azure-standard'?'e.g. en-US-EmmaNeural, tr-TR-EmelNeural':'Custom voice name in your Foundry resource.'}>
+                      <input value={draft.avl_voice_name} onChange={e=>set('avl_voice_name',e.target.value)} placeholder={draft.avl_voice_type==='azure-standard'?'en-US-EmmaNeural':'my-custom-voice'} style={iStyle({fontFamily:'var(--font-mono)',fontSize:12})} />
+                    </Field>
+                    {draft.avl_voice_type==='azure-custom' && (
+                      <Field label="Custom Voice Endpoint ID" hint="GUID of the deployed custom voice endpoint.">
+                        <input value={draft.avl_voice_endpoint_id} onChange={e=>set('avl_voice_endpoint_id',e.target.value)} placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" style={iStyle({fontFamily:'var(--font-mono)',fontSize:12})} />
+                      </Field>
+                    )}
+                  </div>
+                </div>
+
+                <Field label="STT Languages" hint="Comma-separated BCP-47 codes for Azure Speech STT. First language is primary. Leave blank for auto-multilingual." required>
+                  <input value={draft.avl_stt_languages} onChange={e=>set('avl_stt_languages',e.target.value)} placeholder="en-US,tr-TR" style={iStyle({fontFamily:'var(--font-mono)',fontSize:12})} />
+                </Field>
+
+                <div style={{ height:1, background:'var(--genbil-line)', margin:'4px 0' }} />
+                <div style={{ font:'500 11px/1 var(--font-sans)', color:'var(--genbil-ink-4)', letterSpacing:'.06em', textTransform:'uppercase' }}>Optional Inference Parameters</div>
+                <div style={grid2}>
+                  <Field label="Temperature" hint="0.0 – 1.0 for Azure custom voices; 0.0 – 2.0 for LLM.">
+                    <input type="number" step="0.05" min="0" max="2" value={draft.avl_temperature} onChange={e=>set('avl_temperature',parseFloat(e.target.value))} style={iStyle()} />
+                  </Field>
+                  <Field label="Max Completion Tokens">
+                    <input type="number" step="128" min="256" max="32000" value={draft.avl_max_tokens} onChange={e=>set('avl_max_tokens',parseInt(e.target.value))} style={iStyle()} />
+                  </Field>
+                </div>
+              </div>
+            </Card>
+          )}
+        </div>
+      )}
+
+      {/* ── DOCUMENT LIMITS TAB ── */}
+      {tab==='limits' && (
+        <Card>
+          <div style={{ font:'600 14px/1 var(--font-sans)', color:'var(--genbil-ink)', marginBottom:4 }}>Session & Document Limits</div>
+          <div style={{ font:'400 12px/1.5 var(--font-sans)', color:'var(--genbil-ink-3)', marginBottom:20 }}>Applies to both platform and account document scopes.</div>
+          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:16 }}>
+            <Field label="Max Session Duration (minutes)" hint="Agent Chat session auto-closes when this limit is reached. User is notified 1 minute before. Default: 5 min." required>
+              <input type="number" step="1" min="1" max="60" value={draft.max_session_minutes} onChange={e=>set('max_session_minutes',parseInt(e.target.value))} style={iStyle()} />
+            </Field>
+            <Field label="Max Policies per Scope">
+              <input type="number" step="1" min="1" max="50" value={draft.doc_count_limit} onChange={e=>set('doc_count_limit',parseInt(e.target.value))} style={iStyle()} />
+            </Field>
+            <Field label="Max Chars per Policy" hint="Enforced live while authoring in the Markdown editor.">
+              <input type="number" step="1000" min="1000" max="100000" value={draft.doc_max_chars_per_file} onChange={e=>set('doc_max_chars_per_file',parseInt(e.target.value))} style={iStyle()} />
+            </Field>
+            <Field label="Max Total Chars" hint="Sum of active docs per scope. Warning at 85%.">
+              <input type="number" step="10000" min="10000" max="500000" value={draft.doc_max_chars_total} onChange={e=>set('doc_max_chars_total',parseInt(e.target.value))} style={iStyle()} />
+            </Field>
+          </div>
+        </Card>
+      )}
+
+      {/* Sticky save bar */}
+      {dirty && (
+        <div style={{ position:'sticky', bottom:0, background:'#fff', border:'1px solid var(--genbil-line)', borderRadius:10, padding:'14px 20px', display:'flex', justifyContent:'space-between', alignItems:'center', boxShadow:'0 -4px 20px rgba(15,23,42,.06)' }}>
+          <span style={{ font:'400 13px/1 var(--font-sans)', color:'var(--genbil-ink-3)' }}>You have unsaved changes.</span>
+          <div style={{ display:'flex', gap:10 }}>
+            <button onClick={cancel} style={{ padding:'9px 18px', borderRadius:8, border:'1px solid var(--genbil-line-2)', background:'transparent', cursor:'pointer', font:'500 13px/1 var(--font-sans)', color:'var(--genbil-ink-2)' }}>Cancel</button>
+            <button onClick={save} style={{ display:'flex', alignItems:'center', gap:6, padding:'9px 20px', borderRadius:8, border:'none', background:'var(--sm)', color:'#fff', cursor:'pointer', font:'600 13px/1 var(--font-sans)' }}>
+              <Icon name="save" size={13} color="#fff" /> Save Changes
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+/* ── DATABASE MANAGEMENT PANEL ── */
+// Schema definition — single source of truth for all DDL operations
+const DB_SCHEMA = [
+  { table:'aibus_accounts',        columns:[
+    {name:'tenantid',type:'UUID',pk:true},{name:'account_name',type:'VARCHAR(255)',notnull:true},
+    {name:'plan_type',type:'VARCHAR(50)',notnull:true,def:"'starter'"},{name:'max_users',type:'INTEGER',notnull:true,def:'10'},
+    {name:'account_system_prompt',type:'TEXT'},{name:'is_active',type:'BOOLEAN',notnull:true,def:'TRUE'},
+    {name:'created_at',type:'TIMESTAMPTZ',notnull:true,def:'NOW()'},{name:'updated_at',type:'TIMESTAMPTZ'}]},
+  { table:'aibus_users',           columns:[
+    {name:'userid',type:'UUID',pk:true},{name:'tenantid',type:'UUID',notnull:true},
+    {name:'entra_user_id',type:'VARCHAR(128)',notnull:true,unique:true},{name:'full_name',type:'VARCHAR(255)',notnull:true},
+    {name:'email',type:'VARCHAR(255)',notnull:true},{name:'role',type:'VARCHAR(50)',notnull:true},
+    {name:'manager_userid',type:'UUID'},{name:'seniority',type:'VARCHAR(50)'},
+    {name:'language',type:'VARCHAR(10)',notnull:true,def:"'tr'"},{name:'is_active',type:'BOOLEAN',notnull:true,def:'TRUE'},
+    {name:'created_at',type:'TIMESTAMPTZ',notnull:true,def:'NOW()'},{name:'updated_at',type:'TIMESTAMPTZ'}]},
+  { table:'aibus_user_roles',       columns:[
+    {name:'id',type:'UUID',pk:true},{name:'userid',type:'UUID',notnull:true},
+    {name:'tenantid',type:'UUID',notnull:true},{name:'role',type:'VARCHAR(50)',notnull:true},
+    {name:'assigned_at',type:'TIMESTAMPTZ',notnull:true,def:'NOW()'},{name:'assigned_by',type:'UUID'}]},
+  { table:'aibus_customers',        columns:[
+    {name:'customerid',type:'UUID',pk:true},{name:'tenantid',type:'UUID',notnull:true},
+    {name:'customer_name',type:'VARCHAR(255)',notnull:true},{name:'industry',type:'VARCHAR(255)'},
+    {name:'customer_info',type:'TEXT'},{name:'is_active',type:'BOOLEAN',notnull:true,def:'TRUE'},
+    {name:'created_at',type:'TIMESTAMPTZ',notnull:true,def:'NOW()'},{name:'updated_at',type:'TIMESTAMPTZ'}]},
+  { table:'aibus_opportunities',    columns:[
+    {name:'opportunityid',type:'UUID',pk:true},{name:'tenantid',type:'UUID',notnull:true},
+    {name:'customerid',type:'UUID',notnull:true},{name:'owner_userid',type:'UUID',notnull:true},
+    {name:'opportunity_name',type:'VARCHAR(255)',notnull:true},{name:'stage',type:'VARCHAR(50)',notnull:true,def:"'Prospecting'"},
+    {name:'opportunity_value',type:'NUMERIC(18,2)'},{name:'currency_type',type:'VARCHAR(10)',notnull:true,def:"'TRY'"},
+    {name:'opportunity_info',type:'TEXT'},{name:'crm_external_id',type:'VARCHAR(100)'},
+    {name:'created_at',type:'TIMESTAMPTZ',notnull:true,def:'NOW()'},{name:'updated_at',type:'TIMESTAMPTZ'}]},
+  { table:'aibus_meetings',         columns:[
+    {name:'meetingid',type:'UUID',pk:true},{name:'tenantid',type:'UUID',notnull:true},
+    {name:'customerid',type:'UUID',notnull:true},{name:'opportunityid',type:'UUID'},
+    {name:'owner_userid',type:'UUID',notnull:true},{name:'meeting_title',type:'VARCHAR(255)',notnull:true},
+    {name:'meeting_agenda',type:'TEXT'},{name:'scheduled_at',type:'TIMESTAMPTZ',notnull:true},
+    {name:'duration_minutes',type:'INTEGER',notnull:true,def:'60'},
+    {name:'actual_start_at',type:'TIMESTAMPTZ'},{name:'actual_end_at',type:'TIMESTAMPTZ'},
+    {name:'meeting_status',type:'VARCHAR(50)',notnull:true,def:"'Scheduled'"},{name:'cancellation_reason',type:'TEXT'},
+    {name:'created_at',type:'TIMESTAMPTZ',notnull:true,def:'NOW()'}]},
+  { table:'aibus_meeting_contributors', columns:[
+    {name:'id',type:'UUID',pk:true},{name:'meetingid',type:'UUID',notnull:true},
+    {name:'userid',type:'UUID',notnull:true},{name:'account_id',type:'UUID',notnull:true},
+    {name:'created_at',type:'TIMESTAMPTZ',notnull:true,def:'NOW()'}]},
+  { table:'aibus_tasks',            columns:[
+    {name:'taskid',type:'UUID',pk:true},{name:'tenantid',type:'UUID',notnull:true},
+    {name:'meetingid',type:'UUID',notnull:true},{name:'ownerid',type:'UUID',notnull:true},
+    {name:'task_type',type:'VARCHAR(50)',notnull:true},{name:'task_status',type:'VARCHAR(50)',notnull:true,def:"'Scheduled'"},
+    {name:'description',type:'TEXT'},{name:'duration_minutes',type:'INTEGER'},
+    {name:'due_date',type:'TIMESTAMPTZ'},{name:'cancellation_reason',type:'TEXT'},
+    {name:'created_at',type:'TIMESTAMPTZ',notnull:true,def:'NOW()'},{name:'updated_at',type:'TIMESTAMPTZ'}]},
+  { table:'aibus_conversation_sessions', columns:[
+    {name:'sessionid',type:'UUID',pk:true},{name:'tenantid',type:'UUID',notnull:true},
+    {name:'meetingid',type:'UUID',notnull:true},{name:'userid',type:'UUID',notnull:true},
+    {name:'taskid',type:'UUID',notnull:true},{name:'status',type:'VARCHAR(50)',notnull:true,def:"'in_progress'"},
+    {name:'summary',type:'JSONB'},{name:'summary_status',type:'VARCHAR(50)',notnull:true,def:"'pending'"},
+    {name:'started_at',type:'TIMESTAMPTZ',notnull:true,def:'NOW()'},
+    {name:'ended_at',type:'TIMESTAMPTZ'},{name:'coverage_score',type:'NUMERIC(4,3)'}]},
+  { table:'aibus_configuration',    columns:[
+    {name:'id',type:'INTEGER',pk:true,def:'1'},{name:'meeting_system_prompt',type:'TEXT'},{name:'general_system_prompt',type:'TEXT'},
+    {name:'active_llm_provider',type:'VARCHAR(50)',notnull:true,def:"'azure_openai_realtime'"},
+    {name:'doc_max_chars_total',type:'INTEGER',notnull:true,def:'200000'},
+    {name:'max_session_minutes',type:'INTEGER',notnull:true,def:'5'},
+    {name:'coaching_notes_visibility',type:'VARCHAR(20)',notnull:true,def:"'rep_only'"},
+    {name:'enrichment_enabled',type:'BOOLEAN',notnull:true,def:'FALSE'},
+    {name:'enrichment_search_provider',type:'VARCHAR(50)',notnull:true,def:"'gemini_google_search'"},
+    {name:'enrichment_search_prompt',type:'TEXT'},{name:'enrichment_api_key_ref',type:'VARCHAR(300)'},
+    {name:'enrichment_lookahead_days',type:'INTEGER',notnull:true,def:'30'},
+    {name:'enrichment_max_per_run',type:'INTEGER',notnull:true,def:'50'},
+    {name:'enrichment_schedule',type:'VARCHAR(50)',notnull:true,def:"'0 2 * * 0'"},
+    {name:'updated_by',type:'UUID'},{name:'updated_at',type:'TIMESTAMPTZ'}]},
+  { table:'aibus_products',         columns:[
+    {name:'product_id',type:'UUID',pk:true},{name:'tenantid',type:'UUID',notnull:true},
+    {name:'product_code',type:'VARCHAR(100)',notnull:true},{name:'product_name',type:'VARCHAR(255)',notnull:true},
+    {name:'product_description',type:'TEXT'},{name:'created_by',type:'UUID'},
+    {name:'created_at',type:'TIMESTAMPTZ',notnull:true,def:'NOW()'},{name:'updated_at',type:'TIMESTAMPTZ'}]},
+  { table:'aibus_opportunity_products', columns:[
+    {name:'id',type:'UUID',pk:true},{name:'opportunityid',type:'UUID',notnull:true},
+    {name:'product_id',type:'UUID',notnull:true},{name:'tenantid',type:'UUID',notnull:true},
+    {name:'created_at',type:'TIMESTAMPTZ',notnull:true,def:'NOW()'}]},
+  { table:'aibus_platform_documents', columns:[
+    {name:'documentid',type:'UUID',pk:true},{name:'document_name',type:'VARCHAR(255)',notnull:true},
+    {name:'blob_url',type:'VARCHAR(500)',notnull:true},{name:'extracted_text',type:'TEXT'},
+    {name:'is_active',type:'BOOLEAN',notnull:true,def:'TRUE'},{name:'uploaded_by',type:'UUID'},
+    {name:'uploaded_at',type:'TIMESTAMPTZ',notnull:true,def:'NOW()'}]},
+  { table:'aibus_account_documents', columns:[
+    {name:'documentid',type:'UUID',pk:true},{name:'tenantid',type:'UUID',notnull:true},
+    {name:'document_name',type:'VARCHAR(255)',notnull:true},{name:'blob_url',type:'VARCHAR(500)',notnull:true},
+    {name:'extracted_text',type:'TEXT'},{name:'is_active',type:'BOOLEAN',notnull:true,def:'TRUE'},
+    {name:'uploaded_by',type:'UUID'},{name:'uploaded_at',type:'TIMESTAMPTZ',notnull:true,def:'NOW()'}]},
+  { table:'aibus_account_grounding', columns:[
+    {name:'id',type:'UUID',pk:true},{name:'tenantid',type:'UUID',notnull:true},
+    {name:'grounding_type',type:'VARCHAR(50)',notnull:true},{name:'content',type:'TEXT',notnull:true},
+    {name:'seniority_filter',type:'VARCHAR(50)'},{name:'is_active',type:'BOOLEAN',notnull:true,def:'TRUE'},
+    {name:'created_by',type:'UUID'},{name:'created_at',type:'TIMESTAMPTZ',notnull:true,def:'NOW()'},
+    {name:'updated_at',type:'TIMESTAMPTZ'}]},
+  { table:'aibus_customer_market_context', columns:[
+    {name:'id',type:'UUID',pk:true},{name:'customer_id',type:'UUID',notnull:true},
+    {name:'account_id',type:'UUID',notnull:true},{name:'industry_overview',type:'TEXT'},
+    {name:'company_profile',type:'TEXT'},{name:'competitive_position',type:'TEXT'},
+    {name:'valid_from',type:'DATE'},{name:'valid_until',type:'DATE'},
+    {name:'status',type:'VARCHAR(20)',notnull:true,def:"'active'"},{name:'created_by',type:'UUID',notnull:true},
+    {name:'created_at',type:'TIMESTAMPTZ',notnull:true,def:'NOW()'},{name:'modified_by',type:'UUID'},
+    {name:'modified_at',type:'TIMESTAMPTZ'}]},
+  { table:'aibus_customer_market_updates', columns:[
+    {name:'id',type:'UUID',pk:true},{name:'customer_id',type:'UUID',notnull:true},
+    {name:'account_id',type:'UUID',notnull:true},{name:'title',type:'VARCHAR(255)',notnull:true},
+    {name:'content',type:'TEXT'},{name:'update_type',type:'VARCHAR(30)',notnull:true,def:"'news'"},
+    {name:'valid_from',type:'DATE',notnull:true},{name:'valid_until',type:'DATE'},
+    {name:'status',type:'VARCHAR(20)',notnull:true,def:"'draft'"},{name:'ai_generated',type:'BOOLEAN',notnull:true,def:'FALSE'},
+    {name:'approved_by',type:'UUID'},{name:'created_by',type:'UUID',notnull:true},
+    {name:'created_at',type:'TIMESTAMPTZ',notnull:true,def:'NOW()'},{name:'modified_by',type:'UUID'},
+    {name:'modified_at',type:'TIMESTAMPTZ'}]},
+  { table:'aibus_notes',            columns:[
+    {name:'note_id',type:'UUID',pk:true},
+    {name:'customer_id',type:'UUID'},{name:'opportunity_id',type:'UUID'},{name:'meeting_id',type:'UUID'},
+    {name:'entity_type',type:'VARCHAR(16)',notnull:true},
+    {name:'account_id',type:'UUID',notnull:true},{name:'created_by',type:'UUID',notnull:true},
+    {name:'title',type:'VARCHAR(200)',notnull:true},{name:'category',type:'VARCHAR(20)',notnull:true,def:"'general'"},
+    {name:'content',type:'TEXT',notnull:true},{name:'source',type:'VARCHAR(20)',notnull:true,def:"'manual'"},
+    {name:'created_at',type:'TIMESTAMPTZ',notnull:true,def:'NOW()'},{name:'updated_at',type:'TIMESTAMPTZ'}]},
+  { table:'aibus_appointments',     columns:[
+    {name:'appointment_id',type:'UUID',pk:true},{name:'account_id',type:'UUID',notnull:true},
+    {name:'owner_id',type:'UUID',notnull:true},{name:'title',type:'VARCHAR(255)',notnull:true},
+    {name:'appointment_date',type:'TIMESTAMPTZ',notnull:true},{name:'duration_minutes',type:'INTEGER',notnull:true},
+    {name:'location',type:'VARCHAR(500)',notnull:true},{name:'description',type:'TEXT'},
+    {name:'status',type:'VARCHAR(20)',notnull:true,def:"'scheduled'"},{name:'cancellation_notes',type:'TEXT'},
+    {name:'created_at',type:'TIMESTAMPTZ',notnull:true,def:'NOW()'},{name:'updated_at',type:'TIMESTAMPTZ'}]},
+  { table:'aibus_appointment_participants', columns:[
+    {name:'id',type:'UUID',pk:true},{name:'appointment_id',type:'UUID',notnull:true},
+    {name:'user_id',type:'UUID',notnull:true},{name:'account_id',type:'UUID',notnull:true},
+    {name:'added_at',type:'TIMESTAMPTZ',notnull:true,def:'NOW()'}]},
+  { table:'aibus_audit_log',        columns:[
+    {name:'id',type:'UUID',pk:true},{name:'timestamp',type:'TIMESTAMPTZ',notnull:true,def:'NOW()'},
+    {name:'operation_code',type:'VARCHAR(64)',notnull:true},{name:'user_id',type:'UUID',notnull:true},
+    {name:'user_email',type:'VARCHAR(255)',notnull:true},{name:'account_id',type:'UUID'},
+    {name:'ip_address',type:'INET',notnull:true},{name:'target_entity_id',type:'UUID'},
+    {name:'old_value',type:'JSONB'},{name:'new_value',type:'JSONB'},
+    {name:'status',type:'VARCHAR(16)',notnull:true,def:"'success'"},{name:'detail',type:'TEXT'},
+    {name:'payload',type:'JSONB'}]},
+];
+
+const DB_TABLES = DB_SCHEMA.map(s => s.table);
+
+const DbManagementPanel = ({ showToast }) => {
+  const [connStr, setConnStr] = React.useState('');
+  const [connState, setConnState] = React.useState('idle'); // idle | testing | success | failed
+  const [tableStatus, setTableStatus] = React.useState({}); // { tableName: 'exists' | 'missing' }
+  const [colStatus,   setColStatus]   = React.useState({}); // { tableName: [{name, type, exists, changed}] }
+  const [creating, setCreating] = React.useState(false);
+  const [updating, setUpdating] = React.useState(false);
+  const [opLog,    setOpLog]    = React.useState([]);
+  const [activeTab, setActiveTab] = React.useState('tables'); // tables | schema
+  const connected = connState === 'success';
+
+  const testConn = async () => {
+    if (!connStr.trim()) { showToast('Enter a connection string first', false); return; }
+    setConnState('testing');
+    setTableStatus({}); setColStatus({}); setOpLog([]);
+    await new Promise(r => setTimeout(r, 1600));
+    const ok = connStr.trim().length > 0;
+    if (ok) {
+      setConnState('success');
+      showToast('Database connection succeeded');
+      // Simulate: first 14 tables exist with some missing cols; rest fully missing
+      const tStatus = {};
+      const cStatus = {};
+      DB_SCHEMA.forEach((tbl, i) => {
+        if (i < 14) {
+          tStatus[tbl.table] = 'exists';
+          // Simulate: last 2 cols of each existing table are 'missing' or 'changed'
+          cStatus[tbl.table] = tbl.columns.map((c, j) => ({
+            ...c,
+            exists:  j < tbl.columns.length - 2,
+            changed: j === tbl.columns.length - 2,
+          }));
+        } else {
+          tStatus[tbl.table] = 'missing';
+          cStatus[tbl.table] = tbl.columns.map(c => ({...c, exists:false, changed:false}));
+        }
+      });
+      setTableStatus(tStatus);
+      setColStatus(cStatus);
+    } else {
+      setConnState('failed');
+      showToast('Connection failed — check connection string', false);
+    }
+  };
+
+  const createTables = async () => {
+    const missing = DB_TABLES.filter(t => tableStatus[t] === 'missing');
+    if (!missing.length) { showToast('All tables already exist'); return; }
+    setCreating(true); setOpLog([]);
+    for (const tbl of missing) {
+      await new Promise(r => setTimeout(r, 180));
+      setOpLog(l => [...l, { op:'CREATE TABLE', table:tbl, ok:true }]);
+      setTableStatus(s => ({...s, [tbl]: 'exists'}));
+      setColStatus(s => ({...s, [tbl]: DB_SCHEMA.find(d=>d.table===tbl).columns.map(c=>({...c,exists:true,changed:false}))}));
+    }
+    setCreating(false);
+    showToast('All missing tables created successfully');
+  };
+
+  const runSchemaUpdate = async () => {
+    const ops = [];
+    DB_SCHEMA.forEach(tbl => {
+      if (tableStatus[tbl.table] !== 'exists') return;
+      (colStatus[tbl.table]||[]).forEach(col => {
+        if (!col.exists) ops.push({op:'ADD COLUMN', table:tbl.table, col:col.name, type:col.type});
+        else if (col.changed) ops.push({op:'ALTER COLUMN', table:tbl.table, col:col.name, type:col.type});
+      });
+    });
+    if (!ops.length) { showToast('Schema is up to date — no changes needed'); return; }
+    setUpdating(true); setOpLog([]);
+    for (const op of ops) {
+      await new Promise(r => setTimeout(r, 160));
+      const sql = op.op === 'ADD COLUMN'
+        ? `ALTER TABLE ${op.table} ADD COLUMN IF NOT EXISTS ${op.col} ${op.type}`
+        : `ALTER TABLE ${op.table} ALTER COLUMN ${op.col} TYPE ${op.type}`;
+      setOpLog(l => [...l, { op: op.op, table: op.table, col: op.col, sql, ok:true }]);
+      setColStatus(s => ({...s, [op.table]: (s[op.table]||[]).map(c => c.name===op.col ? {...c, exists:true, changed:false} : c)}));
+    }
+    setUpdating(false);
+    showToast(`Schema update complete — ${ops.length} operation${ops.length>1?'s':''} applied`);
+  };
+
+  const existCount   = DB_TABLES.filter(t => tableStatus[t] === 'exists').length;
+  const missingCount = DB_TABLES.filter(t => tableStatus[t] === 'missing').length;
+  const addColCount  = Object.values(colStatus).flat().filter(c => !c.exists).length;
+  const altColCount  = Object.values(colStatus).flat().filter(c => c.exists && c.changed).length;
+  const schemaDirty  = addColCount > 0 || altColCount > 0;
+  const allGood = connected && missingCount === 0 && existCount === DB_TABLES.length && !schemaDirty;
+
+  const connBtnStyle = (bg, border, color) => ({ padding:'9px 20px', borderRadius:8, border:`1px solid ${border}`, background:bg, font:'600 12.5px/1 var(--font-sans)', color, cursor:'pointer' });
+  const tabBtn = (t, lbl) => <button onClick={()=>setActiveTab(t)} style={{ padding:'9px 18px', border:'none', background:'none', cursor:'pointer', borderBottom:`2px solid ${activeTab===t?'var(--sm)':'transparent'}`, font:`${activeTab===t?'600':'400'} 13px/1 var(--font-sans)`, color:activeTab===t?'var(--sm)':'var(--genbil-ink-3)', marginBottom:-1 }}>{lbl}</button>;
+
+  return (
+    <div style={{ display:'flex', flexDirection:'column', gap:20, animation:'fade-in .2s ease-out' }}>
+
+      {/* Overall status */}
+      <div style={{ display:'flex', alignItems:'center', gap:8, padding:'10px 16px', borderRadius:10,
+        background: allGood ? '#F0FDF4' : '#FFFBEB',
+        border: `1px solid ${allGood ? '#BBF7D0' : '#FDE68A'}` }}>
+        <span style={{ fontSize:15 }}>{allGood ? '\u2705' : '\u26A0\uFE0F'}</span>
+        <span style={{ font:'600 13px/1 var(--font-sans)', color: allGood ? '#166534' : '#92400E' }}>
+          {allGood ? 'Database ready \u2014 all 21 tables and columns are up to date' :
+            !connected ? 'Not connected \u2014 enter connection string and test' :
+            missingCount > 0 ? `${missingCount} table${missingCount>1?'s':''} missing` :
+            schemaDirty ? `Schema drift detected \u2014 ${addColCount} column${addColCount!==1?'s':''} to add, ${altColCount} to alter` :
+            'Checking\u2026'}
+        </span>
+      </div>
+
+      {/* Connection String */}
+      <Card>
+        <div style={{ marginBottom:16 }}>
+          <div style={{ font:'600 14px/1 var(--font-sans)', color:'var(--genbil-ink)' }}>PostgreSQL Connection</div>
+          <div style={{ font:'400 12px/1.4 var(--font-sans)', color:'var(--genbil-ink-4)', marginTop:3 }}>Connection string is stored encrypted in Azure Key Vault. Never logged or transmitted in plain text.</div>
+        </div>
+        <div style={{ display:'flex', flexDirection:'column', gap:12 }}>
+          <Field label="Connection String" hint="Format: Host=...;Database=...;Username=...;Password=...;Ssl Mode=Require" required>
+            <input
+              type="password"
+              value={connStr}
+              onChange={e=>{ setConnStr(e.target.value); setConnState('idle'); setTableStatus({}); setColStatus({}); }}
+              placeholder="Host=your-host.postgres.database.azure.com;Database=aibus_salesmentor;Username=admin;Password=***"
+              style={{...iStyle(), fontFamily:'var(--font-mono)', fontSize:12}}
+            />
+          </Field>
+          <div style={{ display:'flex', alignItems:'center', gap:12 }}>
+            {connState === 'idle'    && <button onClick={testConn} style={connBtnStyle('var(--genbil-ink)','var(--genbil-ink)','#fff')}>Test Connection</button>}
+            {connState === 'testing' && <button disabled style={connBtnStyle('#F8FAFC','var(--genbil-line)','var(--genbil-ink-4)')}>Testing\u2026</button>}
+            {connState === 'success' && <button onClick={testConn} style={connBtnStyle('#F0FDF4','#22C55E','#166534')}>✓ Connected \u2014 Re-test</button>}
+            {connState === 'failed'  && <button onClick={testConn} style={connBtnStyle('#FEF2F2','#FCA5A5','#DC2626')}>✗ Failed \u2014 Retry</button>}
+            {connState === 'success' && <span style={{ font:'400 12px/1 var(--font-sans)', color:'#22C55E' }}>Connected successfully</span>}
+            {connState === 'failed'  && <span style={{ font:'400 12px/1 var(--font-sans)', color:'#DC2626' }}>Could not connect \u2014 verify credentials</span>}
+          </div>
+        </div>
+      </Card>
+
+      {/* Table Status + Schema Update Tabs */}
+      {connected && (
+        <Card>
+          <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', flexWrap:'wrap', gap:10, marginBottom:0 }}>
+            <div style={{ display:'flex', borderBottom:'1px solid var(--genbil-line)', flex:1 }}>
+              {tabBtn('tables', `Tables (${existCount}/${DB_TABLES.length})`)}
+              {tabBtn('schema', `Schema${schemaDirty ? ` ⚠ ${addColCount+altColCount}` : ' ✓'}`)}
+            </div>
+            <div style={{ display:'flex', gap:8, paddingBottom:4 }}>
+              {activeTab==='tables' && missingCount > 0 && (
+                <button onClick={createTables} disabled={creating}
+                  style={{ padding:'8px 16px', borderRadius:7, border:'none', background:creating?'#F1F5F9':'var(--sm)', color:creating?'var(--genbil-ink-4)':'#fff', font:'600 12px/1 var(--font-sans)', cursor:creating?'not-allowed':'pointer' }}>
+                  {creating ? 'Creating…' : `Create ${missingCount} Missing Table${missingCount>1?'s':''}`}
+                </button>
+              )}
+              {activeTab==='schema' && schemaDirty && (
+                <button onClick={runSchemaUpdate} disabled={updating}
+                  style={{ padding:'8px 16px', borderRadius:7, border:'none', background:updating?'#F1F5F9':'var(--sm)', color:updating?'var(--genbil-ink-4)':'#fff', font:'600 12px/1 var(--font-sans)', cursor:updating?'not-allowed':'pointer' }}>
+                  {updating ? 'Updating…' : `Run Schema Update (${addColCount+altColCount} ops)`}
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* Tables tab */}
+          {activeTab==='tables' && (
+            <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(230px,1fr))', gap:7, marginTop:16 }}>
+              {DB_TABLES.map(t => {
+                const st = tableStatus[t];
+                return (
+                  <div key={t} style={{ display:'flex', alignItems:'center', gap:8, padding:'8px 12px', borderRadius:7,
+                    background:st==='exists'?'#F0FDF4':'#FEF2F2',
+                    border:`1px solid ${st==='exists'?'#BBF7D0':'#FCA5A5'}` }}>
+                    <span style={{ fontSize:12, flexShrink:0 }}>{st==='exists'?'✓':'✗'}</span>
+                    <span style={{ font:'500 11px/1.2 var(--font-mono)', color:'var(--genbil-ink-2)', wordBreak:'break-all' }}>{t}</span>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {/* Schema tab */}
+          {activeTab==='schema' && (
+            <div style={{ display:'flex', flexDirection:'column', gap:8, marginTop:16 }}>
+              {!schemaDirty && !missingCount && (
+                <div style={{ padding:'24px', textAlign:'center', font:'400 13px/1 var(--font-sans)', color:'var(--genbil-ink-4)' }}>✅ All columns match the schema definition.</div>
+              )}
+              {DB_SCHEMA.map(tbl => {
+                if (tableStatus[tbl.table] !== 'exists') return null;
+                const cols = (colStatus[tbl.table]||[]).filter(c => !c.exists || c.changed);
+                if (!cols.length) return null;
+                return (
+                  <div key={tbl.table} style={{ border:'1px solid var(--genbil-line)', borderRadius:8, overflow:'hidden' }}>
+                    <div style={{ padding:'8px 14px', background:'var(--genbil-paper-2)', font:'600 12px/1 var(--font-mono)', color:'var(--genbil-ink)' }}>{tbl.table}</div>
+                    {cols.map(col => (
+                      <div key={col.name} style={{ display:'flex', alignItems:'center', gap:10, padding:'7px 14px', borderTop:'1px solid var(--genbil-line)',
+                        background: col.changed ? '#FFFBEB' : '#FEF2F2' }}>
+                        <span style={{ font:'600 10px/1 var(--font-sans)', padding:'2px 7px', borderRadius:4,
+                          background: col.changed?'#FDE68A':'#FCA5A5', color: col.changed?'#92400E':'#991B1B' }}>
+                          {col.changed ? 'ALTER' : 'ADD'}
+                        </span>
+                        <span style={{ font:'500 12px/1 var(--font-mono)', color:'var(--genbil-ink-2)', flex:1 }}>{col.name}</span>
+                        <span style={{ font:'400 11px/1 var(--font-mono)', color:'var(--genbil-ink-4)' }}>{col.type}</span>
+                      </div>
+                    ))}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </Card>
+      )}
+
+      {/* Operation Log */}
+      {opLog.length > 0 && (
+        <Card style={{ padding:0, overflow:'hidden' }}>
+          <div style={{ padding:'10px 16px', background:'var(--genbil-paper-2)', font:'600 12px/1 var(--font-sans)', color:'var(--genbil-ink-3)', borderBottom:'1px solid var(--genbil-line)' }}>
+            Operation Log
+          </div>
+          <div style={{ maxHeight:200, overflowY:'auto', background:'#0B1220', padding:'12px 16px' }}>
+            {opLog.map((l,i) => (
+              <div key={i} style={{ font:'400 11.5px/1.8 var(--font-mono)', color: l.ok?'#4ADE80':'#F87171' }}>
+                {l.ok ? '✓' : '✗'} {l.op === 'CREATE TABLE'
+                  ? `CREATE TABLE IF NOT EXISTS ${l.table} — OK`
+                  : l.op === 'ADD COLUMN'
+                  ? `ALTER TABLE ${l.table} ADD COLUMN IF NOT EXISTS ${l.col} ${l.type} — OK`
+                  : `ALTER TABLE ${l.table} ALTER COLUMN ${l.col} TYPE ${l.type} — OK`}
+              </div>
+            ))}
+          </div>
+        </Card>
+      )}
+    </div>
+  );
+};
+
+/* ── PAGE META ── */
+const PAGE_META = {
+  'platform-docs': { title:'Sales Intelligence',   sub:'Documents and the system prompt applied to all tenants.' },
+  'config':        { title:'Global Configuration', sub:'Active AI + Voice provider, credentials, and document limits for this deployment.' },
+  'database':      { title:'Database Management', sub:'PostgreSQL connection, table provisioning and schema status.' },
+};
+
+/* ── SIDE NAV ── */
+const sideNav = [
+  { id:'platform-docs', label:'Sales Intelligence',   icon:'file2'   },
+  { id:'config',        label:'Global Configuration', icon:'sliders' },
+  { id:'database',      label:'Database Management',  icon:'db'      },
+];
+
+/* ── APP ── */
+const App = () => {
+  const [active, setActive] = useState('platform-docs');
+  const [config, setConfig] = useState(INIT_GLOBAL_CONFIG);
+  const [toast, setToast] = useState(null);
+  const showToast = msg => { setToast(msg); setTimeout(()=>setToast(null),2800); };
+  const meta = PAGE_META[active];
+  return (
+    <div style={{ display:'flex', height:'100vh', overflow:'hidden', fontFamily:'var(--font-sans)', background:'var(--genbil-paper-2)' }}>
+      <aside style={{ width:'var(--nav-w)', flexShrink:0, background:'#0F172A', display:'flex', flexDirection:'column', borderRight:'1px solid rgba(255,255,255,.06)' }}>
+        <div style={{ padding:'20px 20px 16px', borderBottom:'1px solid rgba(255,255,255,.08)', display:'flex', alignItems:'center', gap:10 }}>
+          <div style={{ width:30, height:30, borderRadius:8, background:'var(--sm)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+          </div>
+          <div>
+            <div style={{ font:'700 13px/1 var(--font-sans)', color:'#F1F5F9' }}>Sales Mentor</div>
+            <div style={{ font:'400 10px/1 var(--font-sans)', color:'#64748B', marginTop:2 }}>SaaS Admin</div>
+          </div>
+        </div>
+        <div style={{ flex:1, overflowY:'auto', padding:'12px 8px' }}>
+          <div style={{ font:'600 10px/1 var(--font-sans)', letterSpacing:'.1em', textTransform:'uppercase', color:'#475569', padding:'0 10px', marginBottom:6 }}>SaaS Admin</div>
+          {sideNav.map(item=>(
+            <button key={item.id} onClick={()=>setActive(item.id)} style={{ display:'flex', alignItems:'center', gap:10, width:'100%', padding:'9px 10px', borderRadius:8, border:'none', cursor:'pointer', textAlign:'left', background:active===item.id?'rgba(124,58,237,.2)':'transparent', color:active===item.id?'#a78bfa':'#94A3B8', font:`${active===item.id?'600':'400'} 13px/1 var(--font-sans)`, transition:'all .12s' }}>
+              <Icon name={item.icon} size={15} />{item.label}
+            </button>
+          ))}
+        </div>
+        <div style={{ padding:'14px 16px', borderTop:'1px solid rgba(255,255,255,.06)', display:'flex', alignItems:'center', gap:10 }}>
+          <div style={{ width:28, height:28, borderRadius:'50%', background:'linear-gradient(135deg,var(--sm) 0%,#a855f7 100%)', display:'flex', alignItems:'center', justifyContent:'center', font:'600 10px/1 var(--font-sans)', color:'#fff', flexShrink:0 }}>SA</div>
+          <div>
+            <div style={{ font:'500 12px/1 var(--font-sans)', color:'#CBD5E1' }}>SaaS Admin</div>
+            <div style={{ font:'400 10px/1 var(--font-sans)', color:'#64748B', marginTop:2 }}>admin@salesmentor.ai</div>
+          </div>
+        </div>
+      </aside>
+      <main style={{ flex:1, overflowY:'auto', padding:'32px 36px' }}>
+        <div style={{ maxWidth:800 }}>
+          <h1 style={{ font:'700 22px/1 var(--font-sans)', color:'var(--genbil-ink)', marginBottom:6 }}>{meta.title}</h1>
+          <p style={{ font:'400 13px/1.5 var(--font-sans)', color:'var(--genbil-ink-3)', margin:'0 0 28px' }}>{meta.sub}</p>
+          {active==='platform-docs' && <PlatformDocsPanel config={config} showToast={showToast} />}
+          {active==='config'        && <GlobalConfigPanel config={config} setConfig={setConfig} showToast={showToast} />}
+          {active==='database'      && <DbManagementPanel showToast={showToast} />}
+        </div>
+      </main>
+      {toast && <Toast msg={toast} />}
+    </div>
+  );
+};
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>
