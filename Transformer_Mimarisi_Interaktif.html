@@ -606,17 +606,29 @@ function hexAlpha(hex,a){
   const r=parseInt(h.slice(0,2),16),g=parseInt(h.slice(2,4),16),b=parseInt(h.slice(4,6),16);
   return `rgba(${r},${g},${b},${a})`;
 }
-// Set ctx.font to the largest size at which `text` still fits `maxW`.
-// The three token rows derived their size from box width alone, which works
-// until a word is simply longer than the others: "bütçesini" overflowed its
-// 82px box on every one of them. Measuring instead of assuming means the long
-// word steps down and the short ones keep their size — and a future sentence
-// needs no re-tuning by hand.
-function fitFont(text, maxW, startPx, bold){
-  const f = px => (bold ? 'bold ' : '') + px + 'px Inter, system-ui, sans-serif';
+// A sentence row gets ONE font size, derived from its widest word. The first
+// fix here shrank each word independently, which fit everything but made
+// "bütçesini" visibly smaller than its neighbours — worse than the overflow.
+// Sizing the whole row off the widest word keeps the line uniform; widening
+// the box off the same measurement (rowBoxW) keeps the shrink rare.
+function rowFontPx(words, maxW, startPx){
+  const f = px => 'bold ' + px + 'px Inter, system-ui, sans-serif';
   let px = Math.round(startPx);
   ctx.font = f(px);
-  while(px > 9 && ctx.measureText(text).width > maxW){ px -= 1; ctx.font = f(px); }
+  const widest = () => Math.max(...words.map(w => ctx.measureText(w).width));
+  while(px > 9 && widest() > maxW){ px -= 1; ctx.font = f(px); }
+  return px;
+}
+function setRowFont(px, bold){
+  ctx.font = (bold ? 'bold ' : '') + px + 'px Inter, system-ui, sans-serif';
+}
+// Box width for a row of n boxes: wide enough for the widest word at 16px
+// (+padding), never wider than fits the canvas with 8px minimum gaps.
+function rowBoxW(n, mx){
+  ctx.font = 'bold 16px Inter, system-ui, sans-serif';
+  const widest = Math.max(...SENTENCE.map(w => ctx.measureText(w).width));
+  const avail = W - 2*mx;
+  return Math.min(Math.max(W*0.115, widest + 24), (avail - (n-1)*8) / n);
 }
 
 function roundRect(cx,cy,w,h,r,fill,stroke,lw){
@@ -644,7 +656,7 @@ function getTokenLayout(){
   const widest=Math.max(...SENTENCE.map(w=>ctx.measureText(w).width));
   ctx.restore();
   const avail=W-2*mx;
-  const tw=Math.min(Math.max(W*0.115, widest+16), (avail-(n-1)*8)/n);
+  const tw=Math.min(Math.max(W*0.115, widest+24), (avail-(n-1)*8)/n);
   const gap=(avail-n*tw)/(n-1);
   return SENTENCE.map((_,i)=>({
     x:mx+i*(tw+gap),y:H*0.5-th/2,
@@ -710,9 +722,10 @@ function drawStep0(){
   ctx.fillStyle=PM.paper; ctx.fillRect(0,0,W,H);
 
   const n=SENTENCE.length;
-  const bw=Math.min(W*0.115,75),bh=36;
-  const gapX=(W-2*28-n*bw)/(n-1);
-  const mx=28;
+  const mx=28, bh=36;
+  const bw=rowBoxW(n, mx);
+  const gapX=(W-2*mx-n*bw)/(n-1);
+  const rowPx=rowFontPx(SENTENCE, bw-12, Math.min(bw*0.24,17));
 
   // ── RNN bölümü ──
   const rnnY=H*0.28;
@@ -738,7 +751,7 @@ function drawStep0(){
       hexAlpha(PM.danger,Math.max(0.75*fade,0.22)),   // kırmızı kenarlık solar
       2);
     // Metin: koyu mürekkep ama opacity ile solar — kırmızı değil!
-    fitFont(word, bw-12, Math.min(bw*0.24,17), i===0);
+    setRowFont(rowPx, i===0);
     ctx.fillStyle=hexAlpha(PM.ink,Math.max(fade,0.25));
     ctx.textAlign='center'; ctx.textBaseline='middle';
     ctx.fillText(word,bx+bw/2,rnnY); ctx.textBaseline='alphabetic';
@@ -789,7 +802,7 @@ function drawStep0(){
     const bx=mx+i*(bw+gapX);
     roundRect(bx+bw/2,txY,bw,bh,5,
       hexAlpha(TOKEN_LIGHT[i],1),TOKEN_COLORS[i],2);
-    fitFont(word, bw-12, Math.min(bw*0.24,17), true);
+    setRowFont(rowPx, true);
     ctx.fillStyle=TOKEN_COLORS[i];
     ctx.textAlign='center'; ctx.textBaseline='middle';
     ctx.fillText(word,bx+bw/2,txY); ctx.textBaseline='alphabetic';
@@ -863,7 +876,7 @@ function drawStep1(){
       isSel?TOKEN_COLORS[i]:hexAlpha(TOKEN_COLORS[i],0.6),
       isSel?2.5:1.5);
 
-    fitFont(SENTENCE[i], t.w-12, Math.min(t.w*0.26,18), isSel);
+    setRowFont(rowFontPx(SENTENCE, t.w-12, Math.min(t.w*0.26,18)), isSel);
     ctx.fillStyle=TOKEN_COLORS[i];
     ctx.textAlign='center'; ctx.textBaseline='middle';
     ctx.fillText(SENTENCE[i],t.cx,t.cy); ctx.textBaseline='alphabetic';
@@ -900,9 +913,10 @@ function drawStep2(){
   // Bilgi barlarını yumuşak animasyon
   displayKnowledge=displayKnowledge.map((v,i)=>lerp(v,targetKnowledge[i],0.07));
 
-  const tw=Math.min(W*0.115,80),th=38;
-  const gap=(W-2*28-n*tw)/(n-1);
-  const margX=28;
+  const margX=28, th=38;
+  const tw=rowBoxW(n, margX);
+  const gap=(W-2*margX-n*tw)/(n-1);
+  const row2Px=rowFontPx(SENTENCE, tw-12, Math.min(tw*0.24,17));
   const tokenY=H*0.14;
   const barMaxH=H*0.20;
   const barY=tokenY+th/2+10;
@@ -934,7 +948,7 @@ function drawStep2(){
     const tx=margX+i*(tw+gap);
     roundRect(tx+tw/2,tokenY,tw,th,5,
       TOKEN_LIGHT[i],TOKEN_COLORS[i],2);
-    fitFont(word, tw-12, Math.min(tw*0.24,17), true);
+    setRowFont(row2Px, true);
     ctx.fillStyle=TOKEN_COLORS[i];
     ctx.textAlign='center'; ctx.textBaseline='middle';
     ctx.fillText(word,tx+tw/2,tokenY); ctx.textBaseline='alphabetic';
