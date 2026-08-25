@@ -362,6 +362,16 @@ input[type=range] { width:180px; accent-color:var(--pm-brand); }
   <strong class="lead">Peki bugünün modelleri hangisini kullanıyor?</strong> Seçimi model değil, sistemi kuran ekip yapar — bu bir yapılandırma kararıdır. ChatGPT, Claude, Gemini gibi sohbet modelleri günlük kullanımda genellikle <strong>sampling</strong> (olasılıksal seçim) kullanır; <strong>greedy</strong> hız ve deterministik çıktı gereken işlerde (kod tamamlama, sınıflandırma), <strong>beam search</strong> ise tek doğru cevabın kritik olduğu işlerde (makine çevirisi, konuşma tanıma — örn. Google Translate, Whisper) tercih edilir. Kısacası: teknik, modelin değil görevin özelliğidir.
 </div>
 
+<div class="exec-note" style="border-left-color:var(--path-beam)">
+  <strong style="color:var(--path-beam)">Önemli çerçeve — bu bir sohbet asistanı değil:</strong>
+  Bu simülatör <strong>ham dil modelini (base model)</strong> gösterir; onun tek görevi metni sürdürmektir.
+  Deneyin: aynı yarım cümleyi ChatGPT'ye veya Claude'a yazarsanız "mesajınız yarım kalmış" der —
+  çünkü asistanlar, aynı next-token motorunun <strong>post-training</strong> ile "cevap vermeye"
+  yönlendirilmiş hâlidir: motor değişmedi, öğrendiği "en olası devam" değişti (artık en olası devam bir
+  asistan cevabıdır). Greedy, beam ve sampling ise bu motorun üstünde çalışan seçim stratejileridir —
+  asistanlarda da her token yine böyle seçilir.
+</div>
+
 <div class="tab-bar">
   <button class="tab-btn active" id="tab-sim" onclick="switchTab('sim')"><i data-icon="play"></i>Simülatör</button>
   <button class="tab-btn" id="tab-tree" onclick="switchTab('tree')"><i data-icon="branch"></i>Karar Ağacı — Canlı</button>
@@ -374,8 +384,9 @@ input[type=range] { width:180px; accent-color:var(--pm-brand); }
     <div class="eyebrow">Prompt · sabit senaryo</div>
     <div class="prompt-line">"Toplantı yarına ertelendi çünkü <span class="cont">…</span>"</div>
     <div class="model-note">
-      Model: bu sayfaya gömülü mini bir dil modeli — Karar Ağacı sekmesindeki olasılık ağacı onun tamamıdır.
-      Aşağıdaki her sayı bu ağaçtan, seçtiğin temperature ile <b>gerçekten hesaplanır</b>; önceden yazılmış sonuç yoktur.
+      Model: bu sayfaya gömülü mini bir <b>base model</b> — görevi cümleyi sürdürmek, soruya cevap vermek değil.
+      Karar Ağacı sekmesindeki olasılık ağacı onun tamamıdır; aşağıdaki her sayı bu ağaçtan, seçtiğin
+      temperature ile <b>gerçekten hesaplanır</b> — önceden yazılmış sonuç yoktur.
     </div>
     <div class="controls">
       <div class="ctrl">
