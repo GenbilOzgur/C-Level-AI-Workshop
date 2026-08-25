@@ -153,6 +153,13 @@
      active rows. This page is tab-based rather than rail-based, so the rail
      runs across the top and keeps the same colour contract. */
   #top-nav {
+    /* Sticky rather than fixed: it keeps its place in flow, so the page needs
+       no compensating top padding and nothing can slide underneath it. The
+       rail is opaque, so no backdrop-filter is needed — which also keeps us
+       clear of the DS's "no frosted glass" rule (DESIGN-SYSTEM.md §5.3). */
+    position: sticky;
+    top: 0;
+    z-index: 20;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -386,7 +393,22 @@
   .who-card.no-human .who-actor { color: var(--danger); }
 
   /* ── GAME PAGE ──────────────────────────────────────────────────────── */
-  .game-layout { display: grid; grid-template-columns: 260px 1fr 300px; gap: var(--space-5); align-items: start; }
+  /* Candidates two-up, the network takes the slack, the state panel is pushed
+     to the far right and allowed to grow. The middle 1fr is what does the
+     pushing — it absorbs the leftover width instead of leaving a dead gap
+     between the canvas and the panel. */
+  .game-layout {
+    display: grid;
+    grid-template-columns: 440px minmax(0, 1fr) minmax(360px, 480px);
+    gap: var(--space-5);
+    align-items: start;
+  }
+  #candidate-list-inner {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-2);
+  }
+  #candidate-list-inner .candidate-card { margin-bottom: 0; }
 
   .candidate-list, .game-panel {
     background: var(--genbil-paper);
@@ -546,10 +568,16 @@
   .phase-badge.update  { background: var(--pm-warm-tint);  color: var(--pm-warm-deep); }
 
   /* ── RESPONSIVE ─────────────────────────────────────────────────────── */
+  @media (max-width: 1480px) {
+    .game-layout { grid-template-columns: 440px minmax(0, 1fr); }
+  }
   @media (max-width: 1180px) {
     .bp-layout { grid-template-columns: 1fr; }
     .game-layout { grid-template-columns: 1fr; }
     .who-grid { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 620px) {
+    #candidate-list-inner { grid-template-columns: 1fr; }
   }
   @media (max-width: 720px) {
     .page { padding: var(--space-5) var(--space-4) var(--space-7); }
@@ -719,7 +747,7 @@
         <div class="stat-chip">Tahmin: <span class="val" id="bp-pred">—</span></div>
         <div class="stat-chip">Doğruluk: <span class="val" id="bp-acc">—</span></div>
       </div>
-      <canvas id="c2" width="640" height="360"></canvas>
+      <canvas id="c2" width="640" height="400"></canvas>
       <canvas id="c2loss" width="640" height="150" style="margin-top:12px;"></canvas>
     </div>
     <div class="info-panel" id="p2-panel">
@@ -768,8 +796,8 @@
         <div class="stat-chip">İterasyon: <span class="val" id="g-iter">0</span></div>
         <div class="stat-chip">Kayıp: <span class="val" id="g-loss">—</span></div>
       </div>
-      <canvas id="c3" width="560" height="380"></canvas>
-      <canvas id="c3loss" width="560" height="140" style="margin-top:10px;"></canvas>
+      <canvas id="c3" width="760" height="460"></canvas>
+      <canvas id="c3loss" width="760" height="160" style="margin-top:10px;"></canvas>
       <div class="train-status" id="train-status">Henüz eğitim başlamadı. En az 4 aday etiketleyin.</div>
     </div>
 
@@ -970,12 +998,17 @@ function drawNeuron(ctx, x, y, r, color, opts){
     ctx.fillText(opts.label, x, y + 0.5);
     ctx.textBaseline = 'alphabetic';
   }
-  // value chip below
+  // Value chip. Offsettable because on the dense canvases the layer pitch is
+  // 72px against a 58px node — a chip centred under the node lands inside the
+  // circle below it, which is then drawn on top and clips the number. Callers
+  // on those pages push it down-right into the gap instead of growing every
+  // node to make room. Measured, not eyeballed: at dy=20 the circle below is
+  // 17.7px wide at that height, so dx=37 clears a 26px chip by 6.3px.
   if(opts.value != null){
     ctx.fillStyle = PM.ink;
     ctx.font = 'bold ' + (opts.valueSize || 14) + 'px Inter';
     ctx.textAlign = 'center';
-    ctx.fillText(opts.value, x, y + r + 18);
+    ctx.fillText(opts.value, x + (opts.valueDX || 0), y + r + (opts.valueDY || 18));
   }
 }
 
@@ -1427,7 +1460,10 @@ function drawBp(t=0){
   const ctx=hidpi(cv);
   const W=cv.__w, H=cv.__h;
   ctx.clearRect(0,0,W,H);
-  // layout for canvas 640x360
+  // Node layout is pinned to canH, the phase annotation to the canvas height —
+  // deliberately decoupled. The canvas is 40px taller than canH so the bottom
+  // node's value chip and the annotation cannot collide (they overlapped by
+  // 3px when both keyed off 360).
   const layerX=[80,250,470,600];
   const counts=[N_IN,N_HID,N_OUT];
   const canH=360;
@@ -1486,7 +1522,7 @@ function drawBp(t=0){
       drawNeuron(ctx,p.x,p.y,r,col,{
         act:act,
         label:allLabels[l][i]||'', labelSize:13,
-        value:act.toFixed(2), valueSize:13,
+        value:act.toFixed(2), valueSize:13, valueDX:37, valueDY:20,
         ring:errorPulse?PM.danger:PM.paper, ringW:errorPulse?3.5:3,
         pulseR:errorPulse?(5+Math.sin(t*4)*3):0,
         pulseColor:tint(PM.danger,0.4+Math.sin(t*4)*0.3)
@@ -1712,9 +1748,12 @@ function drawGame(t=0){
   const ctx=hidpi(cv);
   const W=cv.__w, H=cv.__h;
   ctx.clearRect(0,0,W,H);
-  const layerX=[80,235,425,540];
+  // Rescaled for the 760×460 canvas. Same height as pages 0-1, so the nodes
+  // can use the full radius there too — the layer pitch is 92px, leaving 24px
+  // between 68px circles.
+  const layerX=[110,330,570,730];
   const counts=[N_IN,N_HID,N_OUT];
-  const canH=380;
+  const canH=460;
   function gp(l,i,tot){ return {x:layerX[l], y:canH/(tot+1)*(i+1)}; }
 
   const {h,out}=forward(gameNet, gameTrainBatch.length? gameTrainBatch[0].x : CANDIDATES[0].x);
@@ -1742,7 +1781,7 @@ function drawGame(t=0){
     ctx.fillStyle=PM.ink; ctx.font='bold 15px Inter'; ctx.textAlign='center';
     ctx.fillText(['GİRDİ','GİZLİ','ÇIKTI'][l], tp.x, 20);
     for(let i=0;i<counts[l];i++){
-      const p=gp(l,i,counts[l]); const r=NODE_R_SM;
+      const p=gp(l,i,counts[l]); const r=NODE_R;
       const col=l===0?INPUT_COLORS[i]:(l===1?HID_COLORS[i]:OUT_COLOR);
       drawNeuron(ctx,p.x,p.y,r,col,{
         act:acts[l][i],
