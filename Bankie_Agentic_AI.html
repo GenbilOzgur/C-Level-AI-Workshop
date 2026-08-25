@@ -6,39 +6,51 @@
 <title>Bankada Agentic AI — Otonom Hizmet ve Sorun Yönetimi</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+<!-- Non-blocking: a stylesheet in <head> blocks rendering and the scripts below
+     it; a slow fonts host must not blank the page (same fix as the other pages). -->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"></noscript>
 <style>
   :root{
-    --bg:#FFFFFF; --paper:#FFFFFF;
-    --ink:#151A33; --ink-3:#5B6178; --ink-4:#8A90A6;
-    --line:#E3E6F0;
+    /* ── Genbil DS + Phygital brand layer (Phygital-MarketPlace/design) ────
+       Token NAMES kept — the page keys everything off this block. Role
+       mapping to the measured palette shared with the other training pages
+       (all ≥4.5:1 on white as small text; bars carry white text on the
+       darkest of each family):
+         navy (sistem/orkestrasyon) → sage-deep #57756A (5.05)
+         purple (Callie · müşteri ajanı) → violet #554B73 (7.95)
+         blue (Codie/Qualitie · teknik ajanlar) → ochre #8A6A31 (5.02)    */
+    --bg:#FAF8F4; --paper:#FFFFFF;
+    --ink:#2E3330; --ink-3:#5A6360; --ink-4:#8B948F;
+    --line:#E7E0D6;
 
-    --navy:#233A99;      --navy-tint:#EEF1FC;
-    --purple:#7C4DE0;    --purple-tint:#F2ECFE;
-    --blue:#2E6BE0;      --blue-tint:#EAF1FE;
-    --gray-dash:#9CA3BE;
+    --navy:#57756A;      --navy-tint:#E8F0EC;
+    --purple:#554B73;    --purple-tint:#E9E7EF;
+    --blue:#8A6A31;      --blue-tint:#F1ECDF;
+    --gray-dash:#A9B2AC;
 
-    --radius:14px;
-    --shadow-sm:0 1px 3px rgba(21,26,51,.08);
+    --font-sans:'Inter',system-ui,-apple-system,'Segoe UI',sans-serif;
+    --radius:12px;
+    --shadow-sm:0 1px 2px rgba(46,51,48,.05), 0 1px 1px rgba(46,51,48,.03);
   }
   *{ box-sizing:border-box; }
   .node, .agent{ transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease; }
   .node:hover, .agent:hover{ transform: translateY(-3px); }
-  .node.navy:hover{ border-color: var(--navy); box-shadow: 0 10px 24px rgba(35,58,153,.18); }
-  .node.purple:hover, .agent.purple:hover{ box-shadow: 0 10px 24px rgba(124,77,224,.22); }
-  .agent.blue:hover{ box-shadow: 0 10px 24px rgba(46,107,224,.22); }
+  .node.navy:hover{ border-color: var(--navy); box-shadow: 0 10px 24px rgba(87,117,106,.20); }
+  .node.purple:hover, .agent.purple:hover{ box-shadow: 0 10px 24px rgba(85,75,115,.22); }
+  .agent.blue:hover{ box-shadow: 0 10px 24px rgba(138,106,49,.22); }
   html,body{ margin:0; padding:0; }
   body{
-    font-family:'Plus Jakarta Sans',system-ui,-apple-system,'Segoe UI',sans-serif;
+    font-family:var(--font-sans);
     background:var(--bg); color:var(--ink); line-height:1.4; -webkit-font-smoothing:antialiased;
   }
   a{ color:var(--navy); }
   a:hover{ color:var(--purple); }
-  .page{ max-width:1560px; margin:0 auto; padding:44px 48px 60px; }
+  .page{ max-width:1560px; margin:0 auto; padding:22px 40px 22px; }
 
   h1{
     font-size:27px; font-weight:800; letter-spacing:.01em; text-transform:uppercase;
-    color:var(--navy); text-align:center; margin:0 0 34px;
+    color:var(--navy); text-align:center; margin:0 0 20px;
   }
 
   /* ===== node ===== */
@@ -67,8 +79,8 @@
     background:var(--paper); border-radius:var(--radius); padding:18px 20px; box-shadow:var(--shadow-sm);
     display:flex; flex-direction:column; gap:12px; height:100%;
   }
-  .agent.purple{ border:1.5px solid var(--purple); background:linear-gradient(180deg,#fff,#FBF9FF); }
-  .agent.blue{ border:1.5px solid var(--blue); background:linear-gradient(180deg,#fff,#F8FBFF); }
+  .agent.purple{ border:1.5px solid var(--purple); background:linear-gradient(180deg,#fff,#F9F8FB); }
+  .agent.blue{ border:1.5px solid var(--blue); background:linear-gradient(180deg,#fff,#FBF8F2); }
   .agent-head{ display:flex; align-items:flex-start; gap:12px; }
   .mascot{ width:52px; height:52px; border-radius:12px; flex-shrink:0; display:flex; align-items:center; justify-content:center; }
   .agent.purple .mascot{ background:var(--purple-tint); color:var(--purple); }
@@ -120,7 +132,7 @@
   }
   .flow-label.purple{ color:var(--purple); border:1.5px solid var(--purple); }
   .flow-label.blue{ color:var(--blue); border:1.5px solid var(--blue); }
-  .canvas > .split-row{ margin-top:96px; }
+  .canvas > .split-row{ margin-top:84px; }
 
   .stack-pair{ display:flex; flex-direction:column; gap:14px; height:100%; }
   .stack-pair .node{ flex:1; }
@@ -137,12 +149,12 @@
   .mascot-hub{
     width:132px; height:132px; border-radius:28px; background:var(--navy-tint);
     display:flex; align-items:center; justify-content:center; margin:2px 0 6px;
-    box-shadow:0 10px 26px rgba(35,58,153,.22), inset 0 0 0 1.5px rgba(35,58,153,.15);
+    box-shadow:0 10px 26px rgba(87,117,106,.25), inset 0 0 0 1.5px rgba(87,117,106,.18);
   }
   .hub-center .mascot-lg{ width:94px; height:94px; color:var(--navy); }
 
   /* ===== legend + assurance ===== */
-  .bottom-bar{ display:flex; align-items:center; justify-content:space-between; gap:24px; margin-top:30px; flex-wrap:wrap; }
+  .bottom-bar{ display:flex; align-items:center; justify-content:space-between; gap:24px; margin-top:16px; flex-wrap:wrap; }
   .legend{ display:flex; flex-wrap:wrap; gap:8px 22px; font-size:12px; color:var(--ink-3); }
   .legend-item{ display:inline-flex; align-items:center; gap:8px; }
   .legend-line{ width:26px; height:0; border-top:2px solid currentColor; display:inline-block; position:relative; }
@@ -158,10 +170,14 @@
   }
   .assurance svg{ width:16px; height:16px; color:var(--blue); flex-shrink:0; }
 
-  .canvas > * + *{ margin-top:26px; }
+  .canvas > * + *{ margin-top:18px; }
 
-  .page{ min-width:1400px; }
-  body{ overflow-x:auto; }
+  /* Scale-to-fit: the page keeps its 1400px design width and is scaled as a
+     whole so EVERYTHING is visible in any viewport, slide-style — no scroll.
+     fitPage() below computes the scale; the connector code divides measured
+     rects by it so the overlay stays aligned under the transform. */
+  .page{ width:1400px; transform-origin:top center; }
+  body{ overflow:hidden; }
 </style>
 </head>
 <body>
@@ -416,19 +432,46 @@
 
 </div>
 <script>
+  // ── Scale-to-fit ──────────────────────────────────────────────────────────
+  // The layout is authored at a fixed 1400px design width; scaling the whole
+  // page (rather than reflowing) keeps the diagram's proportions and puts all
+  // of it on screen at once, slide-style. offsetWidth/Height are layout
+  // metrics, unaffected by the transform, so the scale never feeds back into
+  // its own measurement.
+  var pageScale = 1;
+  function fitPage(){
+    // A hidden or not-yet-laid-out viewport reports ~0; fitting against that
+    // would lock the scale at 0. Bail and retry — something below always
+    // re-triggers once real dimensions exist.
+    if (window.innerWidth < 50 || window.innerHeight < 50) { setTimeout(fitPage, 250); return; }
+    var page = document.querySelector('.page');
+    var sw = window.innerWidth  / page.offsetWidth;
+    var sh = window.innerHeight / page.offsetHeight;
+    pageScale = Math.min(1, sw, sh);
+    page.style.transform = 'scale(' + pageScale + ')';
+    // keep it horizontally centered when width is the loose dimension
+    var scaledW = page.offsetWidth * pageScale;
+    page.style.marginLeft = Math.max((window.innerWidth - scaledW) / 2, 0) + 'px';
+    page.style.marginRight = '0';
+    drawFlows();
+  }
+
   function drawFlows(){
     var canvas = document.querySelector('.canvas');
     var cb = canvas.getBoundingClientRect();
+    // getBoundingClientRect returns post-transform pixels; the overlay lives
+    // INSIDE the scaled page, so divide by the scale to get local coordinates.
+    var S = pageScale || 1;
     function rel(el){
       var b = el.getBoundingClientRect();
-      return { l:b.left-cb.left, t:b.top-cb.top, r:b.right-cb.left, b:b.bottom-cb.top, cx:b.left-cb.left+b.width/2, w:b.width };
+      return { l:(b.left-cb.left)/S, t:(b.top-cb.top)/S, r:(b.right-cb.left)/S, b:(b.bottom-cb.top)/S, cx:(b.left-cb.left+b.width/2)/S, w:b.width/S };
     }
     var callie = rel(document.getElementById('callie-card'));
     var geri = rel(document.getElementById('geri-donus'));
     var codie = rel(document.getElementById('codie-card'));
     var svg = document.getElementById('flow-overlay');
-    svg.setAttribute('width', canvas.scrollWidth);
-    svg.setAttribute('height', canvas.scrollHeight);
+    svg.setAttribute('width', canvas.offsetWidth);
+    svg.setAttribute('height', canvas.offsetHeight);
 
     var gapTop = callie.b;
     var gapBot = Math.min(geri.t, codie.t);
@@ -451,12 +494,26 @@
     lp.style.left = ((px+geri.cx)/2)+'px'; lp.style.top = laneP+'px';
     lb.style.left = bx+'px'; lb.style.top = ((callie.b+laneB)/2+6)+'px';
   }
-  window.addEventListener('load', drawFlows);
-  window.addEventListener('resize', drawFlows);
-  if (document.fonts && document.fonts.ready) document.fonts.ready.then(function(){ drawFlows(); });
-  if (window.ResizeObserver) new ResizeObserver(function(){ drawFlows(); }).observe(document.querySelector('.canvas'));
-  setTimeout(drawFlows, 600);
-  if (document.readyState === 'complete') drawFlows();
+  window.addEventListener('resize', fitPage);
+  if (window.visualViewport) window.visualViewport.addEventListener('resize', fitPage);
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(function(){ fitPage(); });
+  // Observe the ROOT element, not .canvas: the transform leaves the canvas's
+  // layout size unchanged, so a canvas observer never fires on viewport
+  // changes — which is exactly when a refit is needed.
+  if (window.ResizeObserver) new ResizeObserver(function(){ fitPage(); }).observe(document.documentElement);
+  setTimeout(fitPage, 600);
+  // Belt-and-braces size watcher: some embedded/projected contexts resize the
+  // viewport without dispatching a resize event (measured in testing). A
+  // half-second dimension check costs nothing and guarantees the slide refits.
+  (function(){
+    var lw = 0, lh = 0;
+    setInterval(function(){
+      if (window.innerWidth !== lw || window.innerHeight !== lh) {
+        lw = window.innerWidth; lh = window.innerHeight; fitPage();
+      }
+    }, 500);
+  })();
+  fitPage();   // script sits at the end of <body>; no need to wait for 'load'
 </script>
 </body>
 </html>
