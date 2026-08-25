@@ -677,7 +677,7 @@
 
   <div class="who-grid">
     <div class="who-card math">
-      <div class="who-icon">📐</div>
+      <div class="who-icon"><i data-icon="ruler" data-size="26"></i></div>
       <div class="who-title">HATAYI ÖLÇEN</div>
       <div class="who-actor">Kayıp Fonksiyonu</div>
       <div class="who-desc">MSE = ½(tahmin − gerçek)²<br>Matematiksel formül. İnsan yok.</div>
@@ -689,7 +689,7 @@
       <div class="who-desc">Her bağlantının hataya katkısı calculus ile hesaplanır. İnsan yok.</div>
     </div>
     <div class="who-card math">
-      <div class="who-icon">⚙️</div>
+      <div class="who-icon"><i data-icon="sliders" data-size="26"></i></div>
       <div class="who-title">AĞIRLIĞI AYARLAYAN</div>
       <div class="who-actor">Gradient Descent</div>
       <div class="who-desc">w = w − α·∂L/∂w<br>Otomatik optimizasyon. İnsan yok.</div>
@@ -757,7 +757,7 @@
       <div id="candidate-list-inner"></div>
       <div style="margin-top:14px;">
         <button class="btn" style="width:100%; font-size:14px;" onclick="startTraining()"><i data-icon="zap"></i>Eğitimi Başlat</button>
-        <button class="btn secondary" style="width:100%; font-size:14px; margin-top:8px;" onclick="resetGame()">↺ Yeniden Başla</button>
+        <button class="btn secondary" style="width:100%; font-size:14px; margin-top:8px;" onclick="resetGame()"><i data-icon="reset"></i>Yeniden Başla</button>
       </div>
     </div>
 
@@ -826,7 +826,9 @@ const ICON_PATHS = {
   link:      '<path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>',
   timer:     '<circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2"/><path d="M9 2h6"/>',
   zap:       '<path d="M13 2 4 14h7l-1 8 9-12h-7l1-8z"/>',
-  trendDown: '<path d="M22 17 13.5 8.5l-5 5L2 7"/><path d="M16 17h6v-6"/>'
+  trendDown: '<path d="M22 17 13.5 8.5l-5 5L2 7"/><path d="M16 17h6v-6"/>',
+  ruler:     '<path d="M21.3 8.7 8.7 21.3a1 1 0 0 1-1.4 0l-4.6-4.6a1 1 0 0 1 0-1.4L15.3 2.7a1 1 0 0 1 1.4 0l4.6 4.6a1 1 0 0 1 0 1.4Z"/><path d="M7.5 10.5l2 2M11 7l2 2M14.5 3.5l2 2"/>',
+  sliders:   '<path d="M21 6h-8M8 6H3M21 12h-5M11 12H3M21 18h-8M8 18H3"/><circle cx="10.5" cy="6" r="2"/><circle cx="13.5" cy="12" r="2"/><circle cx="10.5" cy="18" r="2"/>'
 };
 
 function icon(name, size){
@@ -950,10 +952,20 @@ function drawNeuron(ctx, x, y, r, color, opts){
     ctx.strokeStyle = opts.pulseColor || tint(PM.danger,0.5);
     ctx.lineWidth = 2.5; ctx.stroke();
   }
-  // label centered
+  // Label, centred and auto-fitted. 'Deneyim' at the requested 15px measures
+  // ~65px against a 68px circle, so it used to touch the ring. Rather than
+  // grow every node to the widest word, shrink only the labels that overflow:
+  // short ones (H₁, Sonuç) keep their size, long ones step down until they
+  // clear the stroke. Survives new labels without re-measuring by hand.
   if(opts.label){
+    const avail = r*2 - 12;                       // 6px breathing room per side
+    let fs = opts.labelSize || Math.round(r*0.52);
+    ctx.font = 'bold ' + fs + 'px Inter';
+    while(fs > 9 && ctx.measureText(opts.label).width > avail){
+      fs -= 1;
+      ctx.font = 'bold ' + fs + 'px Inter';
+    }
     ctx.fillStyle = opts.dim ? PM.ink2 : PM.paper;
-    ctx.font = 'bold ' + (opts.labelSize || Math.round(r*0.52)) + 'px Inter';
     ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
     ctx.fillText(opts.label, x, y + 0.5);
     ctx.textBaseline = 'alphabetic';
@@ -982,6 +994,12 @@ function drawConn(ctx, a, b, color, width, dash, dashOffset){
 // NETWORK DEFINITION  (3 → 4 → 1)
 // ════════════════════════════════════════════════════════════
 const N_IN=3, N_HID=4, N_OUT=1;
+
+// Node radius. 'Deneyim' at bold 15px Inter measures ~62px, so the old
+// r=30 circle (60px across) clipped its own label. Sized off the widest
+// label rather than by eye, with the small variant kept proportional.
+const NODE_R=34;     // pages 0 and 1 (canvas 700×460)
+const NODE_R_SM=29;  // pages 2 and 3 (canvas 640×360 / 560×380)
 const INPUT_LABELS=['Deneyim','Liderlik','Teknik'];
 const INPUT_COLORS=PM.inputs;
 const HID_COLORS=PM.hidden;
@@ -1102,7 +1120,7 @@ function p0Init(){
       for(let i=0;i<counts[l];i++){
         const p=getNodePos(cv,l,i,counts[l]);
         const act=acts[l][i];
-        const r=30;
+        const r=NODE_R;
         // glow for active
         if(act>0.5){
           const glow=ctx.createRadialGradient(p.x,p.y,r*0.3,p.x,p.y,r*1.7);
@@ -1140,7 +1158,7 @@ function p0Init(){
     for(let l=0;l<3;l++){
       for(let i=0;i<counts[l];i++){
         const p=getNodePos(cv,l,i,counts[l]);
-        if(Math.hypot(mx-p.x,my-p.y)<32){
+        if(Math.hypot(mx-p.x,my-p.y)<NODE_R+2){
           showNeuronInfo(l,i);
         }
       }
@@ -1266,7 +1284,7 @@ function drawFwd(t=0){
     for(let i=0;i<counts[l];i++){
       const p=getNodePos(cv,l,i,counts[l]);
       const act=acts[l][i];
-      const r=30;
+      const r=NODE_R;
       const highlight=(fwdStep===0&&l===0)||(fwdStep===1&&(l===0||l===1))||(fwdStep===2&&l===1)||(fwdStep===3&&l===2);
       const col=l===0?INPUT_COLORS[i]:(l===1?HID_COLORS[i]:OUT_COLOR);
       drawNeuron(ctx,p.x,p.y,r,col,{
@@ -1462,7 +1480,7 @@ function drawBp(t=0){
     for(let i=0;i<counts[l];i++){
       const p=gp(l,i,counts[l]);
       const act=acts[l][i];
-      const r=26;
+      const r=NODE_R_SM;
       const col=l===0?INPUT_COLORS[i]:(l===1?HID_COLORS[i]:OUT_COLOR);
       const errorPulse=(bpPhase===1&&l===2);
       drawNeuron(ctx,p.x,p.y,r,col,{
@@ -1724,7 +1742,7 @@ function drawGame(t=0){
     ctx.fillStyle=PM.ink; ctx.font='bold 15px Inter'; ctx.textAlign='center';
     ctx.fillText(['GİRDİ','GİZLİ','ÇIKTI'][l], tp.x, 20);
     for(let i=0;i<counts[l];i++){
-      const p=gp(l,i,counts[l]); const r=26;
+      const p=gp(l,i,counts[l]); const r=NODE_R_SM;
       const col=l===0?INPUT_COLORS[i]:(l===1?HID_COLORS[i]:OUT_COLOR);
       drawNeuron(ctx,p.x,p.y,r,col,{
         act:acts[l][i],
