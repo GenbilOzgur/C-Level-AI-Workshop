@@ -1120,14 +1120,22 @@ function forward(net, x){
 function trainStep(net, x, target, lr=0.6){
   const {h,out}=forward(net,x);
   const loss=0.5*Math.pow(out[0]-target,2);
-  // output gradient
   const dout=(out[0]-target)*dsigmoid(out[0]);
-  const dh=new Array(N_HID).fill(0);
-  for(let hi=0;hi<N_HID;hi++){
-    net.w2[0][hi]-=lr*dout*h[hi];
-    dh[hi]=net.w2[0][hi]*dout*dsigmoid(h[hi]);
-  }
+
+  // Read every gradient before writing any weight. The hidden-layer gradient
+  // flows back through w2 as it was during the forward pass — this loop used to
+  // update w2 and then use the updated value to compute dh, which mixes two
+  // different networks into one step. It still converged, so nothing on screen
+  // looked wrong; but the page's claim is that the training is real
+  // backpropagation, and the chain rule is exactly what that claim rests on.
+  const dh=new Array(N_HID);
+  for(let hi=0;hi<N_HID;hi++) dh[hi]=net.w2[0][hi]*dout*dsigmoid(h[hi]);
+
+  // output layer
+  for(let hi=0;hi<N_HID;hi++) net.w2[0][hi]-=lr*dout*h[hi];
   net.b2[0]-=lr*dout;
+
+  // hidden layer
   for(let hi=0;hi<N_HID;hi++){
     for(let i=0;i<N_IN;i++) net.w1[hi][i]-=lr*dh[hi]*x[i];
     net.b1[hi]-=lr*dh[hi];
