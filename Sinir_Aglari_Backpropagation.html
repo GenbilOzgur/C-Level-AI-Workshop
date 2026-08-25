@@ -529,17 +529,39 @@
 
   .accuracy-bar-wrap { margin-top: var(--space-3); }
   .accuracy-bar-track {
+    position: relative;
     height: 22px;
     background: var(--genbil-paper-3);
     border-radius: var(--radius-pill);
     overflow: hidden;
     margin-top: var(--space-1);
   }
+  /* Base-rate reference. Accuracy on its own is unreadable: a network that has
+     learned nothing still scores the majority-class share by answering the
+     same thing every time. This marks that share, so the bar has to visibly
+     pass the line before the number means anything. */
+  .acc-base-line {
+    position: absolute;
+    top: 0; bottom: 0;
+    width: 2px;
+    background: var(--pm-ink);
+    opacity: 0.45;
+    z-index: 2;
+  }
+  .acc-base-note {
+    margin-top: var(--space-2);
+    font-size: 11px;
+    line-height: 1.45;
+    color: var(--pm-ink-3);
+  }
+  .acc-base-note b { color: var(--pm-brand-deep); }
+  .acc-base-note b.under { color: var(--pm-warm-deep); }
   .accuracy-bar-fill {
     height: 100%;
     border-radius: var(--radius-pill);
-    background: var(--pm-brand);
-    transition: width var(--motion-slow) var(--ease-out);
+    /* Neutral until the bar clears the base rate — green should mean "better
+       than answering the same thing every time", not merely "non-zero". */
+    background: var(--genbil-ink-4);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -547,7 +569,10 @@
     color: #FFFFFF;
     min-width: 40px;
     font-variant-numeric: tabular-nums;
+    transition: width var(--motion-slow) var(--ease-out),
+                background var(--motion-base) var(--ease-std);
   }
+  .accuracy-bar-fill.beats-base { background: var(--pm-brand); }
   .train-status { font-size: var(--fs-caption); color: var(--pm-ink-3); margin-top: var(--space-2); min-height: 18px; }
 
   .weight-viz { margin-top: var(--space-3); }
@@ -828,7 +853,9 @@
         <div style="font-size:var(--fs-caption); font-weight:700; color:var(--pm-ink-2);">Doğruluk Oranı</div>
         <div class="accuracy-bar-track">
           <div class="accuracy-bar-fill" id="g-acc-bar" style="width:0%;">0%</div>
+          <div class="acc-base-line" id="g-acc-line"></div>
         </div>
+        <div class="acc-base-note" id="g-acc-note"></div>
       </div>
       <div class="weight-viz" id="weight-viz">
         <div style="font-size:var(--fs-caption); font-weight:700; color:var(--pm-ink-2); margin-bottom:var(--space-2); margin-top:var(--space-3);">Giriş Ağırlıkları (W1)</div>
@@ -1624,6 +1651,19 @@ const CANDIDATES=[
   {name:'Burak A.',  profile:'Kısa deneyim, çok düşük liderlik',x:[0.25,0.18,0.60], correct:0},
   {name:'Nur K.',    profile:'Dengeli, güçlü tüm kriterler',    x:[0.78,0.80,0.85], correct:1}
 ].map((c,i)=>({...c, color:CAND_COLORS[i]}));
+// Base rate: what a model that learned nothing still scores by answering the
+// same class every time. Derived from the data rather than written in, so it
+// stays correct if CANDIDATES changes.
+const BASE_RATE=(function(){
+  const hire=CANDIDATES.filter(c=>c.correct===1).length;
+  const pass=CANDIDATES.length-hire;
+  const maj=Math.max(hire,pass);
+  return {
+    pct: Math.round(maj/CANDIDATES.length*100),
+    label: hire>=pass ? 'İşe Al' : 'Alma'
+  };
+})();
+
 let gameNet=makeNetwork();
 let gameLabels={}; // idx -> 0 or 1
 let gameTraining=false;
@@ -1730,6 +1770,17 @@ function updateGameStats(){
   const pct=Math.round(correct/CANDIDATES.length*100);
   const bar=document.getElementById('g-acc-bar');
   bar.style.width=pct+'%'; bar.textContent=pct+'%';
+
+  // base-rate marker + verdict
+  document.getElementById('g-acc-line').style.left=BASE_RATE.pct+'%';
+  bar.classList.toggle('beats-base', pct>BASE_RATE.pct);
+  const delta=pct-BASE_RATE.pct;
+  let verdict;
+  if(delta>0)       verdict=`<b>Ağ baz oranı ${delta} puan aşıyor.</b>`;
+  else if(delta===0) verdict=`<b class="under">Ağ tam baz oranda</b> — henüz bir şey öğrenmemiş.`;
+  else               verdict=`<b class="under">Ağ baz oranın ${-delta} puan altında.</b>`;
+  document.getElementById('g-acc-note').innerHTML=
+    `Baz oran %${BASE_RATE.pct}: hiçbir şey öğrenmeyip herkese “${BASE_RATE.label}” deseydik bu kadar tutardı. `+verdict;
   // weight viz
   const wrows=document.getElementById('w-rows');
   wrows.innerHTML='';
