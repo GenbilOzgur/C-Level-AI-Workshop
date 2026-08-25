@@ -6,7 +6,15 @@
 <title>Transformer Mimarisi — Liderler İçin Açıklandı</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<!-- Loaded non-blocking on purpose. A stylesheet in <head> blocks rendering AND
+     the execution of every script below it, so a slow, proxied or blocked
+     fonts.googleapis.com leaves the entire page blank — not even the header
+     paints, and the inline script at the end of <body> never runs. media="print"
+     makes the fetch non-blocking; onload promotes it once it arrives. The page
+     is fully legible without it: --font-sans carries a real system fallback
+     stack, and the noscript copy keeps the font for JS-disabled readers. -->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"></noscript>
 <style>
 /* ══════════════════════════════════════════════════════════════════════════
    GENBIL DESIGN SYSTEM — tokens
@@ -528,18 +536,52 @@ let hoverNav = '';
 // ═══════════════════════════════════════════════════════════
 //  BAŞLATMA
 // ═══════════════════════════════════════════════════════════
-window.addEventListener('load', () => {
+// Boot used to hang off window 'load'. That event waits for every subresource,
+// including the Google Fonts stylesheet — so if that request is slow, blocked
+// by a proxy or blocker, or stuck in DNS, 'load' never fires and NOTHING here
+// runs: no canvas sizing, no setStep(0) to fill the panel, no draw loop. The
+// page then renders the header and nav and nothing else, which reads as a
+// blank page. Local file:// testing never caught it because the font request
+// fails fast there. Start on DOMContentLoaded instead — the markup is all we
+// actually depend on — and re-measure later once webfonts land, since they
+// change text metrics the canvas relies on.
+function boot() {
   cvs = document.getElementById('cvs');
   resize(); window.addEventListener('resize', resize);
   cvs.addEventListener('click', handleClick);
   cvs.addEventListener('mousemove', handleHover);
   setStep(0);
   requestAnimationFrame(loop);
-});
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', boot);
+} else {
+  boot();   // script sits at the end of <body>, so this is the usual path
+}
+
+// Measuring the container once is not enough. At DOMContentLoaded the flex
+// parent can still report clientWidth/Height 0 — an embedded pane, a tab
+// opened in the background, a container that only gets its size a frame
+// later — and a one-shot measurement then locks the canvas at 1px for good:
+// the panel fills in, the diagram never appears. Observing the parent instead
+// means the canvas is sized by the layout itself, whenever that happens.
+if (typeof ResizeObserver !== 'undefined') {
+  new ResizeObserver(() => { if (cvs) resize(); })
+    .observe(document.querySelector('.canvas-wrap'));
+}
+
+// Webfonts change text metrics the canvas measures against, so re-measure once
+// they land. Only a refinement — the page is already drawn without it.
+if (document.fonts && document.fonts.ready) {
+  document.fonts.ready.then(() => { if (cvs) resize(); }).catch(() => {});
+}
 
 function resize() {
   const wp = cvs.parentElement;
-  const cssW = wp.clientWidth, cssH = wp.clientHeight;
+  // Guard against a zero-sized parent: a 0x0 canvas draws nothing and would
+  // look like the same blank page for a different reason.
+  const cssW = Math.max(wp.clientWidth, 1), cssH = Math.max(wp.clientHeight, 1);
   const dpr = Math.max(2, Math.ceil(window.devicePixelRatio || 1));
   cvs.width = cssW * dpr; cvs.height = cssH * dpr;
   cvs.style.width = cssW + 'px'; cvs.style.height = cssH + 'px';
@@ -564,6 +606,19 @@ function hexAlpha(hex,a){
   const r=parseInt(h.slice(0,2),16),g=parseInt(h.slice(2,4),16),b=parseInt(h.slice(4,6),16);
   return `rgba(${r},${g},${b},${a})`;
 }
+// Set ctx.font to the largest size at which `text` still fits `maxW`.
+// The three token rows derived their size from box width alone, which works
+// until a word is simply longer than the others: "bütçesini" overflowed its
+// 82px box on every one of them. Measuring instead of assuming means the long
+// word steps down and the short ones keep their size — and a future sentence
+// needs no re-tuning by hand.
+function fitFont(text, maxW, startPx, bold){
+  const f = px => (bold ? 'bold ' : '') + px + 'px Inter, system-ui, sans-serif';
+  let px = Math.round(startPx);
+  ctx.font = f(px);
+  while(px > 9 && ctx.measureText(text).width > maxW){ px -= 1; ctx.font = f(px); }
+}
+
 function roundRect(cx,cy,w,h,r,fill,stroke,lw){
   const x=cx-w/2,y=cy-h/2;
   ctx.beginPath();
@@ -578,9 +633,19 @@ function roundRect(cx,cy,w,h,r,fill,stroke,lw){
 
 function getTokenLayout(){
   const n=SENTENCE.length;
-  const tw=Math.min(W*0.115,82),th=40;
-  const gap=(W-2*28-n*tw)/(n-1);
-  const mx=28;
+  const mx=28, th=40;
+  // Box width used to be a flat 11.5% of the canvas, which ignores what is
+  // actually in the box: "bütçesini" is half again as long as "CEO" and
+  // overflowed at every viewport. Size the box from the widest word instead,
+  // then cap it so the row still fits the canvas. fitFont takes up the last
+  // few pixels; at presentation widths nothing has to shrink at all.
+  ctx.save();
+  ctx.font='16px Inter, system-ui, sans-serif';
+  const widest=Math.max(...SENTENCE.map(w=>ctx.measureText(w).width));
+  ctx.restore();
+  const avail=W-2*mx;
+  const tw=Math.min(Math.max(W*0.115, widest+16), (avail-(n-1)*8)/n);
+  const gap=(avail-n*tw)/(n-1);
   return SENTENCE.map((_,i)=>({
     x:mx+i*(tw+gap),y:H*0.5-th/2,
     w:tw,h:th,cx:mx+i*(tw+gap)+tw/2,cy:H*0.5
@@ -654,7 +719,7 @@ function drawStep0(){
   ctx.fillStyle=hexAlpha(PM.danger,0.05);
   ctx.fillRect(W*0.02,rnnY-64,W*0.96,130);
 
-  ctx.font='bold 14px Inter'; ctx.fillStyle=PM.danger; ctx.textAlign='left';
+  ctx.font='bold 14px Inter, system-ui, sans-serif'; ctx.fillStyle=PM.danger; ctx.textAlign='left';
   ctx.fillText('ESKİ YÖL  ·  RNN (Yinelemeli Sinir Ağı)  ·  Sıralı İşleme — Kelime Kelime', W*0.04,rnnY-46);
 
   SENTENCE.forEach((word,i)=>{
@@ -673,7 +738,7 @@ function drawStep0(){
       hexAlpha(PM.danger,Math.max(0.75*fade,0.22)),   // kırmızı kenarlık solar
       2);
     // Metin: koyu mürekkep ama opacity ile solar — kırmızı değil!
-    ctx.font=`${i===0?'bold ':''}${Math.min(bw*0.24,17)}px Inter`;
+    fitFont(word, bw-12, Math.min(bw*0.24,17), i===0);
     ctx.fillStyle=hexAlpha(PM.ink,Math.max(fade,0.25));
     ctx.textAlign='center'; ctx.textBaseline='middle';
     ctx.fillText(word,bx+bw/2,rnnY); ctx.textBaseline='alphabetic';
@@ -690,9 +755,9 @@ function drawStep0(){
     }
   });
 
-  ctx.font='14px Inter'; ctx.fillStyle=hexAlpha(PM.danger,0.85); ctx.textAlign='center';
+  ctx.font='14px Inter, system-ui, sans-serif'; ctx.fillStyle=hexAlpha(PM.danger,0.85); ctx.textAlign='center';
   ctx.fillText('▼ "CEO" ile başlayan bağlam, "onayladı"ya gelindiğinde büyük ölçüde unutulmuştur ▼',W/2,rnnY+bh/2+32);
-  ctx.font='14px Inter'; ctx.fillStyle=hexAlpha(PM.danger,0.7); ctx.textAlign='left';
+  ctx.font='14px Inter, system-ui, sans-serif'; ctx.fillStyle=hexAlpha(PM.danger,0.7); ctx.textAlign='left';
   ctx.fillText('Her seferinde 1 kelime işlenir — paralel işleme mümkün değil → YAVAŞ',W*0.04,rnnY+bh/2+52);
 
   // Ayırıcı
@@ -705,7 +770,7 @@ function drawStep0(){
   ctx.fillStyle=hexAlpha(PM.brand,0.06);
   ctx.fillRect(W*0.02,txY-64,W*0.96,130);
 
-  ctx.font='bold 14px Inter'; ctx.fillStyle=PM.brandDeep; ctx.textAlign='left';
+  ctx.font='bold 14px Inter, system-ui, sans-serif'; ctx.fillStyle=PM.brandDeep; ctx.textAlign='left';
   ctx.fillText('YENİ YOL  ·  TRANSFORMER  ·  Paralel İşleme — Tüm Kelimeler Eş Zamanlı',W*0.04,txY-46);
 
   const tokenCX=SENTENCE.map((_,i)=>mx+i*(bw+gapX)+bw/2);
@@ -724,13 +789,13 @@ function drawStep0(){
     const bx=mx+i*(bw+gapX);
     roundRect(bx+bw/2,txY,bw,bh,5,
       hexAlpha(TOKEN_LIGHT[i],1),TOKEN_COLORS[i],2);
-    ctx.font=`bold ${Math.min(bw*0.24,17)}px Inter`;
+    fitFont(word, bw-12, Math.min(bw*0.24,17), true);
     ctx.fillStyle=TOKEN_COLORS[i];
     ctx.textAlign='center'; ctx.textBaseline='middle';
     ctx.fillText(word,bx+bw/2,txY); ctx.textBaseline='alphabetic';
   });
 
-  ctx.font='14px Inter'; ctx.fillStyle=hexAlpha(PM.brandDeep,0.9); ctx.textAlign='left';
+  ctx.font='14px Inter, system-ui, sans-serif'; ctx.fillStyle=hexAlpha(PM.brandDeep,0.9); ctx.textAlign='left';
   ctx.fillText('Tüm kelimeler aynı anda işleniyor — devasa paralelleştirme → 100× daha hızlı eğitim',W*0.04,txY+bh/2+30);
   ctx.fillText('Tam bağlam korunuyor — "onayladı" her zaman "CEO" ile doğrudan bağlantı kuruyor',W*0.04,txY+bh/2+48);
 }
@@ -774,7 +839,7 @@ function drawStep1(){
       const t2=0.55;
       const lx=(1-t2)*(1-t2)*x1+2*(1-t2)*t2*midX+t2*t2*x2;
       const ly=(1-t2)*(1-t2)*y1+2*(1-t2)*t2*midY+t2*t2*y2+14;
-      ctx.font='bold 16px Inter';
+      ctx.font='bold 16px Inter, system-ui, sans-serif';
       ctx.fillStyle=hexAlpha(TOKEN_COLORS[sel],animW*0.95);
       ctx.textAlign='center'; ctx.textBaseline='middle';
       ctx.fillText(Math.round(w*100)+'%',lx,ly);
@@ -798,27 +863,27 @@ function drawStep1(){
       isSel?TOKEN_COLORS[i]:hexAlpha(TOKEN_COLORS[i],0.6),
       isSel?2.5:1.5);
 
-    ctx.font=`${isSel?'bold ':''}${Math.min(t.w*0.26,18)}px Inter`;
+    fitFont(SENTENCE[i], t.w-12, Math.min(t.w*0.26,18), isSel);
     ctx.fillStyle=TOKEN_COLORS[i];
     ctx.textAlign='center'; ctx.textBaseline='middle';
     ctx.fillText(SENTENCE[i],t.cx,t.cy); ctx.textBaseline='alphabetic';
 
     if(isSel){
-      ctx.font='bold 13px Inter'; ctx.fillStyle=TOKEN_COLORS[i];
+      ctx.font='bold 13px Inter, system-ui, sans-serif'; ctx.fillStyle=TOKEN_COLORS[i];
       ctx.textAlign='center';
       ctx.fillText('SORGU (Q)',t.cx,t.cy+t.h/2+16);
     } else if(ease(attnAnim)*weight>0.25){
-      ctx.font='12px Inter'; ctx.fillStyle=hexAlpha(TOKEN_COLORS[sel],0.7);
+      ctx.font='12px Inter, system-ui, sans-serif'; ctx.fillStyle=hexAlpha(TOKEN_COLORS[sel],0.7);
       ctx.textAlign='center';
       ctx.fillText('ANAHTAR (K)',t.cx,t.cy+t.h/2+16);
     }
   });
 
   // Alt mesaj
-  ctx.font='bold 16px Inter'; ctx.fillStyle=TOKEN_COLORS[sel];
+  ctx.font='bold 16px Inter, system-ui, sans-serif'; ctx.fillStyle=TOKEN_COLORS[sel];
   ctx.textAlign='center';
   ctx.fillText(`"${SENTENCE[sel]}" diğer kelimelere soruyor: "Beni anlamak için kim bana en çok yardımcı olur?"`,W/2,H*0.88);
-  ctx.font='14px Inter'; ctx.fillStyle=hexAlpha(PM.ink3,0.9); ctx.textAlign='center';
+  ctx.font='14px Inter, system-ui, sans-serif'; ctx.fillStyle=hexAlpha(PM.ink3,0.9); ctx.textAlign='center';
   ctx.fillText('↑  Herhangi bir kelimeye tıklayın — QKV hesaplamasını görün',W/2,H*0.94);
 }
 
@@ -858,7 +923,7 @@ function drawStep2(){
     ctx.fillStyle=barGrd;
     ctx.fillRect(tx+tw*0.15,barY+barMaxH-barH,tw*0.70,barH);
     // Yüzde
-    ctx.font='bold 15px Inter'; ctx.fillStyle=TOKEN_COLORS[i];
+    ctx.font='bold 15px Inter, system-ui, sans-serif'; ctx.fillStyle=TOKEN_COLORS[i];
     ctx.textAlign='center'; ctx.textBaseline='middle';
     ctx.fillText(Math.round(kn*100)+'%',tx+tw/2,barY+barMaxH+14);
     ctx.textBaseline='alphabetic';
@@ -869,7 +934,7 @@ function drawStep2(){
     const tx=margX+i*(tw+gap);
     roundRect(tx+tw/2,tokenY,tw,th,5,
       TOKEN_LIGHT[i],TOKEN_COLORS[i],2);
-    ctx.font=`bold ${Math.min(tw*0.24,17)}px Inter`;
+    fitFont(word, tw-12, Math.min(tw*0.24,17), true);
     ctx.fillStyle=TOKEN_COLORS[i];
     ctx.textAlign='center'; ctx.textBaseline='middle';
     ctx.fillText(word,tx+tw/2,tokenY); ctx.textBaseline='alphabetic';
@@ -908,11 +973,11 @@ function drawStep2(){
   ctx.beginPath(); ctx.moveTo(0,bandY); ctx.lineTo(W,bandY); ctx.stroke();
   ctx.beginPath(); ctx.moveTo(0,bandY+bandH); ctx.lineTo(W,bandY+bandH); ctx.stroke();
 
-  ctx.font='bold 13px Inter'; ctx.fillStyle=hexAlpha(stage.color,0.7);
+  ctx.font='bold 13px Inter, system-ui, sans-serif'; ctx.fillStyle=hexAlpha(stage.color,0.7);
   ctx.textAlign='left'; ctx.fillText('KATMAN',28,bandY+18);
-  ctx.font='bold 34px Inter'; ctx.fillStyle=stage.color;
+  ctx.font='bold 34px Inter, system-ui, sans-serif'; ctx.fillStyle=stage.color;
   ctx.fillText(stage.range,28,bandY+46);
-  ctx.font='bold 20px Inter'; ctx.fillStyle=PM.ink;
+  ctx.font='bold 20px Inter, system-ui, sans-serif'; ctx.fillStyle=PM.ink;
   ctx.textAlign='center'; ctx.fillText(stage.name,W/2,bandY+32);
 
   // İlerleme noktaları
@@ -932,7 +997,7 @@ function drawStep2(){
       ctx.strokeStyle=PM.line2; ctx.lineWidth=1.5; ctx.stroke();
     }
   });
-  ctx.font='14px Inter'; ctx.fillStyle=PM.ink3; ctx.textAlign='center';
+  ctx.font='14px Inter, system-ui, sans-serif'; ctx.fillStyle=PM.ink3; ctx.textAlign='center';
   ctx.fillText(`${currentLayer+1} / ${totalDots}  aşama`,W/2,dotY+20);
 
   // Gezinme butonları
@@ -944,7 +1009,7 @@ function drawStep2(){
     const hov=hoverNav==='prev';
     roundRect(W/2-btnW/2-16,btnY,btnW,btnH,8,
       hov?PM.paper3:PM.paper,PM.line2,1.5);
-    ctx.font='bold 15px Inter'; ctx.fillStyle=PM.ink2;
+    ctx.font='bold 15px Inter, system-ui, sans-serif'; ctx.fillStyle=PM.ink2;
     ctx.textAlign='center'; ctx.textBaseline='middle';
     ctx.fillText('← Önceki Aşama',W/2-btnW/2-16,btnY);
     ctx.textBaseline='alphabetic';
@@ -956,7 +1021,7 @@ function drawStep2(){
     const hov=hoverNav==='next';
     roundRect(W/2+btnW/2+16,btnY,btnW,btnH,8,
       hov?stage.color:hexAlpha(stage.color,0.85),null,0);
-    ctx.font='bold 15px Inter'; ctx.fillStyle=PM.paper;
+    ctx.font='bold 15px Inter, system-ui, sans-serif'; ctx.fillStyle=PM.paper;
     ctx.textAlign='center'; ctx.textBaseline='middle';
     ctx.fillText('Sonraki Aşama →',W/2+btnW/2+16,btnY);
     ctx.textBaseline='alphabetic';
@@ -965,7 +1030,7 @@ function drawStep2(){
 
   // Tamamlandı mesajı
   if(currentLayer===LAYER_STAGES.length-1){
-    ctx.font='bold 15px Inter'; ctx.fillStyle=hexAlpha(PM.stage[5],0.9);
+    ctx.font='bold 15px Inter, system-ui, sans-serif'; ctx.fillStyle=hexAlpha(PM.stage[5],0.9);
     ctx.textAlign='center';
     ctx.fillText('Tüm katmanlar tamamlandı — model yanıt üretmeye hazır!',W/2,H*0.88);
   }
@@ -977,7 +1042,7 @@ function drawStep2(){
   const mGrd=ctx.createLinearGradient(meterX,0,meterX+meterW*avgKn,0);
   mGrd.addColorStop(0,PM.stage[0]); mGrd.addColorStop(1,PM.stage[5]);
   ctx.fillStyle=mGrd; ctx.fillRect(meterX,meterY,meterW*avgKn,meterH);
-  ctx.font='bold 15px Inter'; ctx.fillStyle=PM.ink; ctx.textAlign='center';
+  ctx.font='bold 15px Inter, system-ui, sans-serif'; ctx.fillStyle=PM.ink; ctx.textAlign='center';
   ctx.fillText(`Ortalama Anlama Derinliği: %${Math.round(avgKn*100)}`,W/2,meterY-8);
 }
 
