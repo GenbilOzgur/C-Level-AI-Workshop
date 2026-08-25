@@ -6,40 +6,75 @@
 <title>RAG Akış Şeması — Klasik & Agentic</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<!-- Non-blocking on purpose: a stylesheet in <head> blocks rendering and every
+     script below it; a slow or blocked fonts host would leave the page blank.
+     Same fix as the Transformer and beam-search pages. -->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"></noscript>
 <style>
   :root {
-    /* warm editorial palette */
-    --bg:        #F6F2E9;
-    --bg-2:      #FBF8F1;
+    /* ── Genbil DS + Phygital brand layer ─────────────────────────────────
+       Source: Phygital-MarketPlace/design (colors_and_type.css + pm.css).
+       This page already keyed everything off its own token set, so the
+       migration re-points the VALUES and keeps the names — the CSS and the
+       SVG builders below read the same variables.
+       Role colors are the measured palette shared with the other training
+       pages (all ≥4.5:1 on white as small text):
+         user/input #9C5B52 (5.21) · retrieval #4A7A63 (4.94)
+         LLM #554B73 (7.95) · agentic #8A6A31 (5.02)                      */
+    --bg:        #FAF8F4;   /* pm-cream */
+    --bg-2:      #F7F4EF;
     --card:      #FFFFFF;
-    --ink:       #1B1815;
-    --ink-2:     #4A453E;
-    --ink-3:     #8A8378;
-    --line:      #E3DCCB;
-    --line-2:    #CFC5AE;
+    --ink:       #2E3330;
+    --ink-2:     #5A6360;
+    --ink-3:     #8B948F;
+    --line:      #E7E0D6;
+    --line-2:    #D5CCC0;
 
-    --coral:     #C9522F;   /* user / input */
-    --coral-soft:#F7E2D6;
-    --coral-mid: #E08665;
+    --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --font-mono: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
 
-    --teal:      #1F6B5F;   /* data / retrieval */
-    --teal-soft: #D3E6E2;
-    --teal-mid:  #4D9387;
+    --coral:     #9C5B52;   /* user / input · rust */
+    --coral-soft:#F6E9E7;
+    --coral-mid: #B87F5F;
 
-    --indigo:    #2E4368;   /* LLM / model */
-    --indigo-soft:#DBE3F1;
-    --indigo-mid:#5A7299;
+    --teal:      #4A7A63;   /* data / retrieval · sage */
+    --teal-soft: #E6EFEA;
+    --teal-mid:  #6E9080;
 
-    --amber:     #A8761E;   /* agentic / highlight */
-    --amber-soft:#F1E1B8;
-    --amber-mid: #C99B3F;
+    --indigo:    #554B73;   /* LLM / model · violet deep */
+    --indigo-soft:#E9E7EF;
+    --indigo-mid:#7A709C;
 
-    --plum:      #6B3F5C;
+    --amber:     #8A6A31;   /* agentic / highlight · ochre */
+    --amber-soft:#F1ECDF;
+    --amber-mid: #D9B173;
+
+    --plum:      #655C86;
+
+    --pm-rail:#333B37; --pm-rail-tx:#C4CEC7; --pm-brand-soft:#B9CFC4;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  /* Dark rail header — the same device the other training pages use */
+  .rail-head {
+    position: sticky; top: 0; z-index: 20;
+    display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+    padding: 12px 32px;
+    background: var(--pm-rail);
+    border-bottom: 1px solid rgba(255,255,255,.09);
+  }
+  .rail-badge {
+    flex-shrink: 0;
+    background: var(--pm-brand-soft); color: #2A3A32;
+    font: 600 12px/1.2 var(--font-sans);
+    letter-spacing: .12em; text-transform: uppercase;
+    padding: 4px 12px; border-radius: 999px; white-space: nowrap;
+  }
+  .rail-title { font: 700 18px/1.3 var(--font-sans); color: #FFFFFF; letter-spacing: -.01em; }
+  .rail-sub { font: 400 12px/1.4 var(--font-sans); color: var(--pm-rail-tx); }
   html, body {
-    font-family: 'Inter', system-ui, sans-serif;
+    font-family: var(--font-sans);
     background: var(--bg);
     color: var(--ink);
     -webkit-font-smoothing: antialiased;
@@ -84,7 +119,7 @@
     background: var(--card);
     color: var(--ink);
     font-weight: 600;
-    box-shadow: 0 1px 0 var(--line-2), 0 2px 6px rgba(27,24,21,0.04);
+    box-shadow: 0 1px 2px rgba(46,51,48,.05), 0 1px 1px rgba(46,51,48,.03);
   }
 
   .panel { display: none; padding: 28px 30px 36px; }
@@ -101,7 +136,7 @@
   }
   .section-num {
     display: block;
-    font-family: 'JetBrains Mono', monospace;
+    font-family: var(--font-mono);
     font-size: 11px;
     letter-spacing: 0.2em;
     color: var(--coral);
@@ -111,7 +146,7 @@
     white-space: nowrap;
   }
   .section-title {
-    font-family: 'Instrument Serif', 'Times New Roman', serif;
+    font-family: var(--font-sans);
     font-weight: 400;
     font-size: 38px;
     letter-spacing: -0.01em;
@@ -203,7 +238,7 @@
     transform: translateY(-1px);
   }
   .tech-card .num {
-    font-family: 'JetBrains Mono', monospace;
+    font-family: var(--font-mono);
     font-size: 10.5px;
     color: var(--ink-3);
     letter-spacing: 0.15em;
@@ -211,7 +246,7 @@
     display: block;
   }
   .tech-card .name {
-    font-family: 'Instrument Serif', serif;
+    font-family: var(--font-sans);
     font-size: 22px;
     font-weight: 400;
     color: var(--ink);
@@ -224,7 +259,7 @@
     color: var(--coral);
   }
   .tech-card .tagline {
-    font-family: 'JetBrains Mono', monospace;
+    font-family: var(--font-mono);
     font-size: 11px;
     color: var(--teal);
     margin-bottom: 10px;
@@ -240,7 +275,7 @@
     position: absolute;
     top: 16px; right: 16px;
     font-size: 10px;
-    font-family: 'JetBrains Mono', monospace;
+    font-family: var(--font-mono);
     color: var(--ink-3);
     text-transform: uppercase;
     letter-spacing: 0.1em;
@@ -255,7 +290,7 @@
     margin-bottom: 16px;
   }
   .matrix-title {
-    font-family: 'Instrument Serif', serif;
+    font-family: var(--font-sans);
     font-size: 22px;
     color: var(--ink);
     text-align: center;
@@ -423,7 +458,7 @@
   .compare-card.indigo { border-top-color: var(--indigo); }
 
   .compare-tag {
-    font-family: 'JetBrains Mono', monospace;
+    font-family: var(--font-mono);
     font-size: 10.5px;
     letter-spacing: 0.12em;
     text-transform: uppercase;
@@ -435,7 +470,7 @@
   .compare-card.amber .compare-tag { color: var(--amber); }
   .compare-card.indigo .compare-tag { color: var(--indigo); }
   .compare-title {
-    font-family: 'Instrument Serif', serif;
+    font-family: var(--font-sans);
     font-size: 20px;
     color: var(--ink);
     margin-bottom: 4px;
@@ -450,7 +485,7 @@
     padding: 18px 20px;
   }
   .when-title {
-    font-family: 'Instrument Serif', serif;
+    font-family: var(--font-sans);
     font-size: 22px;
     text-align: center;
     color: var(--ink);
@@ -483,7 +518,7 @@
   }
   .metric-card.indigo { border-left-color: var(--indigo); }
   .metric-name {
-    font-family: 'Instrument Serif', serif;
+    font-family: var(--font-sans);
     font-size: 22px;
     color: var(--ink);
     margin-bottom: 4px;
@@ -491,7 +526,7 @@
   .metric-name em { font-style: italic; color: var(--teal); }
   .metric-card.indigo .metric-name em { color: var(--indigo); }
   .metric-formula {
-    font-family: 'JetBrains Mono', monospace;
+    font-family: var(--font-mono);
     background: var(--bg-2);
     padding: 3px 8px;
     border-radius: 5px;
@@ -531,6 +566,14 @@
 </style>
 </head>
 <body>
+
+<header class="rail-head">
+  <span class="rail-badge">Modül 1 · Yapay Zeka Devrimi</span>
+  <div>
+    <div class="rail-title">RAG — Retrieval-Augmented Generation</div>
+    <div class="rail-sub">klasik &amp; agentic akış · semantik arama · recall &amp; precision</div>
+  </div>
+</header>
 
 <div class="wrap">
 
@@ -944,12 +987,12 @@ function buildDefs(svg, idPrefix) {
   const defs = el('defs', {});
   ['default', 'dashed', 'coral', 'indigo', 'teal', 'amber'].forEach(name => {
     const colorMap = {
-      'default': '#4A453E',
-      'dashed':  '#4A453E',
-      'coral':   '#C9522F',
-      'indigo':  '#2E4368',
-      'teal':    '#1F6B5F',
-      'amber':   '#A8761E'
+      'default': 'var(--ink-2)',
+      'dashed':  'var(--ink-2)',
+      'coral':   'var(--coral)',
+      'indigo':  'var(--indigo)',
+      'teal':    'var(--teal)',
+      'amber':   'var(--amber)'
     };
     const m = el('marker', {
       id: `${idPrefix}-arr-${name}`,
@@ -999,9 +1042,9 @@ function drawActor(svg, actor) {
   }, name));
   svg.appendChild(el('text', {
     x: textX, y: 56,
-    'font-family': 'JetBrains Mono, monospace',
+    'font-family': 'ui-monospace, SF Mono, Menlo, Consolas, monospace',
     'font-size': 10,
-    fill: '#4A453E',
+    fill: 'var(--ink-2)',
     'text-anchor': 'middle',
     'dominant-baseline': 'central',
     'letter-spacing': '0.04em'
@@ -1048,7 +1091,7 @@ function drawBrainIcon(svg, cx, cy, size, color) {
 function drawLifeline(svg, x, yTop, yBottom) {
   svg.appendChild(el('line', {
     x1: x, y1: yTop, x2: x, y2: yBottom,
-    stroke: '#CFC5AE',
+    stroke: 'var(--line-2)',
     'stroke-width': 1.2,
     'stroke-dasharray': '5 4'
   }));
@@ -1074,10 +1117,10 @@ function drawPhase(svg, opts) {
   }));
   svg.appendChild(el('text', {
     x: x1 + 8 + labelW/2, y: y1 - 1,
-    'font-family': 'JetBrains Mono, monospace',
+    'font-family': 'ui-monospace, SF Mono, Menlo, Consolas, monospace',
     'font-size': 11,
     'font-weight': 500,
-    fill: '#FFFFFF',
+    fill: 'var(--card)',
     'text-anchor': 'middle',
     'dominant-baseline': 'central',
     'letter-spacing': '0.1em'
@@ -1086,7 +1129,7 @@ function drawPhase(svg, opts) {
 
 // Numbered message arrow
 function drawMessage(svg, opts) {
-  const { idPrefix, num, fromX, toX, y, label, sublabel, color = '#4A453E', dashed = false, marker = 'default' } = opts;
+  const { idPrefix, num, fromX, toX, y, label, sublabel, color = 'var(--ink-2)', dashed = false, marker = 'default' } = opts;
 
   const lineAttrs = {
     x1: fromX, y1: y, x2: toX, y2: y,
@@ -1104,15 +1147,15 @@ function drawMessage(svg, opts) {
       cx: mid, cy: y - 18,
       r: 14,
       fill: color,
-      stroke: '#FBF8F1',
+      stroke: 'var(--bg-2)',
       'stroke-width': 2.5
     }));
     svg.appendChild(el('text', {
       x: mid, y: y - 18,
-      'font-family': 'JetBrains Mono, monospace',
+      'font-family': 'ui-monospace, SF Mono, Menlo, Consolas, monospace',
       'font-size': 13,
       'font-weight': 700,
-      fill: '#FBF8F1',
+      fill: 'var(--bg-2)',
       'text-anchor': 'middle',
       'dominant-baseline': 'central'
     }, String(num)));
@@ -1133,9 +1176,9 @@ function drawMessage(svg, opts) {
   if (sublabel) {
     svg.appendChild(el('text', {
       x: mid, y: y + 14,
-      'font-family': 'JetBrains Mono, monospace',
+      'font-family': 'ui-monospace, SF Mono, Menlo, Consolas, monospace',
       'font-size': 10,
-      fill: '#8A8378',
+      fill: 'var(--ink-3)',
       'text-anchor': 'middle',
       'dominant-baseline': 'central',
       'letter-spacing': '0.02em'
@@ -1145,7 +1188,7 @@ function drawMessage(svg, opts) {
 
 // Self-call (loop on a lifeline)
 function drawSelfCall(svg, opts) {
-  const { idPrefix, num, x, y, height = 32, width = 70, label, color = '#A8761E', side = 'right' } = opts;
+  const { idPrefix, num, x, y, height = 32, width = 70, label, color = 'var(--amber)', side = 'right' } = opts;
   const dir = side === 'right' ? 1 : -1;
   const d = `M ${x} ${y} L ${x + dir*width} ${y} L ${x + dir*width} ${y + height} L ${x + dir*8} ${y + height}`;
   svg.appendChild(el('path', {
@@ -1161,15 +1204,15 @@ function drawSelfCall(svg, opts) {
       cx: x + dir*(width + 18), cy: y + height/2,
       r: 14,
       fill: color,
-      stroke: '#FBF8F1',
+      stroke: 'var(--bg-2)',
       'stroke-width': 2.5
     }));
     svg.appendChild(el('text', {
       x: x + dir*(width + 18), y: y + height/2,
-      'font-family': 'JetBrains Mono, monospace',
+      'font-family': 'ui-monospace, SF Mono, Menlo, Consolas, monospace',
       'font-size': 13,
       'font-weight': 700,
-      fill: '#FBF8F1',
+      fill: 'var(--bg-2)',
       'text-anchor': 'middle',
       'dominant-baseline': 'central'
     }, String(num)));
@@ -1190,7 +1233,7 @@ function drawSelfCall(svg, opts) {
 
 // Note box anchored at (x, y) with side ('left' | 'right')
 function drawNote(svg, opts) {
-  const { x, y, w = 200, h, lines, color = '#A8761E', soft = '#F1E1B8' } = opts;
+  const { x, y, w = 200, h, lines, color = 'var(--amber)', soft = 'var(--amber-soft)' } = opts;
   const lineH = 14;
   const padding = 8;
   const boxH = h || (lines.length * lineH + padding * 2);
@@ -1205,7 +1248,7 @@ function drawNote(svg, opts) {
   // notch corner
   svg.appendChild(el('path', {
     d: `M ${x + w - 10} ${y} L ${x + w} ${y} L ${x + w} ${y + 10} Z`,
-    fill: '#FFFFFF',
+    fill: 'var(--card)',
     stroke: color,
     'stroke-width': 1
   }));
@@ -1216,7 +1259,7 @@ function drawNote(svg, opts) {
       y: y + padding + (i + 0.5) * lineH,
       'font-family': 'Inter, sans-serif',
       'font-size': 11,
-      fill: '#4A453E',
+      fill: 'var(--ink-2)',
       'dominant-baseline': 'central'
     }, ln));
   });
@@ -1224,7 +1267,7 @@ function drawNote(svg, opts) {
 
 // Loop frame (UML alt/loop combined fragment)
 function drawLoopFrame(svg, opts) {
-  const { x1, x2, y1, y2, label, condition, color = '#A8761E' } = opts;
+  const { x1, x2, y1, y2, label, condition, color = 'var(--amber)' } = opts;
   svg.appendChild(el('rect', {
     x: x1, y: y1, width: x2 - x1, height: y2 - y1,
     rx: 6,
@@ -1243,10 +1286,10 @@ function drawLoopFrame(svg, opts) {
   }));
   svg.appendChild(el('text', {
     x: x1 + (w - 8)/2, y: y1 + h/2,
-    'font-family': 'JetBrains Mono, monospace',
+    'font-family': 'ui-monospace, SF Mono, Menlo, Consolas, monospace',
     'font-size': 10,
     'font-weight': 700,
-    fill: '#FFFFFF',
+    fill: 'var(--card)',
     'text-anchor': 'middle',
     'dominant-baseline': 'central',
     'letter-spacing': '0.12em'
@@ -1276,10 +1319,10 @@ function buildClassicSequence() {
   svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
 
   const actors = [
-    { x: 130, name: 'Kullanıcı',         sub: 'son kullanıcı',       color: '#C9522F', soft: '#F7E2D6' },
-    { x: 390, name: 'Embedding Modeli',  sub: 'metin → vektör',      color: '#1F6B5F', soft: '#D3E6E2' },
-    { x: 650, name: 'Vektör Veritabanı', sub: 'similarity search',   color: '#1F6B5F', soft: '#D3E6E2' },
-    { x: 910, name: 'LLM',               sub: 'üretim modeli',       color: '#2E4368', soft: '#DBE3F1', icon: 'brain' }
+    { x: 130, name: 'Kullanıcı',         sub: 'son kullanıcı',       color: 'var(--coral)', soft: 'var(--coral-soft)' },
+    { x: 390, name: 'Embedding Modeli',  sub: 'metin → vektör',      color: 'var(--teal)', soft: 'var(--teal-soft)' },
+    { x: 650, name: 'Vektör Veritabanı', sub: 'similarity search',   color: 'var(--teal)', soft: 'var(--teal-soft)' },
+    { x: 910, name: 'LLM',               sub: 'üretim modeli',       color: 'var(--indigo)', soft: 'var(--indigo-soft)', icon: 'brain' }
   ];
 
   buildDefs(svg, 'cl');
@@ -1292,9 +1335,9 @@ function buildClassicSequence() {
   drawPhase(svg, {
     x1: 30, x2: W - 30,
     y1: 110, y2: 188,
-    fill: '#D3E6E2', stroke: '#5BA398',
+    fill: 'var(--teal-soft)', stroke: 'var(--teal-mid)',
     label: 'A · İNDEKSLEME · OFFLINE',
-    accent: '#1F6B5F'
+    accent: 'var(--teal)'
   });
 
   // Note for indexing (placed inside phase)
@@ -1306,7 +1349,7 @@ function buildClassicSequence() {
       'embedding ile vektöre çevrilip',
       'Vektör DB\'ye yazılır. Bir kerelik adım.'
     ],
-    color: '#1F6B5F', soft: '#E7F1EE'
+    color: 'var(--teal)', soft: 'var(--teal-soft)'
   });
 
   // Indexing message: Embedding → Vector DB
@@ -1316,7 +1359,7 @@ function buildClassicSequence() {
     y: 162,
     label: 'döküman vektörleri',
     sublabel: 'depola',
-    color: '#1F6B5F',
+    color: 'var(--teal)',
     marker: 'teal'
   });
 
@@ -1324,9 +1367,9 @@ function buildClassicSequence() {
   drawPhase(svg, {
     x1: 30, x2: W - 30,
     y1: 215, y2: H - 50,
-    fill: '#F7E2D6', stroke: '#E08665',
+    fill: 'var(--coral-soft)', stroke: 'var(--coral-mid)',
     label: 'B · SORGU · RUNTIME',
-    accent: '#C9522F'
+    accent: 'var(--coral)'
   });
 
   // ② User → Embedding: soru metni
@@ -1336,7 +1379,7 @@ function buildClassicSequence() {
     y: 270,
     label: 'soru metni',
     sublabel: 'plain text',
-    color: '#C9522F',
+    color: 'var(--coral)',
     marker: 'coral'
   });
 
@@ -1347,7 +1390,7 @@ function buildClassicSequence() {
     y: 340,
     label: 'sorgu vektörü',
     sublabel: 'cosine similarity',
-    color: '#1F6B5F',
+    color: 'var(--teal)',
     marker: 'teal'
   });
 
@@ -1358,7 +1401,7 @@ function buildClassicSequence() {
     y: 410,
     label: 'ilgili chunk\'lar',
     sublabel: 'top-k (k≈5)',
-    color: '#1F6B5F',
+    color: 'var(--teal)',
     marker: 'teal'
   });
 
@@ -1369,7 +1412,7 @@ function buildClassicSequence() {
     y: 478,
     label: 'orijinal soru (prompt\'a eklenir)',
     sublabel: 'prompt = soru + bağlam',
-    color: '#C9522F',
+    color: 'var(--coral)',
     dashed: true,
     marker: 'coral'
   });
@@ -1381,7 +1424,7 @@ function buildClassicSequence() {
     y: 540,
     label: 'kaynaklı yanıt',
     sublabel: 'context-grounded answer',
-    color: '#2E4368',
+    color: 'var(--indigo)',
     dashed: true,
     marker: 'indigo'
   });
@@ -1402,10 +1445,10 @@ function buildAgenticSequence() {
   svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
 
   const actors = [
-    { x: 130, name: 'Kullanıcı',          sub: 'son kullanıcı',     color: '#C9522F', soft: '#F7E2D6' },
-    { x: 390, name: 'LLM Ajan',           sub: 'karar verici · planner',   color: '#A8761E', soft: '#F1E1B8', icon: 'brain' },
-    { x: 650, name: 'Search Tool',        sub: 'function call API',  color: '#1F6B5F', soft: '#D3E6E2' },
-    { x: 910, name: 'Vektör Veritabanı',  sub: 'similarity search', color: '#1F6B5F', soft: '#D3E6E2' }
+    { x: 130, name: 'Kullanıcı',          sub: 'son kullanıcı',     color: 'var(--coral)', soft: 'var(--coral-soft)' },
+    { x: 390, name: 'LLM Ajan',           sub: 'karar verici · planner',   color: 'var(--amber)', soft: 'var(--amber-soft)', icon: 'brain' },
+    { x: 650, name: 'Search Tool',        sub: 'function call API',  color: 'var(--teal)', soft: 'var(--teal-soft)' },
+    { x: 910, name: 'Vektör Veritabanı',  sub: 'similarity search', color: 'var(--teal)', soft: 'var(--teal-soft)' }
   ];
 
   buildDefs(svg, 'ag');
@@ -1420,7 +1463,7 @@ function buildAgenticSequence() {
     y: 140,
     label: 'soru',
     sublabel: 'natural language',
-    color: '#C9522F',
+    color: 'var(--coral)',
     marker: 'coral'
   });
 
@@ -1430,7 +1473,7 @@ function buildAgenticSequence() {
     x: actors[1].x, y: 180,
     height: 30, width: 60,
     label: 'düşün: bağlama ihtiyaç var mı?',
-    color: '#A8761E',
+    color: 'var(--amber)',
     side: 'right'
   });
 
@@ -1440,7 +1483,7 @@ function buildAgenticSequence() {
     y1: 245, y2: 640,
     label: 'LOOP',
     condition: '[yeterli bağlam toplanana kadar tekrarla]',
-    color: '#A8761E'
+    color: 'var(--amber)'
   });
 
   // ③ LLM Ajan → Search Tool: tool_call("search_documents", {query})
@@ -1450,7 +1493,7 @@ function buildAgenticSequence() {
     y: 320,
     label: 'tool_call: search_documents(query)',
     sublabel: 'sorgu LLM tarafından formüle edilir',
-    color: '#A8761E',
+    color: 'var(--amber)',
     marker: 'amber'
   });
 
@@ -1461,7 +1504,7 @@ function buildAgenticSequence() {
     y: 395,
     label: 'embed + semantic search',
     sublabel: 'vektör + filtre',
-    color: '#1F6B5F',
+    color: 'var(--teal)',
     marker: 'teal'
   });
 
@@ -1472,7 +1515,7 @@ function buildAgenticSequence() {
     y: 470,
     label: 'top-k chunks',
     sublabel: 'JSON snippets',
-    color: '#1F6B5F',
+    color: 'var(--teal)',
     dashed: true,
     marker: 'teal'
   });
@@ -1484,7 +1527,7 @@ function buildAgenticSequence() {
     y: 540,
     label: 'tool result',
     sublabel: 'context payload',
-    color: '#A8761E',
+    color: 'var(--amber)',
     dashed: true,
     marker: 'amber'
   });
@@ -1495,7 +1538,7 @@ function buildAgenticSequence() {
     x: actors[1].x, y: 590,
     height: 32, width: 60,
     label: 'değerlendir: yeterli mi? · sorguyu rafine et',
-    color: '#A8761E',
+    color: 'var(--amber)',
     side: 'right'
   });
 
@@ -1509,7 +1552,7 @@ function buildAgenticSequence() {
       'karar verebilir. Sorgu her tur',
       'iyileştirilir (query refinement).'
     ],
-    color: '#A8761E', soft: '#FCF1D2'
+    color: 'var(--amber)', soft: 'var(--amber-soft)'
   });
 
   // ⑧ Final synthesis self-call
@@ -1518,7 +1561,7 @@ function buildAgenticSequence() {
     x: actors[1].x, y: 690,
     height: 30, width: 60,
     label: 'sentezle: yanıtı kur + kaynak ekle',
-    color: '#2E4368',
+    color: 'var(--indigo)',
     side: 'right'
   });
 
@@ -1529,7 +1572,7 @@ function buildAgenticSequence() {
     y: 770,
     label: 'kaynaklı yanıt',
     sublabel: 'tool history dahil edilebilir',
-    color: '#2E4368',
+    color: 'var(--indigo)',
     dashed: true,
     marker: 'indigo'
   });
@@ -1551,10 +1594,11 @@ function buildAgenticSequence() {
     }
   }
 
-  window.addEventListener('load', () => {
-    buildClassicSequence();
-    buildAgenticSequence();
-  });
+  // Was gated on window 'load', which waits for every subresource — the same
+  // blank-page failure the Transformer page had when the font request hung.
+  // This script sits at the end of <body>, so the DOM is already parsed.
+  buildClassicSequence();
+  buildAgenticSequence();
 </script>
 
 </body>
