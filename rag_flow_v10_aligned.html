@@ -563,6 +563,113 @@
     .compare-row, .precision-row { grid-template-columns: 1fr; }
     .panel { padding: 20px 18px; }
   }
+
+  /* ═══ CANLI DEMO + EMBEDDING UZAYI ═══════════════════════════════════════ */
+  .demo-grid { display:grid; grid-template-columns: 1fr; gap:14px; }
+  .demo-card {
+    background: var(--card); border:1px solid var(--line); border-radius:12px;
+    padding:18px 20px;
+    box-shadow: 0 1px 2px rgba(46,51,48,.05), 0 1px 1px rgba(46,51,48,.03);
+  }
+  .demo-card h3 { font-size:15px; font-weight:700; color:var(--ink); margin-bottom:8px;
+    display:flex; align-items:center; gap:8px; }
+  .demo-meta { font-size:12px; color:var(--ink-3); line-height:1.5; }
+  .demo-meta b { color:var(--ink-2); }
+
+  .chip-row { display:flex; flex-wrap:wrap; gap:8px; margin:10px 0; }
+  .qchip {
+    border:1px solid var(--line-2); background:var(--card); color:var(--ink-2);
+    border-radius:999px; padding:7px 14px; font-size:12.5px; font-weight:600;
+    cursor:pointer; transition:all .12s;
+  }
+  .qchip:hover { border-color:var(--teal); color:var(--teal); }
+  .qchip.active { background:var(--teal); border-color:var(--teal); color:#fff; }
+
+  .free-row { display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-top:6px; }
+  .free-row input[type=text] {
+    flex:1; min-width:240px; padding:10px 14px;
+    border:1px solid var(--line-2); border-radius:999px;
+    font:400 14px var(--font-sans); background:var(--card); color:var(--ink); outline:none;
+  }
+  .free-row input[type=text]:focus { border-color:var(--teal); box-shadow:0 0 0 3px rgba(74,122,99,.15); }
+  .dbtn {
+    display:inline-flex; align-items:center; gap:6px; padding:10px 18px;
+    border:1px solid transparent; border-radius:999px; cursor:pointer;
+    font:600 13px var(--font-sans);
+    background:var(--teal); color:#fff; transition:background .12s;
+  }
+  .dbtn:hover { background:#3A6B52; }
+  .dbtn.ghost { background:var(--card); color:var(--ink-2); border-color:var(--line-2); }
+  .dbtn.ghost:hover { background:var(--bg-2); }
+  .dbtn:disabled { background:var(--line-2); color:#fff; cursor:not-allowed; }
+  .model-status { font-size:12px; color:var(--ink-3); }
+  .model-status b { color:var(--teal); }
+
+  .toggle-row { display:flex; align-items:center; gap:8px; font-size:13px; color:var(--ink-2); margin-top:10px; }
+  .toggle-row input { accent-color: var(--teal); width:16px; height:16px; }
+
+  .stepline { display:flex; align-items:center; gap:10px; margin:12px 0 6px; }
+  .stepnum {
+    width:22px; height:22px; border-radius:999px; flex-shrink:0;
+    display:inline-flex; align-items:center; justify-content:center;
+    background:var(--teal); color:#fff; font:700 11px var(--font-sans);
+  }
+  .stepline .t { font:600 13px var(--font-sans); color:var(--ink); }
+  .stepline .m { font:400 11.5px var(--font-mono); color:var(--ink-3); }
+
+  .vecbox {
+    font:400 12px/1.7 var(--font-mono); color:var(--ink-2);
+    background:var(--bg-2); border:1px solid var(--line); border-radius:8px;
+    padding:8px 12px; overflow-x:auto; white-space:nowrap;
+  }
+  .vecbox b { color:var(--teal); font-weight:600; }
+
+  .rrow {
+    display:flex; align-items:center; gap:12px; padding:9px 10px;
+    border:1px solid var(--line); border-radius:10px; margin-bottom:6px;
+    background:var(--card); cursor:pointer; transition:border-color .12s;
+  }
+  .rrow:hover { border-color:var(--teal); }
+  .rrow.open { border-color:var(--teal); }
+  .rrow .rank { width:20px; text-align:center; font:700 12px var(--font-mono); color:var(--ink-3); flex-shrink:0; }
+  .rrow .info { flex:1; min-width:0; }
+  .rrow .nm { font:600 13.5px var(--font-sans); color:var(--ink); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .rrow .sub { font:400 11.5px var(--font-sans); color:var(--ink-3); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .rrow .bar { width:130px; height:10px; background:var(--bg-2); border-radius:999px; overflow:hidden; flex-shrink:0; }
+  .rrow .bar i { display:block; height:100%; background:var(--teal); border-radius:999px; }
+  .rrow .sc { width:56px; text-align:right; font:700 12px var(--font-mono); color:var(--teal); flex-shrink:0; }
+  .rrow .kb { font:600 10px var(--font-mono); color:var(--amber); flex-shrink:0; }
+  .rnote {
+    display:none; font-size:12.5px; line-height:1.6; color:var(--ink-2);
+    background:var(--bg-2); border:1px solid var(--line); border-radius:0 0 10px 10px;
+    padding:10px 14px; margin:-6px 0 8px 32px;
+  }
+  .rnote.show { display:block; }
+
+  details.promptbox { margin-top:8px; }
+  details.promptbox summary { cursor:pointer; font:600 13px var(--font-sans); color:var(--indigo); }
+  details.promptbox pre {
+    margin-top:8px; font:400 11.5px/1.65 var(--font-mono); color:var(--ink-2);
+    background:var(--bg-2); border:1px solid var(--line); border-radius:8px;
+    padding:12px 14px; white-space:pre-wrap; max-height:300px; overflow-y:auto;
+  }
+  .llm-answer {
+    font-size:14px; line-height:1.7; color:var(--ink);
+    background:var(--indigo-soft); border-left:3px solid var(--indigo);
+    border-radius:0 10px 10px 0; padding:12px 16px; margin-top:10px;
+    white-space:pre-wrap;
+  }
+  .llm-tag { font:600 10px var(--font-sans); letter-spacing:.08em; text-transform:uppercase; color:var(--indigo); display:block; margin-bottom:6px; }
+  .ollama-hint { font-size:11.5px; color:var(--ink-3); margin-top:8px; line-height:1.6; }
+  .ollama-hint code { font-family:var(--font-mono); background:var(--bg-2); border:1px solid var(--line); border-radius:4px; padding:1px 5px; }
+
+  /* map */
+  .map-toggle { display:flex; gap:8px; margin-bottom:12px; }
+  #map-svg { width:100%; height:auto; display:block; background:var(--card); border:1px solid var(--line); border-radius:12px; }
+  .map-legend { display:flex; flex-wrap:wrap; gap:14px; margin-top:10px; font-size:12px; color:var(--ink-2); }
+  .map-legend span { display:inline-flex; align-items:center; gap:6px; }
+  .map-legend i { width:10px; height:10px; border-radius:50%; display:inline-block; }
+  .map-cap { font-size:12.5px; color:var(--ink-3); line-height:1.6; margin-top:10px; }
 </style>
 </head>
 <body>
@@ -581,6 +688,8 @@
     <div class="tab active" onclick="showTab('flow', this)">RAG Akış Diyagramı</div>
     <div class="tab" onclick="showTab('why', this)">Neden RAG?</div>
     <div class="tab" onclick="showTab('precision', this)">Recall &amp; Precision</div>
+    <div class="tab" id="tab-demo" onclick="showTab('demo', this)">Canlı Demo</div>
+    <div class="tab" id="tab-space" onclick="showTab('space', this)">Embedding Uzayı</div>
   </div>
 
   <!-- ============================================ -->
@@ -966,8 +1075,81 @@
     </div>
   </div>
 
+  <!-- ============================================ -->
+  <!--  TAB 4: CANLI DEMO                            -->
+  <!-- ============================================ -->
+  <div id="demo" class="panel">
+    <div class="section-head">
+      <span class="section-num" style="color:var(--teal)">DEMO · GERÇEK HESAPLAMA</span>
+      <h2 class="section-title">1.367 şarapta <em>semantik arama.</em></h2>
+    </div>
+    <p class="section-sub">
+      Soldaki diyagramın her oku burada gerçekten yaşanır: sorgu vektöre çevrilir, 1.367 kaydın
+      embedding'iyle karşılaştırılır, en yakın 5 kayıt prompt'a girer. Veri: <b>top_rated_wines.csv</b>
+      — her kayıt tür + bölge + tadım notundan embed edildi (çok dilli MiniLM, 384 boyut).
+      Türkçe sorgu İngilizce notlarla eşleşir; model diller arası aynı anlam uzayını kullanır.
+    </p>
+
+    <div class="demo-grid">
+      <div class="demo-card">
+        <h3>Sorgu</h3>
+        <div class="demo-meta">Hazır sorgular çevrimdışı çalışır (vektörleri sayfada gömülü). Serbest metin, sorgu kodlayıcıyı tarayıcıya indirir (~35 MB, bir kez; sonra önbellekte).</div>
+        <div class="chip-row" id="chips"></div>
+        <div class="free-row">
+          <input type="text" id="freeq" placeholder="Serbest sorgu yaz… (örn: mangal yanına güçlü bir kırmızı)">
+          <button class="dbtn" id="freego" onclick="runFree()">Ara</button>
+          <span class="model-status" id="mstatus">kodlayıcı: ilk aramada yüklenecek</span>
+        </div>
+        <div class="toggle-row">
+          <input type="checkbox" id="hybrid" onchange="rerunLast()">
+          <label for="hybrid">Hibrit arama — vektör skoruna anahtar kelime desteği ekle (bkz. Teknikler · 01)</label>
+        </div>
+      </div>
+
+      <div class="demo-card" id="pipe-card" style="display:none">
+        <div class="stepline"><span class="stepnum">1</span><span class="t">Sorgu → vektör</span><span class="m" id="embed-ms"></span></div>
+        <div class="vecbox" id="qvec"></div>
+        <div class="stepline"><span class="stepnum">2</span><span class="t">Benzerlik taraması</span><span class="m" id="scan-ms"></span></div>
+        <div class="demo-meta" id="scan-note"></div>
+        <div class="stepline"><span class="stepnum">3</span><span class="t">Top-5 · getirilen bağlam</span><span class="m">satıra tıkla → tadım notu</span></div>
+        <div id="results"></div>
+        <div style="margin-top:6px"><button class="dbtn ghost" onclick="showOnMap()">Haritada göster →</button></div>
+        <div class="stepline"><span class="stepnum">4</span><span class="t">LLM'e giden prompt</span></div>
+        <details class="promptbox"><summary>Prompt'u göster — modele tam olarak bu metin gidiyor</summary><pre id="prompt-pre"></pre></details>
+        <div class="stepline"><span class="stepnum">5</span><span class="t">Üretim</span><span class="m" id="gen-ms"></span></div>
+        <div id="llm-out"></div>
+        <div class="ollama-hint" id="ollama-hint"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================ -->
+  <!--  TAB 5: EMBEDDING UZAYI                       -->
+  <!-- ============================================ -->
+  <div id="space" class="panel">
+    <div class="section-head">
+      <span class="section-num" style="color:var(--indigo)">HARİTA · 384 BOYUT → 2 BOYUT</span>
+      <h2 class="section-title">Embedding <em>uzayı.</em></h2>
+    </div>
+    <p class="section-sub">
+      Her nokta bir embedding. Anlamca yakın olan, uzayda da yakın durur — arama dediğimiz şey,
+      bu uzayda "en yakın komşuları bulmak"tır. 384 boyut PCA ile 2 boyuta izdüşürüldü;
+      mesafeler yaklaşıktır, komşuluklar gerçektir.
+    </p>
+    <div class="demo-card">
+      <div class="map-toggle">
+        <button class="dbtn" id="mt-wine" onclick="setMapMode('wine')">Şarap uzayı · 1.367 doküman</button>
+        <button class="dbtn ghost" id="mt-word" onclick="setMapMode('word')">Kelime uzayı · TR ↔ EN</button>
+      </div>
+      <svg id="map-svg" xmlns="http://www.w3.org/2000/svg"></svg>
+      <div class="map-legend" id="map-legend"></div>
+      <div class="map-cap" id="map-cap"></div>
+    </div>
+  </div>
+
 </div>
 
+<script src="rag_demo_data.js"></script>
 <script>
 // ============================================================
 // RAG Flow — UML Sequence Diagram Renderers
@@ -1592,6 +1774,7 @@ function buildAgenticSequence() {
       buildClassicSequence();
       buildAgenticSequence();
     }
+    if (id === 'space') drawMap();
   }
 
   // Was gated on window 'load', which waits for every subresource — the same
@@ -1599,6 +1782,337 @@ function buildAgenticSequence() {
   // This script sits at the end of <body>, so the DOM is already parsed.
   buildClassicSequence();
   buildAgenticSequence();
+</script>
+
+<script>
+// ════════════════════════════════════════════════════════════
+//  CANLI RAG DEMOSU — the numbers on screen are the computation
+// ════════════════════════════════════════════════════════════
+// rag_demo_data.js carries centered, int8-quantized MiniLM embeddings of the
+// 1,367 wines (see its header for the recipe). Everything below is the whole
+// retrieval stack: decode, cosine scan, optional keyword boost, prompt
+// assembly. At this scale a vector DB IS the loop in cosineAll — dedicated
+// engines exist because at billions of vectors this loop stops being viable.
+const RD = window.RAG_DATA;
+if (!RD) {
+  // Sidecar missing (page copied without rag_demo_data.js, or opened from a
+  // context that cannot resolve relative scripts). Fail visibly, not silently.
+  document.getElementById('chips').innerHTML =
+    '<span class="demo-meta">rag_demo_data.js yüklenemedi — demo bu dosyayla birlikte sunulmalı (GitHub Pages\u0027te otomatik).</span>';
+  throw new Error('RAG_DATA yok');
+}
+const N = RD.wines.length, DIM = RD.dim;
+
+const V = (() => {
+  const raw = atob(RD.vectors_b64);
+  const v = new Int8Array(raw.length);
+  for (let i = 0; i < raw.length; i++) v[i] = (raw.charCodeAt(i) << 24) >> 24;
+  return v;
+})();
+const VNORM = (() => {  // per-vector norms so int8 dot products become true cosines
+  const n = new Float32Array(N);
+  for (let d = 0; d < N; d++) {
+    let sum = 0; const off = d * DIM;
+    for (let k = 0; k < DIM; k++) { const x = V[off + k]; sum += x * x; }
+    n[d] = Math.sqrt(sum);
+  }
+  return n;
+})();
+// lowercase haystacks for the hybrid keyword boost, built once
+const HAY = RD.wines.map(w => (w.n + ' ' + w.r + ' ' + w.v).toLocaleLowerCase('tr'));
+
+function centerQuery(vec) {
+  const q = new Float32Array(DIM); let s = 0;
+  for (let k = 0; k < DIM; k++) { q[k] = vec[k] - RD.mean[k]; s += q[k] * q[k]; }
+  s = Math.sqrt(s) || 1;
+  for (let k = 0; k < DIM; k++) q[k] /= s;
+  return q;
+}
+function cosineAll(q) {
+  const out = new Float32Array(N);
+  for (let d = 0; d < N; d++) {
+    let s = 0; const off = d * DIM;
+    for (let k = 0; k < DIM; k++) s += V[off + k] * q[k];
+    out[d] = s / VNORM[d];
+  }
+  return out;
+}
+function kwBoost(text) {
+  // Deliberately crude BM25 stand-in: query words looked up in name+region+
+  // variety, +0.06 each (capped). Enough to show WHY hybrid exists.
+  const words = text.toLocaleLowerCase('tr').split(/[^\p{L}\p{N}']+/u).filter(w => w.length > 3);
+  const wantWhite = words.includes('beyaz'), wantRed = words.includes('kırmızı');
+  const wantSpark = words.includes('köpüklü') || words.includes('şampanya');
+  const b = new Float32Array(N);
+  for (let d = 0; d < N; d++) {
+    let hits = 0;
+    for (const w of words) if (HAY[d].includes(w)) hits++;
+    if (wantWhite && HAY[d].includes('white')) hits += 2;
+    if (wantRed && HAY[d].includes('red wine')) hits += 2;
+    if (wantSpark && HAY[d].includes('sparkling')) hits += 2;
+    b[d] = 0.06 * Math.min(hits, 4);
+  }
+  return b;
+}
+
+let lastQuery = null;   // {text, vec, x, y, top}
+function runQuery(vec, text, embedMs) {
+  const card = document.getElementById('pipe-card');
+  card.style.display = 'block';
+
+  // 1) vektör önizleme
+  document.getElementById('embed-ms').textContent = embedMs;
+  document.getElementById('qvec').innerHTML =
+    '"' + text + '" → [ ' + Array.from(vec.slice(0, 8)).map(v => v.toFixed(3)).join(', ') +
+    ', … ] <b>· 384 boyut · birim vektör</b>';
+
+  // 2) tarama — gerçek süreyi ölç
+  const hybrid = document.getElementById('hybrid').checked;
+  const t0 = performance.now();
+  const sims = cosineAll(vec);
+  const boost = hybrid ? kwBoost(text) : null;
+  const scored = [];
+  for (let d = 0; d < N; d++) scored.push([d, sims[d] + (boost ? boost[d] : 0)]);
+  scored.sort((a, b) => b[1] - a[1]);
+  const ms = performance.now() - t0;
+  document.getElementById('scan-ms').textContent = ms.toFixed(1) + ' ms';
+  document.getElementById('scan-note').innerHTML =
+    '<b>' + N + '</b> kayıt × <b>384</b> boyut = ' + (N * DIM).toLocaleString('tr') +
+    ' çarpma — bu ölçekte vektör veritabanı düz bir döngüdür; milyarlarca vektörde ' +
+    'HNSW gibi indeksler bu taramanın yerini alır.' +
+    (hybrid ? ' <b style="color:var(--amber)">Hibrit açık:</b> skorlara anahtar kelime desteği eklendi.' : '');
+
+  // 3) top-5
+  const top = scored.slice(0, 5);
+  const maxS = Math.max(top[0][1], 1e-6);
+  document.getElementById('results').innerHTML = top.map(([d, sc], i) => {
+    const w = RD.wines[d];
+    const kb = boost && boost[d] > 0 ? '<span class="kb">+' + boost[d].toFixed(2) + ' kelime</span>' : '';
+    return '<div class="rrow" onclick="this.classList.toggle(\'open\');document.getElementById(\'note-' + i + '\').classList.toggle(\'show\')">' +
+      '<span class="rank">' + (i + 1) + '</span>' +
+      '<span class="info"><span class="nm">' + w.n + '</span>' +
+      '<span class="sub">' + w.v + ' · ' + w.r + ' · puan ' + w.s + '</span></span>' + kb +
+      '<span class="bar"><i style="width:' + Math.max(sc / maxS * 100, 4).toFixed(0) + '%"></i></span>' +
+      '<span class="sc">' + sc.toFixed(3) + '</span></div>' +
+      '<div class="rnote" id="note-' + i + '">' + w.t + '</div>';
+  }).join('');
+
+  // 4) prompt
+  const prompt = buildPrompt(text, top.map(([d]) => d));
+  document.getElementById('prompt-pre').textContent = prompt;
+
+  // 5) üretim
+  renderGeneration(prompt, text, top.map(([d]) => d));
+
+  // harita kaydı: canlı sorguyu PCA ile izdüşür
+  let qx = 0, qy = 0;
+  for (let k = 0; k < DIM; k++) { qx += vec[k] * RD.pca.comps[0][k]; qy += vec[k] * RD.pca.comps[1][k]; }
+  lastQuery = { text, x: qx, y: qy, top: top.map(([d]) => d) };
+}
+
+function buildPrompt(q, ids) {
+  return 'Bir sommelier asistanısın. YALNIZCA aşağıdaki bağlamdaki şaraplardan öneri yap;\n' +
+    'bağlamda uygun şarap yoksa bunu açıkça söyle. Türkçe, kısa ve gerekçeli yanıt ver.\n\n' +
+    'BAĞLAM (vektör aramasından gelen ' + ids.length + ' kayıt):\n' +
+    ids.map((d, i) => {
+      const w = RD.wines[d];
+      return (i + 1) + '. ' + w.n + ' — ' + w.v + ', ' + w.r + ', puan ' + w.s + '\n   Not: ' + w.t;
+    }).join('\n') +
+    '\n\nSORU: ' + q + '\nYANIT:';
+}
+
+// ── Ollama köprüsü: varsa gerçek üretim, yoksa dürüst yer tutucu ──
+// undefined = not probed yet; [] = probed, absent. Probing once per page load
+// matters: retrying on every query spams the console with CONNECTION_REFUSED.
+let ollamaModels;
+async function detectOllama() {
+  try {
+    const r = await fetch('http://localhost:11434/api/tags', { signal: AbortSignal.timeout(1500) });
+    const j = await r.json();
+    ollamaModels = (j.models || []).map(m => m.name);
+  } catch (e) { ollamaModels = []; }
+}
+async function renderGeneration(prompt, qtext, ids) {
+  const out = document.getElementById('llm-out');
+  const hint = document.getElementById('ollama-hint');
+  if (ollamaModels === undefined) await detectOllama();
+  if (ollamaModels && ollamaModels.length) {
+    const model = ollamaModels[0];
+    out.innerHTML = '<div class="llm-answer"><span class="llm-tag">Ollama · ' + model + ' · localhost — canlı üretim</span>üretiliyor…</div>';
+    hint.textContent = '';
+    const t0 = performance.now();
+    try {
+      const r = await fetch('http://localhost:11434/api/generate', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ model, prompt, stream: false })
+      });
+      const j = await r.json();
+      out.querySelector('.llm-answer').innerHTML =
+        '<span class="llm-tag">Ollama · ' + model + ' · localhost — canlı üretim</span>' + (j.response || '(boş yanıt)');
+      document.getElementById('gen-ms').textContent = ((performance.now() - t0) / 1000).toFixed(1) + ' sn';
+    } catch (e) {
+      out.querySelector('.llm-answer').textContent = 'Ollama yanıt vermedi: ' + e.message;
+    }
+  } else {
+    // Yer tutucu ASLA LLM çıktısı gibi sunulmaz — geldiği yer açıkça yazar.
+    const w = RD.wines[ids[0]];
+    out.innerHTML = '<div class="llm-answer"><span class="llm-tag">Temsilî yanıt — LLM bağlı değil (şablon)</span>' +
+      'En yakın eşleşme: <b>' + w.n + '</b> (' + w.v + ', ' + w.r + ', puan ' + w.s + '). ' +
+      'Gerçek kurulumda yukarıdaki prompt bir LLM’e gider ve bu 5 kayıttan gerekçeli bir öneri yazılır.</div>';
+    hint.innerHTML = 'Canlı üretim için bu makinede Ollama başlat: ' +
+      '<code>OLLAMA_ORIGINS="*" ollama serve</code> ve <code>ollama pull llama3.2</code> — sayfa otomatik bağlanır.';
+    document.getElementById('gen-ms').textContent = '';
+  }
+}
+
+// ── hazır sorgular ──
+function initChips() {
+  document.getElementById('chips').innerHTML = RD.queries.map((q, i) =>
+    '<span class="qchip" id="chip-' + i + '" onclick="runCanned(' + i + ')">' + q.q + '</span>').join('');
+}
+let lastRun = null;
+function runCanned(i) {
+  document.querySelectorAll('.qchip').forEach((c, j) => c.classList.toggle('active', j === i));
+  const q = RD.queries[i];
+  lastRun = { kind: 'canned', i };
+  runQuery(Float32Array.from(q.vec), q.q, 'önceden hesaplandı');
+}
+function rerunLast() {
+  if (!lastRun) return;
+  if (lastRun.kind === 'canned') runCanned(lastRun.i);
+  else runFree();
+}
+
+// ── serbest sorgu: kodlayıcı tembel yüklenir ──
+let extractor = null, extractorP = null;
+function setStatus(t, ok) {
+  const el = document.getElementById('mstatus');
+  el.innerHTML = ok ? '<b>' + t + '</b>' : t;
+}
+async function ensureExtractor() {
+  if (extractor) return extractor;
+  if (!extractorP) {
+    extractorP = (async () => {
+      setStatus('kodlayıcı indiriliyor…');
+      const { pipeline } = await import('https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.3.1');
+      extractor = await pipeline('feature-extraction', 'Xenova/paraphrase-multilingual-MiniLM-L12-v2', {
+        progress_callback: p => {
+          if (p.status === 'progress' && p.total)
+            setStatus('indiriliyor: ' + (p.file || '').split('/').pop() + ' %' + Math.round(p.loaded / p.total * 100));
+        }
+      });
+      setStatus('kodlayıcı hazır — tarayıcıda çalışıyor', true);
+      return extractor;
+    })();
+    extractorP.catch(e => { extractorP = null; setStatus('kodlayıcı yüklenemedi (ağ?): ' + e.message); });
+  }
+  return extractorP;
+}
+async function runFree() {
+  const text = document.getElementById('freeq').value.trim();
+  if (!text) return;
+  document.querySelectorAll('.qchip').forEach(c => c.classList.remove('active'));
+  const btn = document.getElementById('freego');
+  btn.disabled = true;
+  try {
+    await ensureExtractor();
+    const t0 = performance.now();
+    const o = await extractor(text, { pooling: 'mean', normalize: true });
+    const ms = (performance.now() - t0).toFixed(0) + ' ms · tarayıcıda';
+    lastRun = { kind: 'free' };
+    runQuery(centerQuery(Array.from(o.data)), text, ms);
+  } catch (e) { /* durum satırı zaten hatayı gösteriyor */ }
+  btn.disabled = false;
+}
+document.getElementById('freeq').addEventListener('keydown', e => { if (e.key === 'Enter') runFree(); });
+
+// ════════════════════════════════════════════════════════════
+//  EMBEDDING UZAYI — the same vectors, projected by the same PCA
+// ════════════════════════════════════════════════════════════
+let mapMode = 'wine';
+const VARIETY_COLOR = v => {
+  const t = v.toLowerCase();
+  if (t.includes('red')) return ['#9C5B52', 'Kırmızı'];
+  if (t.includes('white')) return ['#B8952E', 'Beyaz'];
+  if (t.includes('sparkling') || t.includes('champagne')) return ['#7A709C', 'Köpüklü'];
+  if (t.includes('ros')) return ['#DFA684', 'Roze'];
+  return ['#8B948F', 'Diğer'];
+};
+const WORD_COLOR = { 'tat': '#9C5B52', 'meyve': '#8A6A31', 'fıçı': '#B87F5F', 'doku': '#4A7A63',
+                     'yemek': '#554B73', 'bağlam': '#6E9080', 'tuzak': '#2E3330' };
+
+function setMapMode(m) {
+  mapMode = m;
+  document.getElementById('mt-wine').className = 'dbtn' + (m === 'wine' ? '' : ' ghost');
+  document.getElementById('mt-word').className = 'dbtn' + (m === 'word' ? '' : ' ghost');
+  drawMap();
+}
+
+function drawMap() {
+  const svg = document.getElementById('map-svg');
+  const Wv = 980, Hv = 560, pad = 40;
+  svg.setAttribute('viewBox', '0 0 ' + Wv + ' ' + Hv);
+  const pts = mapMode === 'wine' ? RD.wines : RD.words;
+  let xs = pts.map(p => p.x), ys = pts.map(p => p.y);
+  if (mapMode === 'wine' && lastQuery) { xs = xs.concat([lastQuery.x]); ys = ys.concat([lastQuery.y]); }
+  const xmin = Math.min(...xs), xmax = Math.max(...xs), ymin = Math.min(...ys), ymax = Math.max(...ys);
+  const X = x => pad + (x - xmin) / (xmax - xmin || 1) * (Wv - 2 * pad);
+  const Y = y => Hv - pad - (y - ymin) / (ymax - ymin || 1) * (Hv - 2 * pad);
+
+  let out = '';
+  if (mapMode === 'wine') {
+    const topSet = new Set(lastQuery ? lastQuery.top : []);
+    RD.wines.forEach((w, i) => {
+      const [c] = VARIETY_COLOR(w.v);
+      const hot = topSet.has(i);
+      out += '<circle cx="' + X(w.x).toFixed(1) + '" cy="' + Y(w.y).toFixed(1) +
+             '" r="' + (hot ? 6 : 3) + '" fill="' + c + '" opacity="' + (hot ? 1 : 0.5) + '"' +
+             (hot ? ' stroke="var(--ink)" stroke-width="1.6"' : '') + '>' +
+             '<title>' + w.n.replace(/&/g, '&amp;').replace(/</g, '&lt;') + '\n' + w.v + ' · puan ' + w.s + '\n' + w.r.replace(/&/g, '&amp;').replace(/</g, '&lt;') + '</title></circle>';
+    });
+    if (lastQuery) {
+      const qx = X(lastQuery.x), qy = Y(lastQuery.y);
+      lastQuery.top.forEach(i => {
+        out += '<line x1="' + qx.toFixed(1) + '" y1="' + qy.toFixed(1) +
+               '" x2="' + X(RD.wines[i].x).toFixed(1) + '" y2="' + Y(RD.wines[i].y).toFixed(1) +
+               '" stroke="var(--ink-3)" stroke-width="1" stroke-dasharray="3 3" opacity=".7"/>';
+      });
+      out += '<g><circle cx="' + qx.toFixed(1) + '" cy="' + qy.toFixed(1) + '" r="9" fill="var(--teal)" stroke="#fff" stroke-width="2.5"/>' +
+             '<title>SORGU: ' + lastQuery.text.replace(/&/g, '&amp;').replace(/</g, '&lt;') + '</title></g>';
+    }
+    document.getElementById('map-legend').innerHTML =
+      [['#9C5B52', 'Kırmızı'], ['#B8952E', 'Beyaz'], ['#7A709C', 'Köpüklü'], ['#DFA684', 'Roze'], ['#8B948F', 'Diğer']]
+        .map(([c, l]) => '<span><i style="background:' + c + '"></i>' + l + '</span>').join('') +
+      (lastQuery ? '<span><i style="background:var(--teal)"></i>Son sorgu + top-5 bağlantıları</span>' : '');
+    document.getElementById('map-cap').innerHTML =
+      'Kırmızılar ve beyazlar haritada kendiliğinden ayrışıyor — kimse modele "tür" kolonunu vermedi; ' +
+      'bu ayrım <b>tadım notlarının dilinden</b> öğrenildi. ' +
+      (lastQuery ? 'Yeşil nokta son sorgunuz: "' + lastQuery.text + '" — kesikli çizgiler top-5 komşusu.' :
+       'Canlı Demo sekmesinde bir arama yapın; sorgunuz bu haritaya düşecek.');
+  } else {
+    RD.words.forEach(w => {
+      const c = WORD_COLOR[w.c] || '#8B948F';
+      out += '<circle cx="' + X(w.x).toFixed(1) + '" cy="' + Y(w.y).toFixed(1) + '" r="4.5" fill="' + c + '"/>' +
+             '<text x="' + (X(w.x) + 8).toFixed(1) + '" y="' + (Y(w.y) + 4).toFixed(1) +
+             '" font-family="var(--font-sans)" font-size="12.5" font-weight="600" fill="' + c + '">' + w.w + '</text>';
+    });
+    document.getElementById('map-legend').innerHTML = Object.entries(WORD_COLOR)
+      .map(([k, c]) => '<span><i style="background:' + c + '"></i>' + k + '</span>').join('');
+    document.getElementById('map-cap').innerHTML =
+      'Aynı anlamın iki dili yan yana düşer: <b>spicy ↔ baharatlı</b>, <b>oak ↔ meşe</b>, <b>fish ↔ balık</b> — ' +
+      'model kelimeleri değil anlamı kodluyor. Sağ altta "tuzak" kelimelere bakın: <b>banka</b> ve <b>bilgisayar</b> ' +
+      'şarap dünyasından uzakta, kendi köşelerinde — alakasız anlam, uzak nokta.';
+  }
+  svg.innerHTML = out;
+}
+
+function showOnMap() {
+  showTab('space', document.getElementById('tab-space'));
+}
+
+// boot
+initChips();
+detectOllama();
 </script>
 
 </body>
