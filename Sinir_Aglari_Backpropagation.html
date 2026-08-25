@@ -431,6 +431,12 @@
 
   .candidate-card {
     position: relative;
+    /* Flex column so the label row can be pinned to the bottom. Grid already
+       makes the two cards in a row equal height; without this the buttons
+       still follow content flow, so a one-line profile parks them higher than
+       its two-line neighbour. */
+    display: flex;
+    flex-direction: column;
     background: var(--genbil-paper);
     border: 1px solid var(--genbil-line);
     border-radius: var(--radius-md);
@@ -469,14 +475,28 @@
   .candidate-card.labeled-nohire .cand-badge.badge-nohire { display: inline-flex; background: var(--pm-warm-deep); }
   .cand-badge svg { display: block; }
   .candidate-card .c-name { font: 600 var(--fs-body-sm)/1.4 var(--font-sans); color: var(--pm-ink); }
-  .candidate-card .c-profile { font-size: var(--fs-caption); color: var(--pm-ink-3); margin-top: 2px; }
+  .candidate-card .c-profile {
+    font-size: var(--fs-caption);
+    line-height: var(--lh-caption);
+    color: var(--pm-ink-3);
+    margin-top: 2px;
+    /* Reserve two lines. The profiles run one or two lines at this card width,
+       so reserving the taller case lines up the score bars across a row too,
+       not just the buttons below them. */
+    min-height: calc(var(--fs-caption) * var(--lh-caption) * 2);
+  }
   .candidate-card .c-bars { margin-top: var(--space-2); }
   .c-bar-row { display: flex; align-items: center; gap: var(--space-2); margin-top: var(--space-1); }
   .c-bar-label { font-size: 11px; color: var(--pm-ink-3); width: 70px; flex-shrink: 0; }
   .c-bar-track { flex: 1; height: 6px; background: var(--genbil-paper-3); border-radius: var(--radius-pill); overflow: hidden; }
   .c-bar-fill { height: 100%; border-radius: var(--radius-pill); transition: width var(--motion-slow) var(--ease-out); }
 
-  .label-btns { display: flex; gap: var(--space-1); margin-top: var(--space-2); }
+  .label-btns {
+    display: flex;
+    gap: var(--space-1);
+    margin-top: auto;        /* pinned to the card floor */
+    padding-top: var(--space-2);
+  }
   .label-btn {
     flex: 1;
     display: inline-flex;
