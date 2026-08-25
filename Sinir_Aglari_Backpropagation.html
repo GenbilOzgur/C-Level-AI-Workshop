@@ -6,414 +6,556 @@
 <title>Sinir Ağları & Backpropagation — C-Level AI Eğitimi</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body {
-    font-family: 'IBM Plex Sans', 'Segoe UI', Arial, sans-serif;
-    background: #FFFFFF;
-    color: #1A202C;
-    font-size: 16px;
-    line-height: 1.6;
-    min-height: 100vh;
+  /* ══════════════════════════════════════════════════════════════════════
+     GENBIL DESIGN SYSTEM — tokens
+     Source: Phygital-MarketPlace/design/colors_and_type.css
+     Inlined rather than linked: this page ships as a standalone file and is
+     served from GitHub Pages, where a cross-project <link> cannot resolve.
+     ══════════════════════════════════════════════════════════════════════ */
+  :root {
+    /* ── ink / paper (DS neutrals) ── */
+    --genbil-ink:      #0F172A;
+    --genbil-ink-2:    #334155;
+    --genbil-ink-3:    #64748B;
+    --genbil-ink-4:    #94A3B8;
+    --genbil-paper:    #FFFFFF;
+    --genbil-paper-2:  #F8FAFC;
+    --genbil-paper-3:  #EEF2F7;
+    --genbil-line:     #E2E8F0;
+    --genbil-line-2:   #CBD5E1;
+
+    /* ── status (Fluent) ── */
+    --success:      #107C10;
+    --success-tint: #DFF6DD;
+    --warn:         #FFAA44;
+    --warn-deep:    #C2900D;
+    --warn-tint:    #FFF4CE;
+    --danger:       #A4262C;
+    --danger-tint:  #FDE7E9;
+
+    /* ── type: families ── */
+    --font-sans:    'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --font-product: 'Segoe UI', 'Inter', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+    /* Cascadia Mono is a local upload in the Phygital project and cannot be
+       reached from here — the DS's own fallback chain carries the mono role. */
+    --font-mono:    ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+
+    /* ── type: scale (DS ramp, adopted as declared) ── */
+    --fs-display: 72px; --lh-display: 1.04; --tr-display: -0.02em;
+    --fs-h1:      48px; --lh-h1:      1.10; --tr-h1:      -0.02em;
+    --fs-h2:      36px; --lh-h2:      1.16; --tr-h2:      -0.01em;
+    --fs-h3:      28px; --lh-h3:      1.22; --tr-h3:      -0.01em;
+    --fs-h4:      22px; --lh-h4:      1.28; --tr-h4:      0;
+    --fs-h5:      18px; --lh-h5:      1.34; --tr-h5:      0;
+    --fs-body:    16px; --lh-body:    1.55; --tr-body:    0;
+    --fs-body-sm: 14px; --lh-body-sm: 1.50; --tr-body-sm: 0;
+    --fs-caption: 12px; --lh-caption: 1.45; --tr-caption: 0.02em;
+    --fs-eyebrow: 12px; --lh-eyebrow: 1.20; --tr-eyebrow: 0.12em;
+
+    /* ── spacing: 8pt grid ── */
+    --space-0: 0;    --space-1: 4px;  --space-2: 8px;  --space-3: 12px;
+    --space-4: 16px; --space-5: 24px; --space-6: 32px; --space-7: 40px;
+    --space-8: 48px; --space-9: 64px; --space-10: 80px; --space-11: 96px;
+
+    /* ── radius ── */
+    --radius-xs: 2px; --radius-sm: 4px;  --radius-md: 8px;
+    --radius-lg: 12px; --radius-xl: 16px; --radius-pill: 999px;
+
+    /* ── motion ── */
+    --motion-fast: 120ms;
+    --motion-base: 180ms;
+    --motion-slow: 320ms;
+    --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+    --ease-std: cubic-bezier(0.2, 0, 0, 1);
+
+    /* ── layout ── */
+    --maxw-marketing: 1200px;
   }
-  /* ── NAV ─────────────────────────────────────── */
+
+  /* ══════════════════════════════════════════════════════════════════════
+     PHYGITAL BRAND LAYER
+     Source: Phygital-MarketPlace/design/pm.css
+     Sage primary · dusty apricot secondary · bone paper. The DS neutrals are
+     re-pointed toward bone and the elevation is re-tinted warm, exactly as
+     pm.css does — same roles, same names, warmer values.
+     ══════════════════════════════════════════════════════════════════════ */
+  :root {
+    --pm-brand:#6E9080; --pm-brand-deep:#57756A; --pm-brand-tint:#E8F0EC; --pm-brand-soft:#B9CFC4;
+    --pm-warm:#DFA684;  --pm-warm-tint:#FAEDE4;  --pm-warm-deep:#B87F5F;
+    --pm-gold:#D9B173;
+    --pm-cream:#FAF8F4; --pm-cream-2:#F4EFE8; --pm-line:#E7E0D6;
+    --pm-ink:#2E3330;   --pm-ink-2:#5A6360;   --pm-ink-3:#8B948F;
+    --pm-free:#5B8C7B;  --pm-free-tint:#E8F0EC;
+    --pm-rail:#333B37;  --pm-rail-2:#3D453F;  --pm-rail-tx:#C4CEC7; --pm-rail-dim:#8B948F;
+
+    /* soften the inherited DS neutrals toward bone (pm.css) */
+    --genbil-line:#E7E0D6; --genbil-line-2:#D5CCC0;
+    --genbil-paper-2:#F7F4EF; --genbil-paper-3:#EFEAE2;
+    --genbil-ink:#2E3330; --genbil-ink-2:#5A6360;
+    --genbil-ink-3:#8B948F; --genbil-ink-4:#A9B2AC;
+    --shadow-1:0 1px 2px rgba(46,51,48,.05), 0 1px 1px rgba(46,51,48,.03);
+    --shadow-2:0 4px 14px rgba(46,51,48,.07), 0 1px 3px rgba(46,51,48,.04);
+    --shadow-3:0 14px 36px rgba(46,51,48,.10), 0 4px 8px rgba(46,51,48,.05);
+    --focus-ring: 0 0 0 3px rgba(110,144,128,.28);
+  }
+
+  /* ══════════════════════════════════════════════════════════════════════
+     DATA-VIZ RAMP — this page's own addition, and why
+     The DS ships --viz-1..6 as Power BI hues (#0078D4, #E3008C, #00B294…).
+     Those are correct on a Fluent dashboard and wrong on a bone ground: six
+     saturated hues over #FAF8F4 read as a toy shelf, which is the exact
+     failure DESIGN-SYSTEM.md §2 avoids for the poster palettes. So the
+     network's categorical colours are muted triads drawn from the brand
+     layer instead. Declared as tokens because the canvas reads them too.
+     ══════════════════════════════════════════════════════════════════════ */
+  :root {
+    /* input layer — the brand triad */
+    --viz-in-1:#6E9080;  /* sage    · Deneyim  */
+    --viz-in-2:#DFA684;  /* apricot · Liderlik */
+    --viz-in-3:#D9B173;  /* gold    · Teknik   */
+    /* hidden layer — muted violet ramp, extended from pm.css's #655C86 */
+    --viz-hid-1:#9A90BA; --viz-hid-2:#8A80AB; --viz-hid-3:#7A709C; --viz-hid-4:#655C86;
+    /* output */
+    --viz-out:#5B8C7B;
+    /* signed weights */
+    --viz-pos:#6E9080;   /* positive */
+    --viz-neg:#9C5B52;   /* negative — pm.css's .pill-exp family */
+    /* the four backprop phases */
+    --viz-phase-fwd:#6E9080;   /* forward  · sage    */
+    --viz-phase-err:#A4262C;   /* error    · danger  */
+    --viz-phase-back:#5B8C7B;  /* backward · free    */
+    --viz-phase-upd:#B87F5F;   /* update   · warm    */
+    /* canvas furniture */
+    --viz-grid:#D5CCC0;
+    --viz-dim:#C4BFB6;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: var(--font-sans);
+    font-size: var(--fs-body);
+    line-height: var(--lh-body);
+    background: var(--pm-cream);
+    color: var(--pm-ink);
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  a { color: var(--pm-brand-deep); text-decoration: none; }
+  a:hover { color: var(--pm-brand); }
+
+  /* ── NAV — the dark rail, laid horizontally ────────────────────────────
+     pm.css's navigation device is a dark rail (--pm-rail) with sage-soft
+     active rows. This page is tab-based rather than rail-based, so the rail
+     runs across the top and keeps the same colour contract. */
   #top-nav {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 14px 32px;
-    background: #1A365D;
-    border-bottom: 3px solid #2B6CB0;
+    gap: var(--space-5);
+    padding: var(--space-3) var(--space-6);
+    background: var(--pm-rail);
+    border-bottom: 1px solid rgba(255,255,255,.09);
+    flex-wrap: wrap;
   }
   #top-nav .logo {
-    font-size: 20px;
-    font-weight: 700;
-    color: #FFFFFF;
-    letter-spacing: 0.5px;
     display: flex;
     align-items: center;
-    gap: 11px;
+    gap: var(--space-3);
+    font-size: var(--fs-h5);
+    font-weight: 800;
+    letter-spacing: -0.01em;
+    color: #FFFFFF;
   }
   #top-nav .logo .net-icon { flex-shrink: 0; }
-  #top-nav .logo span { color: #63B3ED; }
-  .page-tabs {
-    display: flex;
-    gap: 6px;
-  }
+  #top-nav .logo span { color: var(--pm-brand-soft); font-weight: 700; }
+
+  .page-tabs { display: flex; gap: var(--space-1); flex-wrap: wrap; }
   .page-tab {
-    padding: 9px 22px;
-    border-radius: 8px;
-    cursor: pointer;
-    font-size: 15px;
-    font-weight: 600;
-    border: 2px solid transparent;
-    transition: all 0.18s;
-    background: rgba(255,255,255,0.10);
-    color: #CBD5E0;
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: var(--space-2);
+    padding: var(--space-2) var(--space-4);
+    border: 0;
+    border-radius: var(--radius-md);
+    background: transparent;
+    color: var(--pm-rail-tx);
+    font: 500 var(--fs-body-sm)/1 var(--font-sans);
+    cursor: pointer;
+    transition: background var(--motion-fast) var(--ease-std),
+                color var(--motion-fast) var(--ease-std);
   }
-  .page-tab:hover { background: rgba(255,255,255,0.20); color: #FFFFFF; }
+  .page-tab:hover { background: rgba(255,255,255,.07); color: #FFFFFF; }
   .page-tab.active {
-    background: #2B6CB0;
-    color: #FFFFFF;
-    border-color: #63B3ED;
+    background: var(--pm-brand-soft);
+    color: #2A3A32;
+    font-weight: 600;
   }
   .page-tab svg { display: block; }
-  /* ── PAGES ───────────────────────────────────── */
-  .page { display: none; padding: 28px 32px 40px; }
+
+  /* ── PAGES ──────────────────────────────────────────────────────────── */
+  .page { display: none; padding: var(--space-6) var(--space-6) var(--space-8); }
   .page.active { display: block; }
   .page-title {
-    font-size: 26px;
-    font-weight: 800;
-    color: #1A365D;
-    margin-bottom: 6px;
-    letter-spacing: -0.3px;
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: var(--space-3);
+    font: 700 var(--fs-h3)/var(--lh-h3) var(--font-sans);
+    letter-spacing: var(--tr-h3);
+    color: var(--pm-ink);
+    margin-bottom: var(--space-1);
   }
   .page-subtitle {
-    font-size: 17px;
-    color: #4A5568;
-    margin-bottom: 28px;
-    border-bottom: 2px solid #E2E8F0;
-    padding-bottom: 14px;
+    font-size: var(--fs-body);
+    line-height: var(--lh-body);
+    color: var(--pm-ink-3);
+    padding-bottom: var(--space-4);
+    margin-bottom: var(--space-6);
+    border-bottom: 1px solid var(--genbil-line);
   }
-  /* ── CANVAS WRAPPER ──────────────────────────── */
-  .canvas-wrap {
-    display: flex;
-    gap: 24px;
-    align-items: flex-start;
-  }
+
+  /* ── CANVAS ─────────────────────────────────────────────────────────── */
+  .canvas-wrap { display: flex; gap: var(--space-5); align-items: flex-start; flex-wrap: wrap; }
   canvas {
-    border: 1px solid #E2E8F0;
-    border-radius: 14px;
-    background: linear-gradient(180deg,#FCFDFF 0%,#F4F7FB 100%);
-    cursor: pointer;
     display: block;
-    box-shadow: 0 4px 20px rgba(26,54,93,0.06);
+    background: var(--genbil-paper);
+    border: 1px solid var(--genbil-line);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-1);
+    cursor: pointer;
   }
-  /* ── INFO PANEL ──────────────────────────────── */
+
+  /* ── INFO PANEL — .card at consumer sizing ──────────────────────────── */
   .info-panel {
     flex: 1;
     min-width: 280px;
     max-width: 380px;
-    background: #F7FAFC;
-    border: 2px solid #E2E8F0;
-    border-radius: 12px;
-    padding: 20px;
-    font-size: 15px;
-    line-height: 1.65;
+    background: var(--genbil-paper);
+    border: 1px solid var(--genbil-line);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-1);
+    padding: var(--space-5);
+    font-size: var(--fs-body-sm);
+    line-height: var(--lh-body-sm);
   }
   .info-panel h3 {
-    font-size: 18px;
-    font-weight: 700;
-    color: #1A365D;
-    margin-bottom: 12px;
-    border-bottom: 2px solid #BEE3F8;
-    padding-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    font: 700 var(--fs-h5)/var(--lh-h5) var(--font-sans);
+    color: var(--pm-ink);
+    padding-bottom: var(--space-2);
+    margin-bottom: var(--space-3);
+    border-bottom: 1px solid var(--genbil-line);
+  }
+  .info-panel p + p { margin-top: var(--space-2); }
+
+  /* callouts — hairline left rule, tinted ground, no gradients */
+  .info-panel .key-point,
+  .info-panel .warning-box,
+  .info-panel .success-box {
+    padding: var(--space-3) var(--space-4);
+    margin: var(--space-3) 0;
+    border-left: 3px solid;
+    border-radius: 0 var(--radius-md) var(--radius-md) 0;
+    font-size: var(--fs-body-sm);
   }
   .info-panel .key-point {
-    background: #EBF8FF;
-    border-left: 4px solid #3182CE;
-    padding: 10px 14px;
-    border-radius: 0 8px 8px 0;
-    margin: 10px 0;
-    font-size: 14px;
-    color: #2A4365;
+    background: var(--pm-brand-tint);
+    border-left-color: var(--pm-brand);
+    color: var(--pm-brand-deep);
   }
   .info-panel .warning-box {
-    background: #FFF5F5;
-    border-left: 4px solid #E53E3E;
-    padding: 10px 14px;
-    border-radius: 0 8px 8px 0;
-    margin: 10px 0;
-    font-size: 14px;
-    color: #742A2A;
+    background: var(--danger-tint);
+    border-left-color: var(--danger);
+    color: var(--danger);
   }
   .info-panel .success-box {
-    background: #F0FFF4;
-    border-left: 4px solid #38A169;
-    padding: 10px 14px;
-    border-radius: 0 8px 8px 0;
-    margin: 10px 0;
-    font-size: 14px;
-    color: #22543D;
+    background: var(--pm-warm-tint);
+    border-left-color: var(--pm-warm);
+    color: var(--pm-warm-deep);
   }
+  /* inline icons inside callouts and labels ride the text baseline */
+  .info-panel .key-point svg,
+  .info-panel .warning-box svg,
+  .info-panel .success-box svg,
+  .label-btn svg,
+  .stat-chip svg { vertical-align: -0.18em; }
+  .info-panel .key-point i,
+  .info-panel .warning-box i,
+  .info-panel .success-box i { font-style: normal; }
+
   .info-panel .formula-box {
-    background: #FEFCE8;
-    border: 2px solid #F6E05E;
-    padding: 10px 14px;
-    border-radius: 8px;
-    margin: 10px 0;
-    font-family: 'IBM Plex Mono', 'Courier New', monospace;
-    font-size: 13px;
-    color: #1A202C;
+    background: var(--genbil-paper-2);
+    border: 1px solid var(--genbil-line);
+    border-radius: var(--radius-md);
+    padding: var(--space-3) var(--space-4);
+    margin: var(--space-3) 0;
+    font-family: var(--font-mono);
+    font-size: var(--fs-caption);
     line-height: 1.8;
+    color: var(--pm-ink);
+    font-variant-numeric: tabular-nums;
+    white-space: pre-line;
   }
-  /* ── BACKPROP PAGE ───────────────────────────── */
-  .bp-layout {
-    display: grid;
-    grid-template-columns: 1fr 340px;
-    gap: 24px;
-    align-items: start;
-  }
+
+  /* ── BACKPROP PAGE ──────────────────────────────────────────────────── */
+  .bp-layout { display: grid; grid-template-columns: 1fr 340px; gap: var(--space-5); align-items: start; }
   .bp-controls {
     display: flex;
     align-items: center;
-    gap: 14px;
-    margin-bottom: 18px;
+    gap: var(--space-3);
+    margin-bottom: var(--space-4);
     flex-wrap: wrap;
   }
+
+  /* ── BUTTONS — pm.css .b family, pill, consumer surface ─────────────── */
   .btn {
-    padding: 10px 22px;
-    border-radius: 8px;
-    border: 2px solid #2B6CB0;
-    background: #2B6CB0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
+    padding: 10px 20px;
+    border: 1px solid transparent;
+    border-radius: var(--radius-pill);
+    background: var(--pm-brand);
     color: #FFFFFF;
-    font-size: 15px;
-    font-weight: 600;
+    font: 600 var(--fs-body-sm)/1 var(--font-sans);
     cursor: pointer;
-    transition: all 0.16s;
+    white-space: nowrap;
+    transition: background var(--motion-fast) var(--ease-std),
+                border-color var(--motion-fast) var(--ease-std),
+                color var(--motion-fast) var(--ease-std);
   }
-  .btn:hover { background: #1A365D; border-color: #1A365D; }
+  .btn:hover { background: var(--pm-brand-deep); }
+  .btn:focus-visible { outline: none; box-shadow: var(--focus-ring); }
   .btn.secondary {
-    background: #FFFFFF;
-    color: #2B6CB0;
+    background: var(--genbil-paper);
+    color: var(--pm-ink);
+    border-color: var(--genbil-line-2);
   }
-  .btn.secondary:hover { background: #EBF8FF; }
-  .btn.danger {
-    background: #E53E3E;
-    border-color: #E53E3E;
-    color: #FFFFFF;
-  }
-  .stat-chips {
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
-    margin-bottom: 16px;
-  }
+  .btn.secondary:hover { background: var(--genbil-paper-3); }
+  .btn.danger { background: var(--danger); border-color: var(--danger); color: #FFFFFF; }
+  .btn.danger:hover { background: #8C1F24; border-color: #8C1F24; }
+  .btn svg { display: block; flex-shrink: 0; }
+  .btn > span { display: inline-flex; align-items: center; }
+
+  /* ── CHIPS ──────────────────────────────────────────────────────────── */
+  .stat-chips { display: flex; gap: var(--space-2); flex-wrap: wrap; margin-bottom: var(--space-4); }
   .stat-chip {
-    background: #EBF8FF;
-    border: 2px solid #BEE3F8;
-    border-radius: 20px;
-    padding: 6px 16px;
-    font-size: 14px;
-    font-weight: 700;
-    color: #2A4365;
+    background: var(--genbil-paper);
+    border: 1px solid var(--pm-line);
+    border-radius: var(--radius-pill);
+    padding: var(--space-1) var(--space-3);
+    font: 600 var(--fs-caption)/1.6 var(--font-sans);
+    color: var(--pm-ink-2);
+    font-variant-numeric: tabular-nums;
   }
-  .stat-chip .val { color: #2B6CB0; }
-  /* ── WHO DOES WHAT BOXES ─────────────────────── */
-  .who-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
-    gap: 14px;
-    margin: 16px 0;
-  }
+  .stat-chip .val { color: var(--pm-brand-deep); font-weight: 700; }
+
+  /* ── WHO-DOES-WHAT ──────────────────────────────────────────────────── */
+  .who-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-3); margin: var(--space-4) 0; }
   .who-card {
-    border-radius: 10px;
-    padding: 14px;
+    background: var(--genbil-paper);
+    border: 1px solid var(--genbil-line);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-1);
+    padding: var(--space-4);
     text-align: center;
-    border: 2px solid transparent;
   }
-  .who-card .who-icon { font-size: 28px; margin-bottom: 6px; }
-  .who-card .who-title { font-size: 13px; font-weight: 700; margin-bottom: 4px; }
-  .who-card .who-actor { font-size: 15px; font-weight: 800; margin-bottom: 6px; }
-  .who-card .who-desc { font-size: 12px; color: #4A5568; line-height: 1.4; }
-  .who-card.math { background: #EBF8FF; border-color: #3182CE; }
-  .who-card.math .who-actor { color: #2B6CB0; }
-  .who-card.no-human { background: #FFF5F5; border-color: #E53E3E; }
-  .who-card.no-human .who-actor { color: #E53E3E; }
-  /* ── GAME PAGE ───────────────────────────────── */
-  .game-layout {
-    display: grid;
-    grid-template-columns: 260px 1fr 300px;
-    gap: 20px;
-    align-items: start;
+  .who-card .who-icon { display: flex; justify-content: center; margin-bottom: var(--space-2); color: var(--pm-ink-3); }
+  .who-card .who-icon svg { display: block; }
+  .who-card .who-title {
+    font: 600 var(--fs-eyebrow)/var(--lh-eyebrow) var(--font-sans);
+    text-transform: uppercase;
+    letter-spacing: var(--tr-eyebrow);
+    color: var(--pm-ink-3);
+    margin-bottom: var(--space-1);
   }
-  .candidate-list {
-    background: #F7FAFC;
-    border: 2px solid #E2E8F0;
-    border-radius: 12px;
-    padding: 16px;
+  .who-card .who-actor { font: 700 var(--fs-h5)/1.2 var(--font-sans); margin-bottom: var(--space-2); }
+  .who-card .who-desc { font-size: var(--fs-caption); line-height: var(--lh-caption); color: var(--pm-ink-2); }
+  .who-card.math { border-color: var(--pm-brand-soft); }
+  .who-card.math .who-icon { color: var(--pm-brand); }
+  .who-card.math .who-actor { color: var(--pm-brand-deep); }
+  .who-card.no-human { border-color: #E8C9CB; background: var(--danger-tint); }
+  .who-card.no-human .who-icon { color: var(--danger); }
+  .who-card.no-human .who-actor { color: var(--danger); }
+
+  /* ── GAME PAGE ──────────────────────────────────────────────────────── */
+  .game-layout { display: grid; grid-template-columns: 260px 1fr 300px; gap: var(--space-5); align-items: start; }
+
+  .candidate-list, .game-panel {
+    background: var(--genbil-paper);
+    border: 1px solid var(--genbil-line);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-1);
+    padding: var(--space-4);
   }
-  .candidate-list h3 {
-    font-size: 17px;
-    font-weight: 700;
-    color: #1A365D;
-    margin-bottom: 14px;
-    border-bottom: 2px solid #BEE3F8;
-    padding-bottom: 8px;
+  .candidate-list h3, .game-panel h3 {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    font: 700 var(--fs-h5)/var(--lh-h5) var(--font-sans);
+    color: var(--pm-ink);
+    padding-bottom: var(--space-2);
+    margin-bottom: var(--space-3);
+    border-bottom: 1px solid var(--genbil-line);
   }
+  .candidate-list h3 svg, .game-panel h3 svg, .info-panel h3 svg { flex-shrink: 0; color: var(--pm-ink-3); }
+
   .candidate-card {
-    background: #FFFFFF;
-    border: 2px solid #E2E8F0;
-    border-radius: 8px;
-    padding: 10px 12px;
-    margin-bottom: 8px;
-    cursor: pointer;
-    transition: all 0.16s;
     position: relative;
+    background: var(--genbil-paper);
+    border: 1px solid var(--genbil-line);
+    border-radius: var(--radius-md);
+    padding: var(--space-3);
+    margin-bottom: var(--space-2);
+    cursor: pointer;
+    transition: border-color var(--motion-fast) var(--ease-std),
+                background var(--motion-fast) var(--ease-std),
+                box-shadow var(--motion-fast) var(--ease-std);
   }
-  .candidate-card:hover { border-color: #3182CE; background: #EBF8FF; }
-  .candidate-card.selected { border-color: #3182CE; background: #EBF8FF; }
-  /* labeled state — clear visual confirmation of the user's choice */
+  .candidate-card:hover { border-color: var(--pm-brand-soft); background: var(--pm-cream); }
+  .candidate-card.selected { border-color: var(--pm-brand); background: var(--pm-brand-tint); }
   .candidate-card.labeled-hire {
-    border-color: #38A169;
-    box-shadow: inset 4px 0 0 #38A169, 0 2px 8px rgba(56,161,105,0.18);
-    background: #F5FBF7;
+    border-color: var(--pm-brand);
+    background: var(--pm-brand-tint);
+    box-shadow: inset 3px 0 0 var(--pm-brand);
   }
   .candidate-card.labeled-nohire {
-    border-color: #E53E3E;
-    box-shadow: inset 4px 0 0 #E53E3E, 0 2px 8px rgba(229,62,62,0.16);
-    background: #FDF6F6;
+    border-color: var(--pm-warm-deep);
+    background: var(--pm-warm-tint);
+    box-shadow: inset 3px 0 0 var(--pm-warm-deep);
   }
   .cand-badge {
     position: absolute;
-    top: 8px;
-    right: 8px;
+    top: var(--space-2);
+    right: var(--space-2);
     display: none;
     align-items: center;
-    gap: 4px;
+    gap: var(--space-1);
     padding: 2px 8px 2px 5px;
-    border-radius: 20px;
-    font-size: 11px;
-    font-weight: 700;
+    border-radius: var(--radius-pill);
+    font: 700 11px/1.6 var(--font-sans);
     color: #FFFFFF;
-    line-height: 1.6;
   }
-  .candidate-card.labeled-hire .cand-badge.badge-hire { display: inline-flex; background: #38A169; }
-  .candidate-card.labeled-nohire .cand-badge.badge-nohire { display: inline-flex; background: #E53E3E; }
+  .candidate-card.labeled-hire .cand-badge.badge-hire { display: inline-flex; background: var(--pm-brand); }
+  .candidate-card.labeled-nohire .cand-badge.badge-nohire { display: inline-flex; background: var(--pm-warm-deep); }
   .cand-badge svg { display: block; }
-  .candidate-card .c-name { font-size: 14px; font-weight: 700; color: #1A365D; }
-  .candidate-card .c-profile { font-size: 12px; color: #4A5568; margin-top: 2px; }
-  .candidate-card .c-bars { margin-top: 6px; }
-  .c-bar-row { display: flex; align-items: center; gap: 6px; margin-top: 3px; }
-  .c-bar-label { font-size: 11px; color: #718096; width: 70px; flex-shrink: 0; }
-  .c-bar-track { flex: 1; height: 6px; background: #E2E8F0; border-radius: 3px; }
-  .c-bar-fill { height: 100%; border-radius: 3px; transition: width 0.3s; }
-  .label-btns {
-    display: flex;
-    gap: 6px;
-    margin-top: 8px;
-  }
+  .candidate-card .c-name { font: 600 var(--fs-body-sm)/1.4 var(--font-sans); color: var(--pm-ink); }
+  .candidate-card .c-profile { font-size: var(--fs-caption); color: var(--pm-ink-3); margin-top: 2px; }
+  .candidate-card .c-bars { margin-top: var(--space-2); }
+  .c-bar-row { display: flex; align-items: center; gap: var(--space-2); margin-top: var(--space-1); }
+  .c-bar-label { font-size: 11px; color: var(--pm-ink-3); width: 70px; flex-shrink: 0; }
+  .c-bar-track { flex: 1; height: 6px; background: var(--genbil-paper-3); border-radius: var(--radius-pill); overflow: hidden; }
+  .c-bar-fill { height: 100%; border-radius: var(--radius-pill); transition: width var(--motion-slow) var(--ease-out); }
+
+  .label-btns { display: flex; gap: var(--space-1); margin-top: var(--space-2); }
   .label-btn {
     flex: 1;
-    padding: 6px 4px;
-    border-radius: 6px;
-    border: 2px solid;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-1);
+    padding: var(--space-1) var(--space-2);
+    border: 1px solid;
+    border-radius: var(--radius-pill);
+    font: 600 var(--fs-caption)/1.6 var(--font-sans);
     cursor: pointer;
-    font-size: 12px;
-    font-weight: 700;
-    text-align: center;
-    transition: all 0.14s;
+    transition: background var(--motion-fast) var(--ease-std),
+                color var(--motion-fast) var(--ease-std);
   }
-  .label-btn.hire { border-color: #38A169; color: #38A169; background: #F0FFF4; }
-  .label-btn.hire:hover, .label-btn.hire.chosen { background: #38A169; color: #FFFFFF; }
-  .label-btn.nohire { border-color: #E53E3E; color: #E53E3E; background: #FFF5F5; }
-  .label-btn.nohire:hover, .label-btn.nohire.chosen { background: #E53E3E; color: #FFFFFF; }
-  .game-panel {
-    background: #F7FAFC;
-    border: 2px solid #E2E8F0;
-    border-radius: 12px;
-    padding: 16px;
-  }
-  .game-panel h3 {
-    font-size: 17px;
-    font-weight: 700;
-    color: #1A365D;
-    margin-bottom: 12px;
-    border-bottom: 2px solid #BEE3F8;
-    padding-bottom: 8px;
-  }
-  .game-stat { margin-bottom: 8px; font-size: 14px; }
-  .game-stat b { color: #2B6CB0; }
+  .label-btn svg { display: block; flex-shrink: 0; }
+  .label-btn.hire { border-color: var(--pm-brand); color: var(--pm-brand-deep); background: var(--genbil-paper); }
+  .label-btn.hire:hover, .label-btn.hire.chosen { background: var(--pm-brand); color: #FFFFFF; }
+  .label-btn.nohire { border-color: var(--pm-warm-deep); color: var(--pm-warm-deep); background: var(--genbil-paper); }
+  .label-btn.nohire:hover, .label-btn.nohire.chosen { background: var(--pm-warm-deep); color: #FFFFFF; }
+
+  .game-stat { margin-bottom: var(--space-2); font-size: var(--fs-body-sm); }
+  .game-stat b { color: var(--pm-brand-deep); }
   .loss-chart-wrap {
-    background: #FFFFFF;
-    border: 2px solid #E2E8F0;
-    border-radius: 8px;
-    padding: 8px;
-    margin-top: 10px;
+    background: var(--genbil-paper);
+    border: 1px solid var(--genbil-line);
+    border-radius: var(--radius-md);
+    padding: var(--space-2);
+    margin-top: var(--space-3);
   }
-  .accuracy-bar-wrap { margin-top: 12px; }
+
+  .accuracy-bar-wrap { margin-top: var(--space-3); }
   .accuracy-bar-track {
     height: 22px;
-    background: #E2E8F0;
-    border-radius: 11px;
+    background: var(--genbil-paper-3);
+    border-radius: var(--radius-pill);
     overflow: hidden;
-    margin-top: 4px;
+    margin-top: var(--space-1);
   }
   .accuracy-bar-fill {
     height: 100%;
-    border-radius: 11px;
-    background: linear-gradient(90deg, #38A169, #48BB78);
-    transition: width 0.5s;
+    border-radius: var(--radius-pill);
+    background: var(--pm-brand);
+    transition: width var(--motion-slow) var(--ease-out);
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 13px;
-    font-weight: 700;
+    font: 700 var(--fs-caption)/1 var(--font-sans);
     color: #FFFFFF;
     min-width: 40px;
+    font-variant-numeric: tabular-nums;
   }
-  .train-status {
-    font-size: 13px;
-    color: #718096;
-    margin-top: 8px;
-    min-height: 18px;
-  }
-  .weight-viz { margin-top: 12px; }
-  .weight-row { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
-  .weight-label { font-size: 12px; color: #4A5568; width: 110px; flex-shrink: 0; }
-  .weight-bar-track { flex: 1; height: 10px; background: #E2E8F0; border-radius: 5px; position: relative; }
-  .weight-bar-fill { height: 100%; border-radius: 5px; position: absolute; top: 0; transition: all 0.4s; }
-  /* ── STEP INDICATOR ──────────────────────────── */
-  .step-indicator {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 18px;
-    flex-wrap: wrap;
-  }
+  .train-status { font-size: var(--fs-caption); color: var(--pm-ink-3); margin-top: var(--space-2); min-height: 18px; }
+
+  .weight-viz { margin-top: var(--space-3); }
+  .weight-row { display: flex; align-items: center; gap: var(--space-2); margin-bottom: var(--space-1); }
+  .weight-label { font-size: var(--fs-caption); color: var(--pm-ink-2); width: 110px; flex-shrink: 0; }
+  .weight-bar-track { flex: 1; height: 10px; background: var(--genbil-paper-3); border-radius: var(--radius-pill); position: relative; overflow: hidden; }
+  .weight-bar-fill { height: 100%; border-radius: var(--radius-pill); position: absolute; top: 0; transition: width var(--motion-slow) var(--ease-out); }
+
+  /* ── STEP INDICATOR — .chip family ──────────────────────────────────── */
+  .step-indicator { display: flex; gap: var(--space-2); margin-bottom: var(--space-4); flex-wrap: wrap; }
   .step-dot {
-    padding: 7px 18px;
-    border-radius: 20px;
-    font-size: 14px;
-    font-weight: 700;
-    background: #E2E8F0;
-    color: #718096;
+    padding: var(--space-2) var(--space-4);
+    border: 1px solid var(--genbil-line-2);
+    border-radius: var(--radius-pill);
+    background: var(--genbil-paper);
+    color: var(--pm-ink-2);
+    font: 600 var(--fs-body-sm)/1 var(--font-sans);
     cursor: pointer;
-    transition: all 0.15s;
-    border: 2px solid transparent;
+    transition: background var(--motion-fast) var(--ease-std),
+                border-color var(--motion-fast) var(--ease-std),
+                color var(--motion-fast) var(--ease-std);
   }
-  .step-dot.active {
-    background: #2B6CB0;
-    color: #FFFFFF;
-    border-color: #1A365D;
-  }
-  .step-dot.done {
-    background: #C6F6D5;
-    color: #22543D;
-    border-color: #38A169;
-  }
-  /* ── PHASE BADGE ─────────────────────────────── */
+  .step-dot:hover { border-color: var(--genbil-ink-4); }
+  .step-dot.active { background: var(--pm-brand); border-color: var(--pm-brand); color: #FFFFFF; }
+  .step-dot.done { background: var(--pm-brand-tint); border-color: var(--pm-brand-soft); color: var(--pm-brand-deep); }
+
+  /* ── PHASE BADGE — .pill family ─────────────────────────────────────── */
   .phase-badge {
-    display: inline-block;
-    padding: 4px 14px;
-    border-radius: 20px;
-    font-size: 13px;
-    font-weight: 700;
-    margin-left: 10px;
-    vertical-align: middle;
+    display: inline-flex;
+    align-items: center;
+    padding: var(--space-1) var(--space-3);
+    border-radius: var(--radius-pill);
+    font: 600 var(--fs-caption)/1.6 var(--font-sans);
   }
-  .phase-badge.forward { background: #BEE3F8; color: #2A4365; }
-  .phase-badge.error   { background: #FED7D7; color: #742A2A; }
-  .phase-badge.back    { background: #C6F6D5; color: #22543D; }
-  .phase-badge.update  { background: #FEFCBF; color: #744210; }
-  a { color: #2B6CB0; }
-  a:hover { color: #1A365D; }
+  .phase-badge.forward { background: var(--pm-brand-tint); color: var(--pm-brand-deep); }
+  .phase-badge.error   { background: var(--danger-tint);   color: var(--danger); }
+  .phase-badge.back    { background: var(--pm-free-tint);  color: var(--pm-free); }
+  .phase-badge.update  { background: var(--pm-warm-tint);  color: var(--pm-warm-deep); }
+
+  /* ── RESPONSIVE ─────────────────────────────────────────────────────── */
+  @media (max-width: 1180px) {
+    .bp-layout { grid-template-columns: 1fr; }
+    .game-layout { grid-template-columns: 1fr; }
+    .who-grid { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 720px) {
+    .page { padding: var(--space-5) var(--space-4) var(--space-7); }
+    #top-nav { padding: var(--space-3) var(--space-4); }
+    .page-title { font-size: var(--fs-h4); }
+  }
 </style>
 </head>
 <body>
@@ -422,18 +564,18 @@
 <nav id="top-nav">
   <div class="logo">
     <svg class="net-icon" width="34" height="30" viewBox="0 0 34 30" fill="none">
-      <g stroke="#63B3ED" stroke-width="1.4" opacity="0.75">
+      <g stroke="var(--pm-brand-soft)" stroke-width="1.4" opacity="0.7">
         <line x1="5" y1="7" x2="17" y2="4"/><line x1="5" y1="7" x2="17" y2="15"/><line x1="5" y1="7" x2="17" y2="26"/>
         <line x1="5" y1="23" x2="17" y2="4"/><line x1="5" y1="23" x2="17" y2="15"/><line x1="5" y1="23" x2="17" y2="26"/>
         <line x1="17" y1="4" x2="29" y2="15"/><line x1="17" y1="15" x2="29" y2="15"/><line x1="17" y1="26" x2="29" y2="15"/>
       </g>
       <g>
-        <circle cx="5" cy="7" r="3" fill="#2B6CB0" stroke="#90CDF4" stroke-width="1.2"/>
-        <circle cx="5" cy="23" r="3" fill="#2B6CB0" stroke="#90CDF4" stroke-width="1.2"/>
-        <circle cx="17" cy="4" r="3" fill="#63B3ED" stroke="#EBF8FF" stroke-width="1.2"/>
-        <circle cx="17" cy="15" r="3" fill="#63B3ED" stroke="#EBF8FF" stroke-width="1.2"/>
-        <circle cx="17" cy="26" r="3" fill="#63B3ED" stroke="#EBF8FF" stroke-width="1.2"/>
-        <circle cx="29" cy="15" r="3.4" fill="#48BB78" stroke="#C6F6D5" stroke-width="1.2"/>
+        <circle cx="5" cy="7" r="3" fill="var(--pm-brand-deep)" stroke="var(--pm-brand-soft)" stroke-width="1.2"/>
+        <circle cx="5" cy="23" r="3" fill="var(--pm-brand-deep)" stroke="var(--pm-brand-soft)" stroke-width="1.2"/>
+        <circle cx="17" cy="4" r="3" fill="var(--pm-brand)" stroke="#FFFFFF" stroke-width="1.2"/>
+        <circle cx="17" cy="15" r="3" fill="var(--pm-brand)" stroke="#FFFFFF" stroke-width="1.2"/>
+        <circle cx="17" cy="26" r="3" fill="var(--pm-brand)" stroke="#FFFFFF" stroke-width="1.2"/>
+        <circle cx="29" cy="15" r="3.4" fill="var(--pm-warm)" stroke="#FFFFFF" stroke-width="1.2"/>
       </g>
     </svg>
     Sinir Ağları &amp; <span>Backpropagation</span>
@@ -449,7 +591,7 @@
         <g stroke="none">
           <circle cx="4" cy="6" r="2.1" fill="currentColor"/><circle cx="4" cy="16" r="2.1" fill="currentColor"/>
           <circle cx="11" cy="4" r="2.1" fill="currentColor"/><circle cx="11" cy="11" r="2.1" fill="currentColor"/><circle cx="11" cy="18" r="2.1" fill="currentColor"/>
-          <circle cx="18" cy="11" r="2.7" fill="#68D391"/>
+          <circle cx="18" cy="11" r="2.7" fill="var(--pm-warm)"/>
         </g>
       </svg>
       Ağın Yapısı
@@ -458,13 +600,13 @@
       <svg width="21" height="21" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <circle cx="4" cy="11" r="2" fill="currentColor" stroke="none"/>
         <path d="M8 6l5 5-5 5"/>
-        <path d="M14 6l5 5-5 5" stroke="#F6AD55"/>
+        <path d="M14 6l5 5-5 5" stroke="var(--pm-warm)"/>
       </svg>
       İleri Geçiş
     </div>
     <div class="page-tab" onclick="showPage(2)">
       <svg width="21" height="21" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M8 6l-5 5 5 5" stroke="#FC8181"/>
+        <path d="M8 6l-5 5 5 5" stroke="var(--pm-warm)"/>
         <path d="M14 6l-5 5 5 5"/>
         <circle cx="18" cy="11" r="2" fill="currentColor" stroke="none"/>
       </svg>
@@ -474,7 +616,7 @@
       <svg width="21" height="21" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
         <line x1="4" y1="5" x2="18" y2="5"/><line x1="4" y1="11" x2="18" y2="11"/><line x1="4" y1="17" x2="18" y2="17"/>
         <circle cx="9" cy="5" r="2.5" fill="currentColor" stroke="none"/>
-        <circle cx="14" cy="11" r="2.5" fill="#68D391" stroke="none"/>
+        <circle cx="14" cy="11" r="2.5" fill="var(--pm-warm)" stroke="none"/>
         <circle cx="7" cy="17" r="2.5" fill="currentColor" stroke="none"/>
       </svg>
       Ağı Kendin Eğit
@@ -489,18 +631,18 @@
   <div class="canvas-wrap">
     <canvas id="c0" width="700" height="460"></canvas>
     <div class="info-panel" id="p0-panel">
-      <h3>🏗️ Ağın Yapısı</h3>
+      <h3><i data-icon="layers" data-size="18"></i>Ağın Yapısı</h3>
       <p>Bir sinir ağı, birbirine bağlı <strong>nöronlardan</strong> oluşur. Her nöron önceki katmandan giriş alır, bunları ağırlıklarla çarpar ve bir aktivasyon fonksiyonundan geçirir.</p>
-      <div class="key-point">💡 <strong>Ağırlık (Weight):</strong> İki nöron arasındaki bağlantının gücü. Eğitim sürecinde bu değerler güncellenir.</div>
-      <div class="key-point">💡 <strong>Katman:</strong> Aynı seviyedeki nöronlar kümesi. Girdi → Gizli → Çıktı.</div>
-      <div style="margin-top:14px; font-size:14px; color:#4A5568;">
+      <div class="key-point"><i data-icon="bulb"></i> <strong>Ağırlık (Weight):</strong> İki nöron arasındaki bağlantının gücü. Eğitim sürecinde bu değerler güncellenir.</div>
+      <div class="key-point"><i data-icon="bulb"></i> <strong>Katman:</strong> Aynı seviyedeki nöronlar kümesi. Girdi → Gizli → Çıktı.</div>
+      <div style="margin-top:var(--space-4); font-size:var(--fs-body-sm); color:var(--pm-ink-2);">
         <p><strong>Bu örnekte:</strong></p>
         <p style="margin-top:6px;">• <strong>Girdi (3):</strong> Deneyim, Liderlik, Teknik Beceri</p>
         <p style="margin-top:4px;">• <strong>Gizli (4):</strong> Örüntüleri tespit eden nöronlar</p>
         <p style="margin-top:4px;">• <strong>Çıktı (1):</strong> "İşe Al?" olasılığı (0–1)</p>
       </div>
-      <div class="success-box">✅ <strong>Benzetme:</strong> Nöronlar = departman çalışanları. Her biri kendi uzmanlığına göre bilgiyi işler ve bir sonraki departmana iletir.</div>
-      <p style="margin-top:12px; font-size:13px; color:#718096;">↑ Bir nöronun üzerine tıklayın — o nöronun detaylarını görün.</p>
+      <div class="success-box"><i data-icon="check"></i> <strong>Benzetme:</strong> Nöronlar = departman çalışanları. Her biri kendi uzmanlığına göre bilgiyi işler ve bir sonraki departmana iletir.</div>
+      <p style="margin-top:var(--space-3); font-size:var(--fs-caption); color:var(--pm-ink-3);">↑ Bir nöronun üzerine tıklayın — o nöronun detaylarını görün.</p>
     </div>
   </div>
 </div>
@@ -520,7 +662,7 @@
   <div class="canvas-wrap">
     <canvas id="c1" width="700" height="460"></canvas>
     <div class="info-panel" id="p1-panel">
-      <h3>📡 İleri Geçiş</h3>
+      <h3><i data-icon="forward" data-size="18"></i>İleri Geçiş</h3>
       <p id="fwd-desc">Sistem bir aday CV'sini alır ve her değeri 0–1 arasında normalize eder.</p>
       <div class="formula-box" id="fwd-formula" style="display:none;"></div>
       <div class="key-point" id="fwd-insight" style="display:none;"></div>
@@ -541,7 +683,7 @@
       <div class="who-desc">MSE = ½(tahmin − gerçek)²<br>Matematiksel formül. İnsan yok.</div>
     </div>
     <div class="who-card math">
-      <div class="who-icon">🔗</div>
+      <div class="who-icon"><i data-icon="link" data-size="26"></i></div>
       <div class="who-title">HATA SUÇUNU DAĞITAN</div>
       <div class="who-actor">Zincir Kuralı</div>
       <div class="who-desc">Her bağlantının hataya katkısı calculus ile hesaplanır. İnsan yok.</div>
@@ -555,20 +697,20 @@
   </div>
 
   <div class="who-card no-human" style="margin: 0 0 18px; max-width:100%; flex-direction:row; display:flex; align-items:center; gap:16px; padding:14px 20px;">
-    <div class="who-icon" style="font-size:36px;">🚫</div>
+    <div class="who-icon"><i data-icon="ban" data-size="32"></i></div>
     <div style="text-align:left;">
       <div class="who-title" style="font-size:14px;">EĞİTİM SIRASINDA İNSAN MÜDAHALESİ</div>
-      <div class="who-actor" style="font-size:22px; color:#E53E3E;">SIFIR</div>
-      <div class="who-desc" style="font-size:14px; color:#742A2A;">İnsanın rolü sadece başlangıçta: veri etiketleme, mimari seçimi ve hiperparametrelerin ayarlanması. Eğitim başladıktan sonra tüm süreç matematiksel formüller tarafından yürütülür. Binlerce, hatta milyonlarca iterasyon boyunca insan bekleme yapmaz.</div>
+      <div class="who-actor" style="color:var(--danger);">SIFIR</div>
+      <div class="who-desc" style="color:var(--danger);">İnsanın rolü sadece başlangıçta: veri etiketleme, mimari seçimi ve hiperparametrelerin ayarlanması. Eğitim başladıktan sonra tüm süreç matematiksel formüller tarafından yürütülür. Binlerce, hatta milyonlarca iterasyon boyunca insan bekleme yapmaz.</div>
     </div>
   </div>
 
   <div class="bp-layout">
     <div>
       <div class="bp-controls">
-        <button class="btn" onclick="bpPlay()">▶ Otomatik Oynat</button>
-        <button class="btn secondary" onclick="bpStep()">⏭ Adım Adım</button>
-        <button class="btn secondary danger" onclick="bpReset()">↺ Sıfırla</button>
+        <button class="btn" id="bp-play" onclick="bpPlay()"><span id="bp-play-icon"></span><span id="bp-play-label">Otomatik Oynat</span></button>
+        <button class="btn secondary" onclick="bpStep()"><i data-icon="step"></i>Adım Adım</button>
+        <button class="btn secondary danger" onclick="bpReset()"><i data-icon="reset"></i>Sıfırla</button>
         <span id="bp-phase-badge" class="phase-badge forward">İleri Geçiş</span>
       </div>
       <div class="stat-chips">
@@ -581,7 +723,7 @@
       <canvas id="c2loss" width="640" height="150" style="margin-top:12px;"></canvas>
     </div>
     <div class="info-panel" id="p2-panel">
-      <h3>🔄 Backpropagation Adımları</h3>
+      <h3><i data-icon="cycle" data-size="18"></i>Backpropagation Adımları</h3>
       <div id="bp-step-desc">
         <p>Eğitimi başlatın. Her iterasyonda şu 4 adım otomatik çalışır:</p>
         <div class="key-point" style="margin-top:10px;">
@@ -596,7 +738,7 @@
         <div class="key-point">
           <strong>4. Ağırlık Güncelleme:</strong> Gradient descent her ağırlığı hatayı azaltacak yönde küçük bir adım günceller.
         </div>
-        <div class="success-box" style="margin-top:12px;">⏱️ Milyonlarca iterasyon saniyeler içinde tamamlanır — insan beklemiyor!</div>
+        <div class="success-box" style="margin-top:12px;"><i data-icon="timer"></i> Milyonlarca iterasyon saniyeler içinde tamamlanır — insan beklemiyor!</div>
       </div>
     </div>
   </div>
@@ -610,11 +752,11 @@
   <div class="game-layout">
     <!-- Candidates -->
     <div class="candidate-list">
-      <h3>👥 Adaylar</h3>
-      <p style="font-size:13px; color:#4A5568; margin-bottom:12px;">Her aday için <strong>İşe Al / Alma</strong> kararı verin.</p>
+      <h3><i data-icon="users" data-size="18"></i>Adaylar</h3>
+      <p style="font-size:var(--fs-caption); color:var(--pm-ink-2); margin-bottom:var(--space-3);">Her aday için <strong>İşe Al / Alma</strong> kararı verin.</p>
       <div id="candidate-list-inner"></div>
       <div style="margin-top:14px;">
-        <button class="btn" style="width:100%; font-size:14px;" onclick="startTraining()">🚀 Eğitimi Başlat</button>
+        <button class="btn" style="width:100%; font-size:14px;" onclick="startTraining()"><i data-icon="zap"></i>Eğitimi Başlat</button>
         <button class="btn secondary" style="width:100%; font-size:14px; margin-top:8px;" onclick="resetGame()">↺ Yeniden Başla</button>
       </div>
     </div>
@@ -633,19 +775,19 @@
 
     <!-- Right panel -->
     <div class="game-panel">
-      <h3>📊 Ağ Durumu</h3>
+      <h3><i data-icon="chart" data-size="18"></i>Ağ Durumu</h3>
       <div class="accuracy-bar-wrap">
-        <div style="font-size:13px; font-weight:700; color:#2A4365;">Doğruluk Oranı</div>
+        <div style="font-size:var(--fs-caption); font-weight:700; color:var(--pm-ink-2);">Doğruluk Oranı</div>
         <div class="accuracy-bar-track">
           <div class="accuracy-bar-fill" id="g-acc-bar" style="width:0%;">0%</div>
         </div>
       </div>
       <div class="weight-viz" id="weight-viz">
-        <div style="font-size:13px; font-weight:700; color:#2A4365; margin-bottom:8px; margin-top:12px;">Giriş Ağırlıkları (W1)</div>
+        <div style="font-size:var(--fs-caption); font-weight:700; color:var(--pm-ink-2); margin-bottom:var(--space-2); margin-top:var(--space-3);">Giriş Ağırlıkları (W1)</div>
         <div id="w-rows"></div>
       </div>
       <div class="game-panel" style="margin-top:14px; padding:12px;">
-        <div style="font-size:14px; font-weight:700; color:#1A365D; margin-bottom:8px;">🔮 Tahminler</div>
+        <div style="font-size:var(--fs-body-sm); font-weight:700; color:var(--pm-ink); margin-bottom:var(--space-2); display:flex; align-items:center; gap:var(--space-2);"><i data-icon="chart" data-size="15"></i>Tahminler</div>
         <div id="pred-list" style="font-size:13px;"></div>
       </div>
       <div class="success-box" style="margin-top:12px; font-size:13px;">
@@ -656,6 +798,90 @@
 </div>
 
 <script>
+// ════════════════════════════════════════════════════════════
+// ICONOGRAPHY — Lucide, monoline, 1.9 stroke
+// ════════════════════════════════════════════════════════════
+// The DS Iconography section specifies Lucide at 1.9 stroke; the page used
+// 23 different emoji instead, which render as full-colour bitmaps that no
+// token can restyle and which differ per platform. One registry, two entry
+// points: icon() for strings built in JS, <i data-icon="name"> for static
+// markup, hydrated on load.
+const ICON_PATHS = {
+  play:      '<path d="M6 4.5v15l12-7.5z"/>',
+  pause:     '<path d="M9 4.5v15M15 4.5v15"/>',
+  step:      '<path d="M5 4.5v15l11-7.5z"/><path d="M19 5v14"/>',
+  reset:     '<path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/>',
+  layers:    '<path d="M12 2 2 7l10 5 10-5-10-5z"/><path d="M2 12l10 5 10-5"/><path d="M2 17l10 5 10-5"/>',
+  forward:   '<path d="M3 12h16"/><path d="M15 7l5 5-5 5"/>',
+  cycle:     '<path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M3 21v-5h5"/><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/>',
+  users:     '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
+  chart:     '<path d="M3 3v18h18"/><path d="M7 16v-5"/><path d="M12 16V8"/><path d="M17 16v-8"/>',
+  bulb:      '<path d="M9 18h6"/><path d="M10 22h4"/><path d="M15.09 14c.18-.98.65-1.74 1.41-2.5A4.65 4.65 0 0 0 18 8 6 6 0 0 0 6 8c0 1 .23 2.23 1.5 3.5A4.61 4.61 0 0 1 8.91 14"/>',
+  check:     '<path d="M20 6 9 17l-5-5"/>',
+  x:         '<path d="M18 6 6 18M6 6l12 12"/>',
+  alert:     '<path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><path d="M12 9v4"/><path d="M12 17h.01"/>',
+  ban:       '<circle cx="12" cy="12" r="9"/><path d="M5.64 5.64l12.72 12.72"/>',
+  cpu:       '<rect x="5" y="5" width="14" height="14" rx="2"/><rect x="9" y="9" width="6" height="6"/><path d="M9 2v3M15 2v3M9 19v3M15 19v3M2 9h3M2 15h3M19 9h3M19 15h3"/>',
+  search:    '<circle cx="11" cy="11" r="7"/><path d="M20 20l-4.35-4.35"/>',
+  link:      '<path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>',
+  timer:     '<circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2"/><path d="M9 2h6"/>',
+  zap:       '<path d="M13 2 4 14h7l-1 8 9-12h-7l1-8z"/>',
+  trendDown: '<path d="M22 17 13.5 8.5l-5 5L2 7"/><path d="M16 17h6v-6"/>'
+};
+
+function icon(name, size){
+  const d = ICON_PATHS[name];
+  if(!d) return '';
+  const px = size || 16;
+  return '<svg width="'+px+'" height="'+px+'" viewBox="0 0 24 24" fill="none" '+
+         'stroke="currentColor" stroke-width="1.9" stroke-linecap="round" '+
+         'stroke-linejoin="round" aria-hidden="true">'+d+'</svg>';
+}
+
+// Hydrate <i data-icon="name" data-size="18"> placeholders in static markup.
+function hydrateIcons(root){
+  (root||document).querySelectorAll('i[data-icon]').forEach(function(el){
+    el.innerHTML = icon(el.dataset.icon, el.dataset.size ? +el.dataset.size : 16);
+  });
+}
+
+// ════════════════════════════════════════════════════════════
+// DESIGN TOKEN BRIDGE
+// ════════════════════════════════════════════════════════════
+// CSS custom properties do not reach a canvas 2D context, so every colour
+// the network draws used to be a literal hex — 48 of them, drifting from
+// the stylesheet. This reads the tokens once from :root, giving the canvas
+// and the DOM a single source of truth: change a token, both follow.
+const PM = (function(){
+  const cs = getComputedStyle(document.documentElement);
+  const t = n => cs.getPropertyValue(n).trim();
+  return {
+    ink:   t('--pm-ink'),      ink2:  t('--pm-ink-2'),   ink3:  t('--pm-ink-3'),
+    paper: t('--genbil-paper'),line:  t('--genbil-line'),line2: t('--genbil-line-2'),
+    brand: t('--pm-brand'),    brandDeep: t('--pm-brand-deep'),
+    warm:  t('--pm-warm'),     warmDeep:  t('--pm-warm-deep'),
+    gold:  t('--pm-gold'),     free:      t('--pm-free'),
+    danger: t('--danger'),
+    inputs: [t('--viz-in-1'), t('--viz-in-2'), t('--viz-in-3')],
+    hidden: [t('--viz-hid-1'), t('--viz-hid-2'), t('--viz-hid-3'), t('--viz-hid-4')],
+    out:    t('--viz-out'),
+    pos:    t('--viz-pos'),    neg:  t('--viz-neg'),
+    phase:  [t('--viz-phase-fwd'), t('--viz-phase-err'), t('--viz-phase-back'), t('--viz-phase-upd')],
+    grid:   t('--viz-grid'),   dim:  t('--viz-dim')
+  };
+})();
+
+// Token hex → rgba() at a given opacity, so the canvas can tint brand
+// colours without a second, hand-written copy of each value. Named tint()
+// rather than alpha() because the draw functions use `alpha` as a local.
+function tint(hex, a){
+  const m = hex.replace('#','');
+  const r = parseInt(m.substring(0,2),16),
+        g = parseInt(m.substring(2,4),16),
+        b = parseInt(m.substring(4,6),16);
+  return `rgba(${r},${g},${b},${a})`;
+}
+
 // ════════════════════════════════════════════════════════════
 // UTILS
 // ════════════════════════════════════════════════════════════
@@ -692,14 +918,14 @@ function lightenHex(hex, amt){
 // Unified crisp neuron renderer used across all pages.
 function drawNeuron(ctx, x, y, r, color, opts){
   opts = opts || {};
-  const base = opts.dim ? '#CBD5E0' : color;
+  const base = opts.dim ? PM.line2 : color;
   // soft shadow for separation from connection lines
   ctx.save();
-  ctx.shadowColor = 'rgba(15,32,60,0.28)';
+  ctx.shadowColor = tint(PM.ink,0.22);
   ctx.shadowBlur = 12;
   ctx.shadowOffsetY = 3;
   const g = ctx.createRadialGradient(x - r*0.35, y - r*0.4, r*0.15, x, y, r);
-  g.addColorStop(0, opts.dim ? '#E2E8F0' : lightenHex(color, 0.35));
+  g.addColorStop(0, opts.dim ? PM.line : lightenHex(color, 0.35));
   g.addColorStop(1, base);
   ctx.fillStyle = g;
   ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI*2); ctx.fill();
@@ -708,34 +934,34 @@ function drawNeuron(ctx, x, y, r, color, opts){
   if(opts.act != null && !opts.dim){
     ctx.save();
     ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI*2); ctx.clip();
-    ctx.fillStyle = 'rgba(255,255,255,0.32)';
+    ctx.fillStyle = tint(PM.paper,0.32);
     const fh = r*2*clamp(opts.act,0,1);
     ctx.fillRect(x - r, y + r - fh, r*2, fh);
     ctx.restore();
   }
   // crisp ring
   ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI*2);
-  ctx.strokeStyle = opts.ring || (opts.dim ? '#A0AEC0' : '#FFFFFF');
+  ctx.strokeStyle = opts.ring || (opts.dim ? PM.dim : PM.paper);
   ctx.lineWidth = opts.ringW || 3;
   ctx.stroke();
   // optional pulse ring
   if(opts.pulseR){
     ctx.beginPath(); ctx.arc(x, y, r + opts.pulseR, 0, Math.PI*2);
-    ctx.strokeStyle = opts.pulseColor || 'rgba(229,62,62,0.5)';
+    ctx.strokeStyle = opts.pulseColor || tint(PM.danger,0.5);
     ctx.lineWidth = 2.5; ctx.stroke();
   }
   // label centered
   if(opts.label){
-    ctx.fillStyle = opts.dim ? '#4A5568' : '#FFFFFF';
-    ctx.font = 'bold ' + (opts.labelSize || Math.round(r*0.52)) + 'px IBM Plex Sans';
+    ctx.fillStyle = opts.dim ? PM.ink2 : PM.paper;
+    ctx.font = 'bold ' + (opts.labelSize || Math.round(r*0.52)) + 'px Inter';
     ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
     ctx.fillText(opts.label, x, y + 0.5);
     ctx.textBaseline = 'alphabetic';
   }
   // value chip below
   if(opts.value != null){
-    ctx.fillStyle = '#1A202C';
-    ctx.font = 'bold ' + (opts.valueSize || 14) + 'px IBM Plex Sans';
+    ctx.fillStyle = PM.ink;
+    ctx.font = 'bold ' + (opts.valueSize || 14) + 'px Inter';
     ctx.textAlign = 'center';
     ctx.fillText(opts.value, x, y + r + 18);
   }
@@ -757,9 +983,9 @@ function drawConn(ctx, a, b, color, width, dash, dashOffset){
 // ════════════════════════════════════════════════════════════
 const N_IN=3, N_HID=4, N_OUT=1;
 const INPUT_LABELS=['Deneyim','Liderlik','Teknik'];
-const INPUT_COLORS=['#3182CE','#38A169','#D69E2E'];
-const HID_COLORS=['#6B46C1','#7C3AED','#8B5CF6','#9061F9'];
-const OUT_COLOR='#2F855A';
+const INPUT_COLORS=PM.inputs;
+const HID_COLORS=PM.hidden;
+const OUT_COLOR=PM.out;
 
 function makeNetwork(){
   // Xavier init
@@ -858,7 +1084,7 @@ function p0Init(){
           const b=getNodePos(cv,l+1,j,counts[l+1]);
           const w=(l===0)?p0Net.w1[j][i]:p0Net.w2[j][i];
           const alpha=clamp(Math.abs(w)*0.9,0.16,0.72);
-          const col=w>0?`rgba(43,108,176,${alpha})`:`rgba(229,62,62,${alpha})`;
+          const col=w>0?tint(PM.pos,alpha):tint(PM.neg,alpha);
           drawConn(ctx,a,b,col,Math.abs(w)*3.2+0.8);
         }
       }
@@ -869,7 +1095,7 @@ function p0Init(){
     for(let l=0;l<3;l++){
       // layer title
       const tp=getNodePos(cv,l,0,counts[l]);
-      ctx.fillStyle='#1A365D'; ctx.font='bold 16px IBM Plex Sans';
+      ctx.fillStyle=PM.ink; ctx.font='bold 16px Inter';
       ctx.textAlign='center';
       ctx.fillText(layerTitles[l], tp.x, 26);
 
@@ -880,8 +1106,8 @@ function p0Init(){
         // glow for active
         if(act>0.5){
           const glow=ctx.createRadialGradient(p.x,p.y,r*0.3,p.x,p.y,r*1.7);
-          glow.addColorStop(0,'rgba(56,161,105,0.25)');
-          glow.addColorStop(1,'rgba(56,161,105,0)');
+          glow.addColorStop(0,tint(PM.brand,0.22));
+          glow.addColorStop(1,tint(PM.brand,0));
           ctx.fillStyle=glow; ctx.beginPath(); ctx.arc(p.x,p.y,r*1.7,0,Math.PI*2); ctx.fill();
         }
         const col=l===0?INPUT_COLORS[i]:(l===1?HID_COLORS[i]:OUT_COLOR);
@@ -889,8 +1115,21 @@ function p0Init(){
       }
     }
     // legend
-    ctx.fillStyle='#4A5568'; ctx.font='13px IBM Plex Sans'; ctx.textAlign='left';
-    ctx.fillText('🔵 Pozitif ağırlık    🔴 Negatif ağırlık    (çizgi kalınlığı = ağırlık gücü)', 14, H-14);
+    // Legend drawn as two real line samples rather than coloured-dot glyphs —
+    // swatch then shows the actual stroke the network uses, and takes its
+    // colour from the same token.
+    ctx.font='13px Inter'; ctx.textAlign='left';
+    let lx=14; const ly=H-18;
+    [[PM.pos,'Pozitif ağırlık'],[PM.neg,'Negatif ağırlık']].forEach(function(pair){
+      ctx.strokeStyle=pair[0]; ctx.lineWidth=2.6; ctx.lineCap='round';
+      ctx.beginPath(); ctx.moveTo(lx,ly); ctx.lineTo(lx+22,ly); ctx.stroke();
+      ctx.fillStyle=PM.ink2; ctx.textBaseline='middle';
+      ctx.fillText(pair[1], lx+30, ly);
+      lx += 30 + ctx.measureText(pair[1]).width + 24;
+    });
+    ctx.fillStyle=PM.ink3;
+    ctx.fillText('çizgi kalınlığı = ağırlık gücü', lx, ly);
+    ctx.textBaseline='alphabetic';
   }
   draw();
   // click handler
@@ -916,7 +1155,7 @@ function showNeuronInfo(layer,idx){
   const names=[INPUT_LABELS,['Gizli 1','Gizli 2','Gizli 3','Gizli 4'],['Çıktı']];
   const name=names[layer][idx];
   const act=acts[layer][idx];
-  let html=`<h3>🔍 ${name}</h3>`;
+  let html=`<h3>${icon('search',18)}${name}</h3>`;
   html+=`<p>Aktivasyon değeri: <strong>${act.toFixed(4)}</strong></p>`;
   if(layer===1){
     html+=`<div class="formula-box">Hesaplama:<br>`;
@@ -932,7 +1171,7 @@ function showNeuronInfo(layer,idx){
   } else if(layer===0){
     html+=`<div class="key-point">${name} = ${act.toFixed(2)}<br>Bu normalizasyon değeri doğrudan ağa girdi olarak verilir.</div>`;
   } else {
-    html+=`<div class="success-box">İşe Alım Olasılığı: <strong>${(act*100).toFixed(1)}%</strong><br>${act>0.5?'✅ İşe AL önerilir':'❌ İşe ALMA önerilir'}</div>`;
+    html+=`<div class="success-box">İşe Alım Olasılığı: <strong>${(act*100).toFixed(1)}%</strong><br>${act>0.5?icon('check')+' İşe AL önerilir':icon('x')+' İşe ALMA önerilir'}</div>`;
   }
   panel.innerHTML=html;
 }
@@ -960,10 +1199,10 @@ const FWD_FORMULAS=[
 ];
 
 const FWD_INSIGHTS=[
-  '💡 Normalize etme önemlidir — ağın farklı ölçekteki özellikleri karşılaştırabilmesi için.',
-  '💡 Ağırlıklar "önem katsayıları"dır. Yüksek ağırlık = o özellik daha etkili.',
-  '💡 Sigmoid her değeri 0–1 arasına sıkıştırır, böylece olasılık yorumu kolaylaşır.',
-  '💡 Bu tek bir ileri geçiş — backpropagation ile bu hesaplamanın hataları geriye dönük analiz edilir.'
+  icon('bulb')+' Normalize etme önemlidir — ağın farklı ölçekteki özellikleri karşılaştırabilmesi için.',
+  icon('bulb')+' Ağırlıklar "önem katsayıları"dır. Yüksek ağırlık = o özellik daha etkili.',
+  icon('bulb')+' Sigmoid her değeri 0–1 arasına sıkıştırır, böylece olasılık yorumu kolaylaşır.',
+  icon('bulb')+' Bu tek bir ileri geçiş — backpropagation ile bu hesaplamanın hataları geriye dönük analiz edilir.'
 ];
 
 function setFwdStep(s){
@@ -1001,7 +1240,7 @@ function drawFwd(t=0){
   const {h,out}=forward(p0Net,FWD_SAMPLE);
   const acts=[[...FWD_SAMPLE],[...h],[...out]];
   const counts=[N_IN,N_HID,N_OUT];
-  const phaseColors=['#3182CE','#D69E2E','#805AD5','#38A169'];
+  const phaseColors=[PM.brand,PM.gold,PM.hidden[3],PM.free];
 
   // connections — highlight active layer
   for(let l=0;l<2;l++){
@@ -1013,7 +1252,7 @@ function drawFwd(t=0){
         const w=(l===0)?p0Net.w1[j][i]:p0Net.w2[j][i];
         const base=Math.abs(w)*0.6;
         const alpha=active?clamp(base+0.35,0.4,0.9):clamp(base,0.1,0.3);
-        const col=active?phaseColors[fwdStep]:(w>0?`rgba(43,108,176,${alpha})`:`rgba(229,62,62,${alpha})`);
+        const col=active?phaseColors[fwdStep]:(w>0?tint(PM.pos,alpha):tint(PM.neg,alpha));
         drawConn(ctx,a,b,col,active?3.2:1.4, active?[7,5]:null, active?-t*8:0);
       }
     }
@@ -1022,7 +1261,7 @@ function drawFwd(t=0){
   const allLabels=[INPUT_LABELS,['H₁','H₂','H₃','H₄'],['Çıktı']];
   for(let l=0;l<3;l++){
     const tp=getNodePos(cv,l,0,counts[l]);
-    ctx.fillStyle='#1A365D'; ctx.font='bold 16px IBM Plex Sans'; ctx.textAlign='center';
+    ctx.fillStyle=PM.ink; ctx.font='bold 16px Inter'; ctx.textAlign='center';
     ctx.fillText(['GİRDİ','GİZLİ','ÇIKTI'][l], tp.x, 26);
     for(let i=0;i<counts[l];i++){
       const p=getNodePos(cv,l,i,counts[l]);
@@ -1042,7 +1281,7 @@ function drawFwd(t=0){
   if(fwdStep===0){
     for(let i=0;i<N_IN;i++){
       const p=getNodePos(cv,0,i,N_IN);
-      ctx.fillStyle='#2D3748'; ctx.font='bold 13px IBM Plex Sans'; ctx.textAlign='center';
+      ctx.fillStyle=PM.ink; ctx.font='bold 13px Inter'; ctx.textAlign='center';
       ctx.fillText(FWD_SAMPLE_LABELS[i], p.x, p.y-38);
     }
   }
@@ -1067,6 +1306,9 @@ let bpLastResult={h:new Array(N_HID).fill(0.5),out:[0.5],loss:0.5};
 let bpDisplayActs=new Array(N_IN+N_HID+N_OUT).fill(0.5);
 let bpDisplayW1=bpNet.w1.map(r=>[...r]);
 let bpPhaseTimer=0;
+let bpStepQueued=false;
+const BP_PHASE_FRAMES=28;   // ~0.47 s at 60 fps
+
 const PHASE_LABELS=['İleri Geçiş','Hata Ölçümü','Geri Yayılım','Ağırlık Güncelleme'];
 const PHASE_CLASSES=['forward','error','back','update'];
 
@@ -1080,22 +1322,32 @@ function p2Init(){
   function frame(){
     bpAnimId=requestAnimationFrame(frame);
     t+=0.025;
+    // Two independent signals can advance the phase: the auto-play timer, or
+    // a queued single step. They are evaluated separately on purpose — the
+    // advance block used to sit inside `if(bpPlaying)`, so "Adım Adım" (which
+    // only nudged the timer) did nothing while paused, i.e. exactly when it
+    // is the only useful control.
+    let advance=false;
     if(bpPlaying){
       bpPhaseTimer++;
-      if(bpPhaseTimer>28){
-        bpPhaseTimer=0;
-        bpPhase=(bpPhase+1)%4;
-        if(bpPhase===0){
-          // do actual train step
-          const sample=BP_TRAIN[bpCurSample%BP_TRAIN.length];
-          bpLastResult=trainStep(bpNet,sample.x,sample.y,0.55);
-          bpLossHistory.push(bpLastResult.loss);
-          if(bpLossHistory.length>80) bpLossHistory.shift();
-          bpCurSample++;
-          bpIter++;
-          updateBpStats();
-        }
+      if(bpPhaseTimer>BP_PHASE_FRAMES) advance=true;
+    }
+    if(bpStepQueued){ bpStepQueued=false; advance=true; }
+
+    if(advance){
+      bpPhaseTimer=0;
+      bpPhase=(bpPhase+1)%4;
+      if(bpPhase===0){
+        // a full four-phase cycle closed — apply one real training step
+        const sample=BP_TRAIN[bpCurSample%BP_TRAIN.length];
+        bpLastResult=trainStep(bpNet,sample.x,sample.y,0.55);
+        bpLossHistory.push(bpLastResult.loss);
+        if(bpLossHistory.length>80) bpLossHistory.shift();
+        bpCurSample++;
+        bpIter++;
       }
+      updateBpStats();   // every phase change, not only on wrap — the badge
+                         // and the step description track bpPhase
     }
     drawBp(t);
     drawBpLoss();
@@ -1103,9 +1355,27 @@ function p2Init(){
   frame();
 }
 
-function bpPlay(){ bpPlaying=!bpPlaying; document.querySelector('.btn[onclick="bpPlay()"]').textContent=bpPlaying?'⏸ Durdur':'▶ Otomatik Oynat'; }
-function bpStep(){ bpPhaseTimer=99; }
-function bpReset(){ bpNet=makeNetwork(); bpIter=0; bpPhase=0; bpLossHistory=[]; bpPlaying=false; updateBpStats(); document.querySelector('.btn[onclick="bpPlay()"]').textContent='▶ Otomatik Oynat'; }
+// Play-button face. The label lives in its own span so swapping it cannot
+// clobber the icon SVG next to it (textContent on the button would).
+function syncBpPlayBtn(){
+  document.getElementById('bp-play-icon').innerHTML = bpPlaying ? icon('pause') : icon('play');
+  document.getElementById('bp-play-label').textContent = bpPlaying ? 'Durdur' : 'Otomatik Oynat';
+}
+function bpPlay(){ bpPlaying=!bpPlaying; syncBpPlayBtn(); }
+
+// Single step. Stepping is a manual-control gesture, so it stops auto-play
+// rather than racing it, then queues exactly one phase advance.
+function bpStep(){
+  if(bpPlaying){ bpPlaying=false; syncBpPlayBtn(); }
+  bpStepQueued=true;
+}
+
+function bpReset(){
+  bpNet=makeNetwork(); bpIter=0; bpPhase=0; bpLossHistory=[];
+  bpPlaying=false; bpStepQueued=false; bpPhaseTimer=0;
+  bpLastResult={h:new Array(N_HID).fill(0.5),out:[0.5],loss:0.5};
+  updateBpStats(); syncBpPlayBtn();
+}
 
 function updateBpStats(){
   document.getElementById('bp-iter').textContent=bpIter;
@@ -1125,11 +1395,11 @@ function updateBpStats(){
     const desc=document.getElementById('bp-step-desc');
     desc.innerHTML=`
       <div class="key-point"><strong>Mevcut Aşama:</strong> ${PHASE_LABELS[bpPhase]}</div>
-      <div class="key-point"><strong>İterasyon ${bpIter}:</strong> Kayıp = ${bpLastResult.loss.toFixed(4)}<br>Tahmin: ${(bpLastResult.out[0]*100).toFixed(1)}% — Gerçek: ${sample.y===1?'✅ İşe Al':'❌ Alma'}</div>
-      ${bpPhase===1?'<div class="warning-box">⚠️ Hata ölçüldü. Formül: L = ½('+bpLastResult.out[0].toFixed(3)+' − '+sample.y+')² = '+bpLastResult.loss.toFixed(4)+'</div>':''}
-      ${bpPhase===2?'<div class="key-point">🔗 Zincir kuralı çalışıyor — her ağırlığın hataya katkısı calculus ile hesaplanıyor.</div>':''}
-      ${bpPhase===3?'<div class="success-box">✅ Ağırlıklar güncellendi: w = w − α·∂L/∂w (α=0.55)</div>':''}
-      <div class="success-box" style="margin-top:10px;">🤖 Doğruluk: <strong>${acc}%</strong> — İnsan müdahalesi: <strong style="color:#E53E3E;">YOK</strong></div>
+      <div class="key-point"><strong>İterasyon ${bpIter}:</strong> Kayıp = ${bpLastResult.loss.toFixed(4)}<br>Tahmin: ${(bpLastResult.out[0]*100).toFixed(1)}% — Gerçek: ${sample.y===1?icon('check',13)+' İşe Al':icon('x',13)+' Alma'}</div>
+      ${bpPhase===1?'<div class="warning-box">'+icon('alert')+' Hata ölçüldü. Formül: L = ½('+bpLastResult.out[0].toFixed(3)+' − '+sample.y+')² = '+bpLastResult.loss.toFixed(4)+'</div>':''}
+      ${bpPhase===2?'<div class="key-point">'+icon('link')+' Zincir kuralı çalışıyor — her ağırlığın hataya katkısı calculus ile hesaplanıyor.</div>':''}
+      ${bpPhase===3?'<div class="success-box">'+icon('check')+' Ağırlıklar güncellendi: w = w − α·∂L/∂w (α=0.55)</div>':''}
+      <div class="success-box" style="margin-top:10px;">${icon('cpu')} Doğruluk: <strong>${acc}%</strong> — İnsan müdahalesi: <strong style="color:var(--danger);">YOK</strong></div>
     `;
   }
 }
@@ -1153,7 +1423,7 @@ function drawBp(t=0){
   const phaseUp=bpPhase===3;  // update
 
   // phase tint (behind everything)
-  const phaseBg=['rgba(49,130,206,0.06)','rgba(229,62,62,0.06)','rgba(56,161,105,0.06)','rgba(214,158,46,0.06)'];
+  const phaseBg=PM.phase.map(c=>tint(c,0.06));
   ctx.fillStyle=phaseBg[bpPhase];
   ctx.fillRect(0,0,W,H);
 
@@ -1167,16 +1437,16 @@ function drawBp(t=0){
         const abs=Math.abs(w);
         let color, lw, dash=null, off=0;
         if(bpPhase===0){ // forward
-          color=`rgba(43,108,176,${clamp(abs*0.6,0.12,0.6)})`; lw=1.8; dash=[7,5]; off=-t*6;
+          color=tint(PM.phase[0],clamp(abs*0.6,0.12,0.6)); lw=1.8; dash=[7,5]; off=-t*6;
         } else if(bpPhase===2&&l===1){ // backward pass layer 2
-          color=`rgba(56,161,105,${clamp(abs*0.8,0.28,0.85)})`; lw=3; dash=[7,5]; off=t*6;
+          color=tint(PM.phase[2],clamp(abs*0.8,0.28,0.85)); lw=3; dash=[7,5]; off=t*6;
         } else if(bpPhase===2&&l===0){
-          color=`rgba(56,161,105,${clamp(abs*0.6,0.18,0.6)})`; lw=1.8; dash=[7,5]; off=t*5;
+          color=tint(PM.phase[2],clamp(abs*0.6,0.18,0.6)); lw=1.8; dash=[7,5]; off=t*5;
         } else if(phaseUp){
           const changed=Math.abs(w)>0.01;
-          color=changed?`rgba(214,158,46,${clamp(abs*0.8,0.28,0.85)})`:`rgba(160,174,192,0.25)`; lw=changed?2.4:1.2;
+          color=changed?tint(PM.phase[3],clamp(abs*0.8,0.28,0.85)):tint(PM.dim,0.25); lw=changed?2.4:1.2;
         } else {
-          color=`rgba(160,174,192,0.28)`; lw=1.2;
+          color=tint(PM.dim,0.28); lw=1.2;
         }
         drawConn(ctx,a,b,color,lw,dash,off);
       }
@@ -1187,7 +1457,7 @@ function drawBp(t=0){
   const allLabels=[INPUT_LABELS,['H₁','H₂','H₃','H₄'],['Sonuç']];
   for(let l=0;l<3;l++){
     const tp=gp(l,0,counts[l]);
-    ctx.fillStyle='#1A365D'; ctx.font='bold 15px IBM Plex Sans'; ctx.textAlign='center';
+    ctx.fillStyle=PM.ink; ctx.font='bold 15px Inter'; ctx.textAlign='center';
     ctx.fillText(['GİRDİ','GİZLİ','ÇIKTI'][l], tp.x, 20);
     for(let i=0;i<counts[l];i++){
       const p=gp(l,i,counts[l]);
@@ -1199,17 +1469,20 @@ function drawBp(t=0){
         act:act,
         label:allLabels[l][i]||'', labelSize:13,
         value:act.toFixed(2), valueSize:13,
-        ring:errorPulse?'#E53E3E':'#FFFFFF', ringW:errorPulse?3.5:3,
+        ring:errorPulse?PM.danger:PM.paper, ringW:errorPulse?3.5:3,
         pulseR:errorPulse?(5+Math.sin(t*4)*3):0,
-        pulseColor:`rgba(229,62,62,${0.4+Math.sin(t*4)*0.3})`
+        pulseColor:tint(PM.danger,0.4+Math.sin(t*4)*0.3)
       });
     }
   }
 
   // phase annotation
-  const phaseText=['⏩ Veriler ileriye akıyor...','❌ Hata ölçülüyor!','↩️ Gradyanlar geriye yayılıyor...','✅ Ağırlıklar güncellendi!'];
-  ctx.fillStyle=bpPhase===0?'#2B6CB0':bpPhase===1?'#C53030':bpPhase===2?'#276749':'#744210';
-  ctx.font='bold 16px IBM Plex Sans'; ctx.textAlign='center';
+  // Canvas text cannot carry an SVG icon, and emoji glyphs are exactly what
+  // the DS rules out. The phase is already named by the badge and tinted by
+  // the ground, so the annotation carries the words alone.
+  const phaseText=['Veriler ileriye akıyor…','Hata ölçülüyor','Gradyanlar geriye yayılıyor…','Ağırlıklar güncellendi'];
+  ctx.fillStyle=[PM.brandDeep,PM.danger,PM.free,PM.warmDeep][bpPhase];
+  ctx.font='bold 16px Inter'; ctx.textAlign='center';
   ctx.fillText(phaseText[bpPhase], W/2, H-14);
 }
 
@@ -1221,18 +1494,18 @@ function drawBpLoss(){
   const pad={l:50,r:20,t:15,b:30};
   const W=W_-pad.l-pad.r, H=H_-pad.t-pad.b;
   // axes
-  ctx.strokeStyle='#CBD5E0'; ctx.lineWidth=1;
+  ctx.strokeStyle=PM.line2; ctx.lineWidth=1;
   ctx.beginPath(); ctx.moveTo(pad.l,pad.t); ctx.lineTo(pad.l,pad.t+H); ctx.lineTo(pad.l+W,pad.t+H); ctx.stroke();
   // axis labels
-  ctx.fillStyle='#718096'; ctx.font='12px IBM Plex Sans'; ctx.textAlign='center';
+  ctx.fillStyle=PM.ink3; ctx.font='12px Inter'; ctx.textAlign='center';
   ctx.fillText('İterasyon', pad.l+W/2, H_-2);
   ctx.save(); ctx.translate(14, pad.t+H/2); ctx.rotate(-Math.PI/2);
   ctx.fillText('Kayıp (Loss)', 0, 0); ctx.restore();
-  ctx.fillStyle='#4A5568'; ctx.font='bold 12px IBM Plex Sans'; ctx.textAlign='left';
-  ctx.fillText('📉 Kayıp Eğrisi', pad.l+4, pad.t+12);
+  ctx.fillStyle=PM.ink2; ctx.font='bold 12px Inter'; ctx.textAlign='left';
+  ctx.fillText('Kayıp Eğrisi', pad.l+4, pad.t+12);
   if(bpLossHistory.length<2) return;
   const maxL=Math.max(...bpLossHistory, 0.05);
-  ctx.strokeStyle='#2B6CB0'; ctx.lineWidth=2.5;
+  ctx.strokeStyle=PM.brand; ctx.lineWidth=2.5;
   ctx.beginPath();
   bpLossHistory.forEach((v,i)=>{
     const x=pad.l+i/bpLossHistory.length*W;
@@ -1248,28 +1521,35 @@ function drawBpLoss(){
     i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
   });
   ctx.lineTo(pad.l+W,pad.t+H); ctx.lineTo(pad.l,pad.t+H);
-  ctx.fillStyle='rgba(43,108,176,0.10)'; ctx.fill();
+  ctx.fillStyle=tint(PM.brand,0.10); ctx.fill();
   // last val
   const lv=bpLossHistory[bpLossHistory.length-1];
-  ctx.fillStyle='#2B6CB0'; ctx.font='bold 12px IBM Plex Sans'; ctx.textAlign='right';
+  ctx.fillStyle=PM.brandDeep; ctx.font='bold 12px Inter'; ctx.textAlign='right';
   ctx.fillText(`Son kayıp: ${lv.toFixed(4)}`, pad.l+W, pad.t+12);
 }
 
 // ════════════════════════════════════════════════════════════
 // PAGE 3 — GAME
 // ════════════════════════════════════════════════════════════
-const CANDIDATES=[
-  {name:'Ahmet K.',  profile:'8 yıl deneyim, güçlü liderlik',   x:[0.88,0.82,0.70], correct:1, color:'#3182CE'},
-  {name:'Zeynep A.', profile:'Üstün teknik, 2 yıl deneyim',     x:[0.28,0.45,0.96], correct:1, color:'#38A169'},
-  {name:'Murat D.',  profile:'Uzun deneyim, zayıf teknik',      x:[0.90,0.60,0.22], correct:0, color:'#D69E2E'},
-  {name:'Selin Y.',  profile:'Dengeli profil, orta her şey',    x:[0.55,0.58,0.62], correct:1, color:'#805AD5'},
-  {name:'Emre T.',   profile:'Yeni mezun, çok yüksek teknik',   x:[0.12,0.30,0.98], correct:1, color:'#E53E3E'},
-  {name:'Ayşe B.',   profile:'Deneyimsiz, düşük tüm kriterler', x:[0.18,0.20,0.25], correct:0, color:'#DD6B20'},
-  {name:'Can Ö.',    profile:'Orta deneyim, güçlü liderlik',    x:[0.60,0.88,0.55], correct:1, color:'#2C7A7B'},
-  {name:'Leyla S.',  profile:'Uzun deneyim, çok zayıf teknik',  x:[0.85,0.50,0.15], correct:0, color:'#C53030'},
-  {name:'Burak A.',  profile:'Kısa deneyim, çok düşük liderlik',x:[0.25,0.18,0.60], correct:0, color:'#718096'},
-  {name:'Nur K.',    profile:'Dengeli, güçlü tüm kriterler',    x:[0.78,0.80,0.85], correct:1, color:'#1A365D'}
+// Ten one-off hexes used to live here. The name colours now cycle the same
+// muted ramp the network draws with, so the candidate list and the canvas
+// cannot drift apart. Order is chosen so adjacent rows stay distinguishable.
+const CAND_COLORS=[
+  PM.inputs[0], PM.hidden[3], PM.warmDeep, PM.hidden[1], PM.free,
+  PM.inputs[2], PM.brandDeep, PM.hidden[2], PM.ink3,     PM.inputs[1]
 ];
+const CANDIDATES=[
+  {name:'Ahmet K.',  profile:'8 yıl deneyim, güçlü liderlik',   x:[0.88,0.82,0.70], correct:1},
+  {name:'Zeynep A.', profile:'Üstün teknik, 2 yıl deneyim',     x:[0.28,0.45,0.96], correct:1},
+  {name:'Murat D.',  profile:'Uzun deneyim, zayıf teknik',      x:[0.90,0.60,0.22], correct:0},
+  {name:'Selin Y.',  profile:'Dengeli profil, orta her şey',    x:[0.55,0.58,0.62], correct:1},
+  {name:'Emre T.',   profile:'Yeni mezun, çok yüksek teknik',   x:[0.12,0.30,0.98], correct:1},
+  {name:'Ayşe B.',   profile:'Deneyimsiz, düşük tüm kriterler', x:[0.18,0.20,0.25], correct:0},
+  {name:'Can Ö.',    profile:'Orta deneyim, güçlü liderlik',    x:[0.60,0.88,0.55], correct:1},
+  {name:'Leyla S.',  profile:'Uzun deneyim, çok zayıf teknik',  x:[0.85,0.50,0.15], correct:0},
+  {name:'Burak A.',  profile:'Kısa deneyim, çok düşük liderlik',x:[0.25,0.18,0.60], correct:0},
+  {name:'Nur K.',    profile:'Dengeli, güçlü tüm kriterler',    x:[0.78,0.80,0.85], correct:1}
+].map((c,i)=>({...c, color:CAND_COLORS[i]}));
 let gameNet=makeNetwork();
 let gameLabels={}; // idx -> 0 or 1
 let gameTraining=false;
@@ -1327,8 +1607,8 @@ function renderCandidates(){
           </div>`).join('')}
       </div>
       <div class="label-btns">
-        <div class="label-btn hire" id="hire-${i}" onclick="labelCand(${i},1)">✅ İşe Al</div>
-        <div class="label-btn nohire" id="nohire-${i}" onclick="labelCand(${i},0)">❌ Alma</div>
+        <div class="label-btn hire" id="hire-${i}" onclick="labelCand(${i},1)">${icon('check',13)}İşe Al</div>
+        <div class="label-btn nohire" id="nohire-${i}" onclick="labelCand(${i},0)">${icon('x',13)}Alma</div>
       </div>
     `;
     el.appendChild(d);
@@ -1353,7 +1633,7 @@ function startTraining(){
   gameTrainBatch=labeled.map(i=>({x:CANDIDATES[i].x, y:gameLabels[i]}));
   gameNet=makeNetwork(); gameLossHistory=[]; gameIter=0;
   gameTraining=true;
-  document.getElementById('train-status').textContent='🔄 Eğitim devam ediyor — matematiksel formüller çalışıyor...';
+  document.getElementById('train-status').textContent='Eğitim devam ediyor — matematiksel formüller çalışıyor…';
 }
 
 function resetGame(){
@@ -1387,7 +1667,7 @@ function updateGameStats(){
       <div class="weight-bar-track">
         <div class="weight-bar-fill" style="width:${pctW}%;background:${INPUT_COLORS[i]};"></div>
       </div>
-      <div style="font-size:12px;color:#4A5568;width:36px;text-align:right;">${pctW.toFixed(0)}%</div>
+      <div style="font-size:var(--fs-caption);color:var(--pm-ink-2);width:36px;text-align:right;">${pctW.toFixed(0)}%</div>
     </div>`;
   });
   // predictions
@@ -1400,11 +1680,11 @@ function updateGameStats(){
     const correct2=(out[0]>0.5?1:0)===c.correct;
     predEl.innerHTML+=`<div style="display:flex;align-items:center;gap:6px;margin-bottom:5px;">
       <span style="font-weight:700;color:${c.color};width:58px;font-size:12px;">${c.name}</span>
-      <div style="flex:1;height:8px;background:#E2E8F0;border-radius:4px;overflow:hidden;">
-        <div style="width:${pct}%;height:100%;background:${pct>50?'#38A169':'#E53E3E'};border-radius:4px;transition:width 0.5s;"></div>
+      <div style="flex:1;height:8px;background:var(--genbil-paper-3);border-radius:var(--radius-pill);overflow:hidden;">
+        <div style="width:${pct}%;height:100%;background:${pct>50?'var(--pm-brand)':'var(--pm-warm-deep)'};border-radius:var(--radius-pill);transition:width var(--motion-slow) var(--ease-out);"></div>
       </div>
-      <span style="font-size:12px;font-weight:700;color:${pct>50?'#276749':'#C53030'};width:34px;">${pct}%</span>
-      <span style="font-size:11px;">${labeled?(gameLabels[i]===1?'✅':'❌'):'❓'}</span>
+      <span style="font-size:12px;font-weight:700;color:${pct>50?'var(--pm-brand-deep)':'var(--pm-warm-deep)'};width:34px;">${pct}%</span>
+      <span style="font-size:11px;">${labeled?(gameLabels[i]===1?icon('check',13):icon('x',13)):''}</span>
     </div>`;
   });
 }
@@ -1431,7 +1711,7 @@ function drawGame(t=0){
         const abs=Math.abs(w);
         const dash=gameTraining?[6,5]:null;
         const off=gameTraining?-t*6:0;
-        const col=w>0?`rgba(43,108,176,${clamp(abs*0.7,0.12,0.6)})`:`rgba(229,62,62,${clamp(abs*0.7,0.12,0.6)})`;
+        const col=w>0?tint(PM.pos,clamp(abs*0.7,0.12,0.6)):tint(PM.neg,clamp(abs*0.7,0.12,0.6));
         drawConn(ctx,a,b,col,clamp(abs*2.6,0.9,3.4),dash,off);
       }
     }
@@ -1441,7 +1721,7 @@ function drawGame(t=0){
   const allLabels=[INPUT_LABELS,['H₁','H₂','H₃','H₄'],['Karar']];
   for(let l=0;l<3;l++){
     const tp=gp(l,0,counts[l]);
-    ctx.fillStyle='#1A365D'; ctx.font='bold 15px IBM Plex Sans'; ctx.textAlign='center';
+    ctx.fillStyle=PM.ink; ctx.font='bold 15px Inter'; ctx.textAlign='center';
     ctx.fillText(['GİRDİ','GİZLİ','ÇIKTI'][l], tp.x, 20);
     for(let i=0;i<counts[l];i++){
       const p=gp(l,i,counts[l]); const r=26;
@@ -1449,14 +1729,14 @@ function drawGame(t=0){
       drawNeuron(ctx,p.x,p.y,r,col,{
         act:acts[l][i],
         label:allLabels[l][i]||'', labelSize:13,
-        ring:gameTraining?'rgba(214,158,46,0.9)':'#FFFFFF', ringW:gameTraining?3.5:3
+        ring:gameTraining?tint(PM.gold,0.9):PM.paper, ringW:gameTraining?3.5:3
       });
     }
   }
 
   // training particles
   if(gameTraining && gameIter>0){
-    ctx.fillStyle='rgba(214,158,46,0.85)';
+    ctx.fillStyle=tint(PM.gold,0.85);
     for(let p=0;p<6;p++){
       const phase=(t+p*1.0)%3;
       const l=Math.floor(phase);
@@ -1470,9 +1750,9 @@ function drawGame(t=0){
   }
 
   // status text
-  const statusColor=gameTraining?'#276749':'#4A5568';
-  ctx.fillStyle=statusColor; ctx.font='bold 14px IBM Plex Sans'; ctx.textAlign='center';
-  ctx.fillText(gameTraining?`🔄 Eğitim: ${gameIter} iterasyon`:'Eğitim bekleniyor...', W/2, H-12);
+  const statusColor=gameTraining?PM.brandDeep:PM.ink2;
+  ctx.fillStyle=statusColor; ctx.font='bold 14px Inter'; ctx.textAlign='center';
+  ctx.fillText(gameTraining?`Eğitim: ${gameIter} iterasyon`:'Eğitim bekleniyor…', W/2, H-12);
 }
 
 function drawGameLoss(){
@@ -1482,12 +1762,12 @@ function drawGameLoss(){
   ctx.clearRect(0,0,W_,H_);
   const pad={l:50,r:20,t:15,b:28};
   const W=W_-pad.l-pad.r, H=H_-pad.t-pad.b;
-  ctx.strokeStyle='#CBD5E0'; ctx.lineWidth=1;
+  ctx.strokeStyle=PM.line2; ctx.lineWidth=1;
   ctx.beginPath(); ctx.moveTo(pad.l,pad.t); ctx.lineTo(pad.l,pad.t+H); ctx.lineTo(pad.l+W,pad.t+H); ctx.stroke();
-  ctx.fillStyle='#4A5568'; ctx.font='bold 12px IBM Plex Sans'; ctx.textAlign='left';
-  ctx.fillText('📉 Kayıp Eğrisi — Öğrenme Süreci', pad.l+4, pad.t+12);
+  ctx.fillStyle=PM.ink2; ctx.font='bold 12px Inter'; ctx.textAlign='left';
+  ctx.fillText('Kayıp Eğrisi — Öğrenme Süreci', pad.l+4, pad.t+12);
   if(gameLossHistory.length<2){
-    ctx.fillStyle='#A0AEC0'; ctx.font='13px IBM Plex Sans'; ctx.textAlign='center';
+    ctx.fillStyle=PM.ink3; ctx.font='13px Inter'; ctx.textAlign='center';
     ctx.fillText('Eğitim başladığında kayıp eğrisi burada görünecek', pad.l+W/2, pad.t+H/2+4);
     return;
   }
@@ -1498,23 +1778,25 @@ function drawGameLoss(){
     smooth.push(s/c);
   }
   const maxL=Math.max(...smooth,0.02);
-  ctx.strokeStyle='#E53E3E'; ctx.lineWidth=2; ctx.beginPath();
+  ctx.strokeStyle=PM.warmDeep; ctx.lineWidth=2; ctx.beginPath();
   smooth.forEach((v,i)=>{ const x=pad.l+i/smooth.length*W; const y=pad.t+H-(v/maxL)*H; i===0?ctx.moveTo(x,y):ctx.lineTo(x,y); });
   ctx.stroke();
   ctx.beginPath();
   smooth.forEach((v,i)=>{ const x=pad.l+i/smooth.length*W; const y=pad.t+H-(v/maxL)*H; i===0?ctx.moveTo(x,y):ctx.lineTo(x,y); });
   ctx.lineTo(pad.l+W,pad.t+H); ctx.lineTo(pad.l,pad.t+H);
-  ctx.fillStyle='rgba(229,62,62,0.08)'; ctx.fill();
+  ctx.fillStyle=tint(PM.warmDeep,0.08); ctx.fill();
   const lv=smooth[smooth.length-1];
-  ctx.fillStyle='#C53030'; ctx.font='bold 12px IBM Plex Sans'; ctx.textAlign='right';
+  ctx.fillStyle=PM.warmDeep; ctx.font='bold 12px Inter'; ctx.textAlign='right';
   ctx.fillText(`${lv.toFixed(4)}`, pad.l+W, pad.t+12);
-  ctx.fillStyle='#718096'; ctx.font='12px IBM Plex Sans'; ctx.textAlign='center';
+  ctx.fillStyle=PM.ink3; ctx.font='12px Inter'; ctx.textAlign='center';
   ctx.fillText('İterasyon', pad.l+W/2, H_-2);
 }
 
 // ════════════════════════════════════════════════════════════
 // INIT
 // ════════════════════════════════════════════════════════════
+hydrateIcons();
+syncBpPlayBtn();
 p0Init();
 </script>
 </body>
