@@ -226,9 +226,14 @@
   }
 
   /* ── CANVAS ─────────────────────────────────────────────────────────── */
+  /* min-width:0 on the flex/grid children: without it a child refuses to
+     shrink below its content's min-content width, which re-creates the
+     overflow the canvas fix just removed. */
   .canvas-wrap { display: flex; gap: var(--space-5); align-items: flex-start; flex-wrap: wrap; }
+  .canvas-wrap > * { min-width: 0; }
   canvas {
     display: block;
+    max-width: 100%;
     background: var(--genbil-paper);
     border: 1px solid var(--genbil-line);
     border-radius: var(--radius-lg);
@@ -311,7 +316,8 @@
   }
 
   /* ── BACKPROP PAGE ──────────────────────────────────────────────────── */
-  .bp-layout { display: grid; grid-template-columns: 1fr 340px; gap: var(--space-5); align-items: start; }
+  .bp-layout { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: var(--space-5); align-items: start; }
+  .bp-layout > * { min-width: 0; }
   .bp-controls {
     display: flex;
     align-items: center;
@@ -399,10 +405,11 @@
      between the canvas and the panel. */
   .game-layout {
     display: grid;
-    grid-template-columns: 440px minmax(0, 1fr) minmax(360px, 480px);
+    grid-template-columns: minmax(0, 440px) minmax(0, 1fr) minmax(0, 480px);
     gap: var(--space-5);
     align-items: start;
   }
+  .game-layout > * { min-width: 0; }
   #candidate-list-inner {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -614,7 +621,7 @@
 
   /* ── RESPONSIVE ─────────────────────────────────────────────────────── */
   @media (max-width: 1480px) {
-    .game-layout { grid-template-columns: 440px minmax(0, 1fr); }
+    .game-layout { grid-template-columns: minmax(0, 440px) minmax(0, 1fr); }
   }
   @media (max-width: 1180px) {
     .bp-layout { grid-template-columns: 1fr; }
@@ -974,14 +981,33 @@ function hidpi(cv){
   if(cv.__hidpi) return cv.getContext('2d');
   const dpr = Math.max(2, Math.ceil(window.devicePixelRatio || 1));
   cv.__w = cv.width; cv.__h = cv.height;
+  // The CSS box must be allowed to SHRINK. Pinning style.width/height to the
+  // logical size (as this did) makes the canvas an unshrinkable inline-styled
+  // block: no stylesheet rule can override it, so at any narrower viewport —
+  // most visibly when the user changes browser zoom, which is exactly a
+  // viewport-width change in CSS pixels — a 760px canvas overflows its
+  // minmax(0,1fr) grid track and lands on top of the panel beside it.
+  // width + max-width caps it at the container; aspect-ratio keeps the height
+  // proportional so nothing distorts. Drawing coordinates stay logical; the
+  // hit test divides by the rendered scale (see cssScale).
   cv.style.width = cv.__w + 'px';
-  cv.style.height = cv.__h + 'px';
+  cv.style.maxWidth = '100%';
+  cv.style.height = 'auto';
+  cv.style.aspectRatio = cv.__w + ' / ' + cv.__h;
   cv.width = cv.__w * dpr;
   cv.height = cv.__h * dpr;
   const ctx = cv.getContext('2d');
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   cv.__dpr = dpr; cv.__hidpi = true;
   return ctx;
+}
+
+// Rendered-width / logical-width. 1 when the canvas has room, <1 once
+// max-width kicks in. Pointer coordinates come from the rendered box, drawing
+// coordinates are logical — anything comparing the two must divide by this.
+function cssScale(cv){
+  const r = cv.getBoundingClientRect();
+  return (r.width && cv.__w) ? r.width / cv.__w : 1;
 }
 
 // Slightly lighten a hex color for the top of the node gradient (depth).
@@ -1241,7 +1267,8 @@ function p0Init(){
   // click handler
   cv.onclick=function(e){
     const rect=cv.getBoundingClientRect();
-    const mx=e.clientX-rect.left, my=e.clientY-rect.top;
+    const s=cssScale(cv);
+    const mx=(e.clientX-rect.left)/s, my=(e.clientY-rect.top)/s;
     const counts=[N_IN,N_HID,N_OUT];
     for(let l=0;l<3;l++){
       for(let i=0;i<counts[l];i++){
